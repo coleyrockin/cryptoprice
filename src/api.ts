@@ -78,6 +78,7 @@ export type GlobalAsset = {
   marketCap: number;
 };
 
+// Market caps approximate as of June 2025
 const GLOBAL_ASSETS: GlobalAsset[] = [
   { rank: 1, name: "Gold", symbol: "XAU", category: "Commodity", marketCap: 16_100_000_000_000 },
   { rank: 2, name: "Apple", symbol: "AAPL", category: "Stock", marketCap: 3_400_000_000_000 },
