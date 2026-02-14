@@ -12,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { fetchNight, fetchNightRange, fetchTopTen } from "./api";
+import { fetchNight, fetchNightRange, fetchTopTen, getGlobalAssets } from "./api";
 import type { Ticker } from "./api";
 
 const REFRESH_MS = 60_000;
@@ -189,6 +189,7 @@ function App() {
   }, [topTenQuery.dataUpdatedAt, nightQuery.dataUpdatedAt, nightRangeQuery.dataUpdatedAt]);
 
   const activeCoin = topTen[activeIndex] ?? null;
+  const globalAssets = useMemo(() => getGlobalAssets(), []);
 
   const isBooting = topTenQuery.isPending || nightQuery.isPending;
   const hasError = topTenQuery.isError || nightQuery.isError;
@@ -248,10 +249,10 @@ function App() {
       <header className="hero">
         <p className="eyebrow">Cryptoprice</p>
         <h1>
-          Black Market Console <span>Top 10 + NIGHT</span>
+          Crypto & Global Assets <span>Dashboard</span>
         </h1>
         <p className="tagline">
-          Rebuilt from scratch with live ranking intelligence and a dedicated Midnight command center.
+          Live top 10 crypto rankings, top global assets by market cap, and a deep dive into Midnight — the data protection blockchain powered by zero-knowledge proofs.
         </p>
         <div className={statusTone}>{statusText}</div>
       </header>
@@ -418,6 +419,134 @@ function App() {
         ) : (
           <p className="muted">Waiting for NIGHT feed...</p>
         )}
+      </section>
+
+      <section className="surface global-assets-surface">
+        <div className="surface-head">
+          <h2>Top 10 Global Assets</h2>
+          <p>By estimated market cap</p>
+        </div>
+
+        <div className="coin-grid">
+          {globalAssets.map((asset, index) => {
+            const cardStyle = { "--card-index": index } as CSSProperties;
+            return (
+              <div key={asset.symbol} style={cardStyle} className="coin-card asset-card">
+                <div className="coin-head">
+                  <span>#{asset.rank}</span>
+                  <span className="asset-category">{asset.category}</span>
+                </div>
+                <h3>{asset.name}</h3>
+                <p className="coin-price">{asset.symbol}</p>
+                <p className="asset-mcap">{formatCompactCurrency(asset.marketCap)}</p>
+              </div>
+            );
+          })}
+        </div>
+        <p className="disclaimer">* Approximate values — may not reflect real-time prices.</p>
+      </section>
+
+      <section className="surface education-surface">
+        <div className="surface-head">
+          <h2>What is Midnight?</h2>
+          <p>Data protection blockchain</p>
+        </div>
+
+        <div className="education-layout">
+          <div className="edu-intro">
+            <p>
+              Midnight is a data protection blockchain that safeguards sensitive commercial and personal data.
+              It uses zero-knowledge cryptography to enable trustless data protection, built as a partner chain
+              within the Cardano ecosystem.
+            </p>
+          </div>
+
+          <div className="edu-grid">
+            <article className="edu-card">
+              <h3>🔐 Zero-Knowledge Proofs</h3>
+              <p>Advanced ZK proof technology ensures data privacy without revealing underlying information.</p>
+            </article>
+            <article className="edu-card">
+              <h3>📜 Smart Contracts</h3>
+              <p>Smart contracts that protect sensitive data while maintaining on-chain verifiability.</p>
+            </article>
+            <article className="edu-card">
+              <h3>🔗 Cardano Partner Chain</h3>
+              <p>Built on Cardano's partner chain framework, leveraging its proven security and decentralisation.</p>
+            </article>
+            <article className="edu-card">
+              <h3>🪙 Dual-Token Model</h3>
+              <p>NIGHT serves as the utility token and DUST as the operational token for network transactions.</p>
+            </article>
+          </div>
+
+          <div className="edu-usecases">
+            <h3>Use Cases</h3>
+            <div className="usecase-pills">
+              <span className="usecase-pill">Regulatory Compliance</span>
+              <span className="usecase-pill">Enterprise Data Protection</span>
+              <span className="usecase-pill">Private DeFi</span>
+              <span className="usecase-pill">Identity Solutions</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="surface exchange-surface">
+        <div className="surface-head">
+          <h2>Where to Buy NIGHT</h2>
+          <p>Available on these exchanges</p>
+        </div>
+
+        <div className="exchange-grid">
+          <a href="https://www.mexc.com/" target="_blank" rel="noopener noreferrer" className="exchange-card">
+            <h3>MEXC</h3>
+            <p>Global crypto exchange</p>
+          </a>
+          <a href="https://www.gate.io/" target="_blank" rel="noopener noreferrer" className="exchange-card">
+            <h3>Gate.io</h3>
+            <p>Trusted trading platform</p>
+          </a>
+          <a href="https://www.bitget.com/" target="_blank" rel="noopener noreferrer" className="exchange-card">
+            <h3>Bitget</h3>
+            <p>Copy-trading exchange</p>
+          </a>
+        </div>
+        <p className="disclaimer">Always do your own research (DYOR) before investing.</p>
+      </section>
+
+      <section className="surface involved-surface">
+        <div className="surface-head">
+          <h2>Get Involved</h2>
+          <p>Join the Midnight community</p>
+        </div>
+
+        <div className="involved-grid">
+          <a href="https://midnight.network" target="_blank" rel="noopener noreferrer" className="involved-card">
+            <h3>🌐 Official Website</h3>
+            <p>midnight.network</p>
+          </a>
+          <a href="https://docs.midnight.network" target="_blank" rel="noopener noreferrer" className="involved-card">
+            <h3>📚 Documentation</h3>
+            <p>docs.midnight.network</p>
+          </a>
+          <a href="https://discord.gg/midnight" target="_blank" rel="noopener noreferrer" className="involved-card">
+            <h3>💬 Discord</h3>
+            <p>Midnight community</p>
+          </a>
+          <a href="https://x.com/MidnightNtwrk" target="_blank" rel="noopener noreferrer" className="involved-card">
+            <h3>🐦 Twitter / X</h3>
+            <p>@MidnightNtwrk</p>
+          </a>
+          <a href="https://github.com/midnight-network" target="_blank" rel="noopener noreferrer" className="involved-card">
+            <h3>🐙 GitHub</h3>
+            <p>Open source contributions</p>
+          </a>
+          <a href="https://github.com/coleyrockin/cryptoprice" target="_blank" rel="noopener noreferrer" className="involved-card">
+            <h3>📊 Cryptoprice</h3>
+            <p>This project on GitHub</p>
+          </a>
+        </div>
       </section>
     </main>
   );
