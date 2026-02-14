@@ -499,6 +499,199 @@ h1 span {
   color: var(--text-dim);
 }
 
+/* ── Global Assets ─── */
+.global-assets-surface {
+  border-color: rgba(255, 255, 255, 0.2);
+  background:
+    radial-gradient(600px 220px at 80% -20%, rgba(255, 255, 255, 0.09), transparent 56%),
+    linear-gradient(155deg, rgba(14, 14, 19, 0.94), rgba(4, 4, 6, 0.97));
+}
+
+.asset-card {
+  cursor: default;
+}
+
+.asset-card:hover {
+  transform: none;
+}
+
+.asset-category {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.asset-mcap {
+  margin: 0.3rem 0 0;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+.disclaimer {
+  margin: 0.72rem 0 0;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ── Education ─── */
+.education-surface {
+  border-color: rgba(255, 255, 255, 0.22);
+  background:
+    radial-gradient(550px 200px at 30% -15%, rgba(255, 255, 255, 0.1), transparent 55%),
+    linear-gradient(155deg, rgba(14, 14, 19, 0.94), rgba(4, 4, 6, 0.97));
+}
+
+.education-layout {
+  margin-top: 0.82rem;
+}
+
+.edu-intro {
+  margin-bottom: 1rem;
+  color: var(--text-dim);
+  font-size: 0.96rem;
+  line-height: 1.6;
+}
+
+.edu-intro p {
+  margin: 0;
+}
+
+.edu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.62rem;
+}
+
+.edu-card {
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 13px;
+  padding: 0.84rem;
+  background: linear-gradient(150deg, rgba(16, 16, 21, 0.93), rgba(7, 7, 11, 0.95));
+}
+
+.edu-card h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.42rem;
+}
+
+.edu-card p {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.edu-usecases {
+  margin-top: 1rem;
+}
+
+.edu-usecases h3 {
+  font-size: 1rem;
+  margin-bottom: 0.52rem;
+}
+
+.usecase-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.48rem;
+}
+
+.usecase-pill {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 0.38rem 0.78rem;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ── Exchanges ─── */
+.exchange-surface {
+  border-color: rgba(255, 255, 255, 0.2);
+  background:
+    radial-gradient(500px 180px at 60% -10%, rgba(255, 255, 255, 0.08), transparent 55%),
+    linear-gradient(155deg, rgba(13, 13, 18, 0.94), rgba(4, 4, 6, 0.97));
+}
+
+.exchange-grid {
+  margin-top: 0.85rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.62rem;
+}
+
+.exchange-card {
+  display: block;
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 13px;
+  padding: 1rem;
+  text-align: center;
+  background: linear-gradient(150deg, rgba(16, 16, 22, 0.95), rgba(5, 5, 8, 0.96));
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+
+.exchange-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.36);
+}
+
+.exchange-card h3 {
+  font-size: 1.15rem;
+  margin-bottom: 0.32rem;
+}
+
+.exchange-card p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+/* ── Get Involved ─── */
+.involved-surface {
+  border-color: rgba(255, 255, 255, 0.2);
+  background:
+    radial-gradient(550px 200px at 40% -15%, rgba(255, 255, 255, 0.09), transparent 55%),
+    linear-gradient(155deg, rgba(14, 14, 19, 0.94), rgba(4, 4, 6, 0.97));
+}
+
+.involved-grid {
+  margin-top: 0.85rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.62rem;
+}
+
+.involved-card {
+  display: block;
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 13px;
+  padding: 0.84rem;
+  background: linear-gradient(150deg, rgba(16, 16, 22, 0.95), rgba(5, 5, 8, 0.96));
+  transition: transform 180ms ease, border-color 180ms ease;
+}
+
+.involved-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.36);
+}
+
+.involved-card h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.32rem;
+}
+
+.involved-card p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
 @media (max-width: 1090px) {
   .coin-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -516,6 +709,11 @@ h1 span {
   .momentum-row {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  .exchange-grid,
+  .involved-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 840px) {
@@ -531,6 +729,15 @@ h1 span {
 
   .spot-badge {
     margin-inline: 0;
+  }
+
+  .edu-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .exchange-grid,
+  .involved-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -558,5 +765,15 @@ h1 span {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.28rem;
+  }
+
+  .edu-grid,
+  .exchange-grid,
+  .involved-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .usecase-pills {
+    flex-direction: column;
   }
 }

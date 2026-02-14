@@ -69,3 +69,29 @@ export async function fetchNightRange(): Promise<OhlcCandle | null> {
   const payload = await getJson<OhlcCandle[]>(API.nightRange);
   return payload[0] ?? null;
 }
+
+export type GlobalAsset = {
+  rank: number;
+  name: string;
+  symbol: string;
+  category: string;
+  marketCap: number;
+};
+
+// Market caps approximate as of June 2025
+const GLOBAL_ASSETS: GlobalAsset[] = [
+  { rank: 1, name: "Gold", symbol: "XAU", category: "Commodity", marketCap: 16_100_000_000_000 },
+  { rank: 2, name: "Apple", symbol: "AAPL", category: "Stock", marketCap: 3_400_000_000_000 },
+  { rank: 3, name: "Microsoft", symbol: "MSFT", category: "Stock", marketCap: 3_100_000_000_000 },
+  { rank: 4, name: "Saudi Aramco", symbol: "2222.SR", category: "Stock", marketCap: 1_800_000_000_000 },
+  { rank: 5, name: "NVIDIA", symbol: "NVDA", category: "Stock", marketCap: 1_800_000_000_000 },
+  { rank: 6, name: "Amazon", symbol: "AMZN", category: "Stock", marketCap: 1_700_000_000_000 },
+  { rank: 7, name: "Alphabet", symbol: "GOOGL", category: "Stock", marketCap: 1_600_000_000_000 },
+  { rank: 8, name: "Silver", symbol: "XAG", category: "Commodity", marketCap: 1_400_000_000_000 },
+  { rank: 9, name: "Meta Platforms", symbol: "META", category: "Stock", marketCap: 1_300_000_000_000 },
+  { rank: 10, name: "Bitcoin", symbol: "BTC", category: "Crypto", marketCap: 1_300_000_000_000 },
+];
+
+export function getGlobalAssets(): GlobalAsset[] {
+  return GLOBAL_ASSETS;
+}
