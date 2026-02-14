@@ -1,66 +1,80 @@
 # Cryptoprice
 
-Cryptoprice is a dark-theme market dashboard focused on:
+[![CI](https://github.com/coleyrockin/cryptoprice/actions/workflows/ci.yml/badge.svg)](https://github.com/coleyrockin/cryptoprice/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Node >= 20](https://img.shields.io/badge/node-%3E%3D20-3c873a)
 
-- Top 10 global coins by market cap
-- A dedicated Midnight Token (`NIGHT`) telemetry view
+Cryptoprice is a React dashboard for live cryptocurrency market monitoring, with a dedicated telemetry panel for Midnight Token (`NIGHT`).
 
-## Features
+## Highlights
 
-- Live top-10 coin grid with auto-refresh
-- Spotlight mode that cycles through ranked coins
-- Volatility skyline chart (24h change)
-- Dedicated NIGHT panel:
-  - Spot price
-  - 24h / short-horizon momentum
-  - Market cap and volume
-  - OHLC range gauge
+- Top 10 market-cap coins with live polling.
+- Spotlight mode that cycles through ranked assets.
+- 24h volatility skyline chart for quick momentum scanning.
+- Dedicated `NIGHT` detail panel with spot price, market cap, volume, momentum, and latest OHLC range visualization.
 
-## Tech Stack
+## Stack
 
-- React + TypeScript + Vite
-- `@tanstack/react-query` for polling/cache state
-- `framer-motion` for transitions/animation
-- `recharts` for chart rendering
-- `clsx` for conditional class logic
+- React 19 + TypeScript
+- Vite 7
+- `@tanstack/react-query`
+- `framer-motion`
+- `recharts`
 
-## Quick Start
+## Getting Started
+
+Prerequisites:
+
+- Node.js `20.x` or newer
+- npm `10.x` or newer
+
+Install and run locally:
 
 ```bash
 npm install
 npm run dev
 ```
 
-App runs at: `http://localhost:5188`
+Default URL: `http://localhost:5188`
 
 ## Scripts
 
-- `npm run dev` starts the local dev server on `5188`
-- `npm run build` runs type-check/build for production
-- `npm run preview` serves the production build on `5189`
+- `npm run dev`: run local development server.
+- `npm run typecheck`: run TypeScript project checks.
+- `npm run build`: run typecheck and produce production build.
+- `npm run check`: CI-style validation command.
+- `npm run preview`: serve built app locally.
 
 ## Data Sources
 
-- Top 10: `https://api.coinpaprika.com/v1/tickers?quotes=USD&limit=10`
-- NIGHT quote: `https://api.coinpaprika.com/v1/tickers/night-midnight2?quotes=USD`
-- NIGHT latest OHLC: `https://api.coinpaprika.com/v1/coins/night-midnight2/ohlcv/latest?quote=usd`
+- `https://api.coinpaprika.com/v1/tickers?quotes=USD&limit=10`
+- `https://api.coinpaprika.com/v1/tickers/night-midnight2?quotes=USD`
+- `https://api.coinpaprika.com/v1/coins/night-midnight2/ohlcv/latest?quote=usd`
 
 ## Project Structure
 
 ```text
 src/
-  api.ts         API fetch + types
-  App.tsx        Main dashboard layout and views
-  main.tsx       App bootstrap + React Query provider
-  styles.css     Global styling/theme
+  api.ts
+  App.tsx
+  main.tsx
+  styles.css
 ```
 
-## Troubleshooting
+## Contributing and Security
 
-- If you see another project, make sure you are opening `http://localhost:5188` (not `5173`).
-- If data panels are empty, check browser network access to `api.coinpaprika.com`.
+- Contribution guide: [CONTRIBUTING.md](./CONTRIBUTING.md)
+- Code of conduct: [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
+- Security policy: [SECURITY.md](./SECURITY.md)
+- Changelog: [CHANGELOG.md](./CHANGELOG.md)
 
-## GitHub
+## Repository Standards
 
-- Repository: `https://github.com/coleyrockin/cryptoprice`
-- Issues: `https://github.com/coleyrockin/cryptoprice/issues`
+- CI workflow for pull requests and `main` pushes.
+- Dependabot updates for npm and GitHub Actions.
+- Structured issue templates and pull request template.
+- Consistent formatting through `.editorconfig` and `.gitattributes`.
+
+## License
+
+MIT, see [LICENSE](./LICENSE).

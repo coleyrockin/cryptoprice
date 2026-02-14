@@ -49,6 +49,17 @@ function formatPercent(value: number): string {
   return `${sign}${value.toFixed(2)}%`;
 }
 
+function formatPercentFromUnknown(value: number | string | readonly (number | string)[] | undefined): string {
+  const normalized = Array.isArray(value) ? value[0] : value;
+  const numeric = typeof normalized === "number" ? normalized : Number(normalized);
+
+  if (!Number.isFinite(numeric)) {
+    return "n/a";
+  }
+
+  return formatPercent(numeric);
+}
+
 function trendClass(value: number): string {
   if (!Number.isFinite(value) || value === 0) {
     return "is-flat";
@@ -330,7 +341,7 @@ function App() {
                   borderRadius: 12,
                   color: "#f3f3f4",
                 }}
-                formatter={(value: number) => formatPercent(value)}
+                formatter={(value) => formatPercentFromUnknown(value)}
               />
               <Bar dataKey="change" radius={[6, 6, 6, 6]}>
                 {marketChangeChart.map((entry) => (
