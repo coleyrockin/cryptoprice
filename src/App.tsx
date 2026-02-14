@@ -472,7 +472,7 @@ function App() {
             </article>
             <article className="edu-card">
               <h3>🔗 Cardano Partner Chain</h3>
-              <p>Built on Cardano's partner chain framework, leveraging its proven security and decentralisation.</p>
+              <p>Built on Cardano's partner chain framework, leveraging its proven security and decentralization.</p>
             </article>
             <article className="edu-card">
               <h3>🪙 Dual-Token Model</h3>
