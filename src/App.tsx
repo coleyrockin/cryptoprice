@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { motion } from "framer-motion";
@@ -61,9 +61,163 @@ function trendClass(value: number): string {
   return value > 0 ? "is-up" : "is-down";
 }
 
+type SectionHeaderProps = {
+  title: string;
+  subtitle: string;
+  accentSymbol?: string;
+  accentLogoUrl?: string;
+  accentFallbackLogoUrls?: string[];
+};
+
+function SectionHeader({ title, subtitle, accentSymbol, accentLogoUrl, accentFallbackLogoUrls }: SectionHeaderProps) {
+  return (
+    <div className="surface-head">
+      <div className="surface-title-row">
+        <h2>{title}</h2>
+        {accentSymbol || accentLogoUrl || accentFallbackLogoUrls?.length ? (
+          <div className="surface-title-accent">
+            <LogoMark
+              name={`${title} accent`}
+              symbol={accentSymbol ?? title}
+              logoUrl={accentLogoUrl}
+              fallbackLogoUrls={accentFallbackLogoUrls}
+            />
+            {accentSymbol ? <span className="symbol-pill surface-symbol">{accentSymbol}</span> : null}
+          </div>
+        ) : null}
+      </div>
+      <p>{subtitle}</p>
+    </div>
+  );
+}
+
+type MarketCardProps = {
+  id: string;
+  rank: number;
+  name: string;
+  symbol: string;
+  meta: string;
+  value: string;
+  secondary?: string;
+  secondaryClassName?: string;
+  index: number;
+  logoUrl?: string;
+  fallbackLogoUrls?: string[];
+  interactive?: boolean;
+  active?: boolean;
+  onClick?: () => void;
+};
+
+type LogoMarkProps = {
+  name: string;
+  symbol: string;
+  logoUrl?: string;
+  fallbackLogoUrls?: string[];
+};
+
+function normalizeMonogram(symbol: string): string {
+  const cleaned = symbol.replace(/[^A-Za-z0-9]/g, "").slice(0, 3).toUpperCase();
+  return cleaned || symbol.slice(0, 2).toUpperCase();
+}
+
+function LogoMark({ name, symbol, logoUrl, fallbackLogoUrls = [] }: LogoMarkProps) {
+  const [logoIndex, setLogoIndex] = useState(0);
+  const sources = [logoUrl, ...fallbackLogoUrls].filter(Boolean) as string[];
+  const current = sources[logoIndex];
+  const sourceKey = sources.join("|");
+
+  useEffect(() => {
+    setLogoIndex(0);
+  }, [sourceKey, symbol]);
+
+  if (!current) {
+    return (
+      <span className="logo-fallback" aria-hidden="true">
+        {normalizeMonogram(symbol)}
+      </span>
+    );
+  }
+
+  return (
+    <img
+      src={current}
+      alt={`${name} logo`}
+      className="asset-logo"
+      loading="lazy"
+      onError={() => {
+        setLogoIndex((previous) => previous + 1);
+      }}
+    />
+  );
+}
+
+function MarketCard({
+  id,
+  rank,
+  name,
+  symbol,
+  meta,
+  value,
+  secondary,
+  secondaryClassName,
+  index,
+  logoUrl,
+  fallbackLogoUrls,
+  interactive = false,
+  active = false,
+  onClick,
+}: MarketCardProps) {
+  const cardStyle = {
+    "--card-index": index,
+  } as CSSProperties;
+
+  const content: ReactNode = (
+    <>
+      <div className="coin-head">
+        <span>#{rank}</span>
+        <span className="asset-category">{meta}</span>
+      </div>
+      <div className="coin-title-row">
+        <div className="coin-title-main">
+          <LogoMark name={name} symbol={symbol} logoUrl={logoUrl} fallbackLogoUrls={fallbackLogoUrls} />
+          <h3>{name}</h3>
+        </div>
+        <span className="symbol-pill">{symbol}</span>
+      </div>
+      <p className="coin-price">{value}</p>
+      {secondary ? <p className={secondaryClassName}>{secondary}</p> : null}
+    </>
+  );
+
+  if (!interactive) {
+    return (
+      <div key={id} className="coin-card asset-card" style={cardStyle}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <motion.button
+      key={id}
+      style={cardStyle}
+      className={clsx("coin-card", active && "active")}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03, duration: 0.22 }}
+      onClick={onClick}
+      type="button"
+      aria-pressed={active}
+    >
+      {content}
+    </motion.button>
+  );
+}
+
 function App() {
   const [activeCryptoIndex, setActiveCryptoIndex] = useState(0);
   const [secondsToRefresh, setSecondsToRefresh] = useState(60);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   const topTenQuery = useQuery({
     queryKey: ["top-ten"],
@@ -79,8 +233,8 @@ function App() {
 
   const topTen = topTenQuery.data ?? [];
   const night = nightQuery.data ?? null;
-  const topStocks = useMemo(() => getTopStocks(), []);
-  const topAssets = useMemo(() => getGlobalAssets(), []);
+  const topStocks = getTopStocks();
+  const topAssets = getGlobalAssets();
 
   useEffect(() => {
     if (topTen.length === 0) {
@@ -91,6 +245,34 @@ function App() {
       setActiveCryptoIndex(0);
     }
   }, [activeCryptoIndex, topTen.length]);
+
+  useEffect(() => {
+    let frame = 0;
+
+    const updateProgress = () => {
+      if (frame) {
+        cancelAnimationFrame(frame);
+      }
+
+      frame = requestAnimationFrame(() => {
+        const maxScrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        const next = Math.min(1, Math.max(0, window.scrollY / maxScrollable));
+        setScrollProgress((previous) => (Math.abs(previous - next) > 0.002 ? next : previous));
+      });
+    };
+
+    updateProgress();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+
+    return () => {
+      window.removeEventListener("scroll", updateProgress);
+      window.removeEventListener("resize", updateProgress);
+      if (frame) {
+        cancelAnimationFrame(frame);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     setSecondsToRefresh(60);
@@ -112,8 +294,12 @@ function App() {
       ? "Partial feed outage - auto retrying"
       : `Live now - refresh in ${secondsToRefresh}s`;
 
+  const shellStyle = {
+    "--scroll-progress": scrollProgress.toFixed(4),
+  } as CSSProperties;
+
   return (
-    <main className="shell">
+    <main className="shell" style={shellStyle}>
       <header className="hero">
         <p className="eyebrow">Cryptoprice</p>
         <h1>
@@ -124,88 +310,105 @@ function App() {
       </header>
 
       <section className="surface">
-        <div className="surface-head">
-          <h2>Top 10 Cryptos</h2>
-          <p>Live market feed</p>
-        </div>
+        <SectionHeader title="Top 10 Cryptos" subtitle="Live market feed" />
 
         <div className="coin-grid">
           {topTen.map((coin, index) => {
             const usd = coin.quotes.USD;
 
             return (
-              <motion.button
+              <MarketCard
                 key={coin.id}
-                className={clsx("coin-card", index === activeCryptoIndex && "active")}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.03, duration: 0.22 }}
+                id={coin.id}
+                rank={coin.rank}
+                name={coin.name}
+                symbol={coin.symbol}
+                meta="Crypto"
+                value={formatCurrency(usd.price)}
+                secondary={formatPercent(usd.percent_change_24h)}
+                secondaryClassName={clsx("coin-change", trendClass(usd.percent_change_24h))}
+                index={index}
+                logoUrl={`https://static.coinpaprika.com/coin/${coin.id}/logo.png`}
+                fallbackLogoUrls={[
+                  `https://cryptoicons.org/api/icon/${coin.symbol.toLowerCase()}/200`,
+                  `https://cryptoicon-api.pages.dev/api/icon/${coin.symbol.toLowerCase()}`,
+                ]}
+                interactive
+                active={index === activeCryptoIndex}
                 onClick={() => setActiveCryptoIndex(index)}
-                type="button"
-              >
-                <div className="coin-head">
-                  <span>#{coin.rank}</span>
-                  <span>{coin.symbol}</span>
-                </div>
-                <h3>{coin.name}</h3>
-                <p className="coin-price">{formatCurrency(usd.price)}</p>
-                <p className={clsx("coin-change", trendClass(usd.percent_change_24h))}>
-                  {formatPercent(usd.percent_change_24h)}
-                </p>
-              </motion.button>
+              />
             );
           })}
         </div>
       </section>
 
       <section className="surface global-assets-surface">
-        <div className="surface-head">
-          <h2>Top 10 Stocks</h2>
-          <p>By estimated market cap</p>
-        </div>
+        <SectionHeader title="Top 10 Stocks" subtitle="By estimated market cap" />
 
         <div className="coin-grid">
-          {topStocks.map((stock) => (
-            <div key={stock.symbol} className="coin-card asset-card">
-              <div className="coin-head">
-                <span>#{stock.rank}</span>
-                <span className="asset-category">Stock</span>
-              </div>
-              <h3>{stock.name}</h3>
-              <p className="coin-price">{stock.symbol}</p>
-              <p className="asset-mcap">{formatCompactCurrency(stock.marketCap)}</p>
-            </div>
-          ))}
+          {topStocks.map((stock, index) => {
+            return (
+              <MarketCard
+                key={stock.symbol}
+                id={stock.symbol}
+                rank={stock.rank}
+                name={stock.name}
+                symbol={stock.symbol}
+                meta="Stock"
+                value={formatCompactCurrency(stock.marketCap)}
+                secondary="Estimated market cap"
+                secondaryClassName="asset-note"
+                index={index}
+                logoUrl={stock.logoUrl}
+                fallbackLogoUrls={stock.fallbackLogoUrls}
+              />
+            );
+          })}
         </div>
       </section>
 
       <section className="surface global-assets-surface">
-        <div className="surface-head">
-          <h2>Top 10 Assets</h2>
-          <p>By estimated market cap</p>
-        </div>
+        <SectionHeader title="Top 10 Assets" subtitle="By estimated market cap" />
 
         <div className="coin-grid">
-          {topAssets.map((asset) => (
-            <div key={asset.symbol} className="coin-card asset-card">
-              <div className="coin-head">
-                <span>#{asset.rank}</span>
-                <span className="asset-category">{asset.category}</span>
-              </div>
-              <h3>{asset.name}</h3>
-              <p className="coin-price">{asset.symbol}</p>
-              <p className="asset-mcap">{formatCompactCurrency(asset.marketCap)}</p>
-            </div>
-          ))}
+          {topAssets.map((asset, index) => {
+            return (
+              <MarketCard
+                key={`${asset.rank}-${asset.symbol}`}
+                id={`${asset.rank}-${asset.symbol}`}
+                rank={asset.rank}
+                name={asset.name}
+                symbol={asset.symbol}
+                meta={asset.category}
+                value={formatCompactCurrency(asset.marketCap)}
+                secondary="Estimated market cap"
+                secondaryClassName="asset-note"
+                index={index}
+                logoUrl={asset.logoUrl}
+                fallbackLogoUrls={
+                  asset.category === "Crypto"
+                    ? [
+                        ...(asset.fallbackLogoUrls ?? []),
+                        `https://cryptoicons.org/api/icon/${asset.symbol.toLowerCase()}/200`,
+                        `https://cryptoicon-api.pages.dev/api/icon/${asset.symbol.toLowerCase()}`,
+                      ]
+                    : asset.fallbackLogoUrls
+                }
+              />
+            );
+          })}
         </div>
         <p className="disclaimer">* Approximate values — may not reflect real-time prices.</p>
       </section>
 
       <section className="surface midnight-surface">
-        <div className="surface-head">
-          <h2>NIGHT Price</h2>
-          <p>Live Midnight token telemetry</p>
-        </div>
+        <SectionHeader
+          title="NIGHT Price"
+          subtitle="Live Midnight token telemetry"
+          accentSymbol="NIGHT"
+          accentLogoUrl="https://static.coinpaprika.com/coin/night-midnight2/logo.png"
+          accentFallbackLogoUrls={["https://cryptoicons.org/api/icon/night/200", "https://cryptoicon-api.pages.dev/api/icon/night"]}
+        />
 
         {night ? (
           <div className="midnight-layout">

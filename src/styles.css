@@ -2,17 +2,22 @@
 
 :root {
   color-scheme: dark;
-  --bg: #030304;
-  --bg-elev: #0b0b0e;
-  --bg-elev-2: #121217;
-  --line: rgba(255, 255, 255, 0.16);
-  --line-strong: rgba(255, 255, 255, 0.35);
-  --text: #f5f5f6;
-  --text-dim: #9898a1;
-  --text-muted: #6e6e77;
-  --up: #95ffd0;
-  --down: #ff8f86;
-  --flat: #b8b8bf;
+  --scroll-progress: 0;
+  --accent-warm: #ffffff;
+  --accent-gold: #cfcfcf;
+  --accent-mint: #a8a8a8;
+  --accent-aqua: #8c8c8c;
+  --bg: #000000;
+  --bg-elev: #000000;
+  --bg-elev-2: #000000;
+  --line: rgba(255, 255, 255, 0.14);
+  --line-strong: rgba(255, 255, 255, 0.45);
+  --text: #f2f2f2;
+  --text-dim: #c5c5c5;
+  --text-muted: #9b9b9b;
+  --up: #d6d6d6;
+  --down: #adadad;
+  --flat: #bdbdbd;
 }
 
 * {
@@ -30,10 +35,8 @@ body,
 body {
   font-family: "Space Grotesk", sans-serif;
   color: var(--text);
-  background:
-    radial-gradient(1800px 860px at 50% -10%, rgba(255, 255, 255, 0.08), transparent 58%),
-    radial-gradient(900px 700px at 0% 20%, rgba(255, 255, 255, 0.04), transparent 65%),
-    linear-gradient(165deg, #000 5%, #040406 38%, #0b0b10);
+  background: #000;
+  transition: background 220ms linear;
 }
 
 body::before,
@@ -45,38 +48,37 @@ body::after {
 }
 
 body::before {
-  opacity: 0.08;
-  background:
-    linear-gradient(transparent 50%, rgba(255, 255, 255, 0.06) 50%, transparent 51%),
-    radial-gradient(rgba(255, 255, 255, 0.35) 0.55px, transparent 0.8px);
-  background-size: 100% 4px, 3px 3px;
+  display: none;
 }
 
 body::after {
-  opacity: 0.12;
-  background: radial-gradient(circle at 10% 90%, rgba(255, 255, 255, 0.08), transparent 28%);
+  display: none;
 }
 
 .shell {
+  --scroll-progress: 0;
   width: min(1200px, 95vw);
   margin: 1.7rem auto 2.8rem;
   display: grid;
   gap: 0.92rem;
+  position: relative;
+}
+
+.shell::before {
+  display: none;
 }
 
 .hero,
 .surface {
   border: 1px solid var(--line);
   border-radius: 18px;
-  background:
-    linear-gradient(150deg, rgba(18, 18, 24, 0.88), rgba(6, 6, 10, 0.96)),
-    radial-gradient(500px 100px at 18% 0%, rgba(255, 255, 255, 0.08), transparent);
+  background: #000;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    inset 0 -35px 80px rgba(0, 0, 0, 0.55),
-    0 22px 42px rgba(0, 0, 0, 0.64);
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
   position: relative;
   overflow: hidden;
+  transition: background 220ms linear, border-color 220ms linear;
 }
 
 .hero {
@@ -89,11 +91,7 @@ body::after {
 
 .hero::before,
 .surface::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.08), transparent 30%, transparent 72%, rgba(255, 255, 255, 0.04));
+  display: none;
 }
 
 .eyebrow {
@@ -119,10 +117,8 @@ h1 {
 }
 
 h1 span {
-  background: linear-gradient(180deg, #fff, #909099);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  background: none;
+  color: var(--text);
 }
 
 .tagline {
@@ -142,20 +138,20 @@ h1 span {
 
 .status.live {
   color: var(--up);
-  border-color: rgba(149, 255, 208, 0.35);
-  background: rgba(149, 255, 208, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .status.loading {
   color: var(--flat);
-  border-color: rgba(184, 184, 191, 0.35);
-  background: rgba(184, 184, 191, 0.11);
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .status.error {
   color: var(--down);
-  border-color: rgba(255, 143, 134, 0.38);
-  background: rgba(255, 143, 134, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .surface-head {
@@ -163,6 +159,19 @@ h1 span {
   justify-content: space-between;
   align-items: baseline;
   gap: 1rem;
+}
+
+.surface-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.surface-title-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
 }
 
 .surface-head h2 {
@@ -186,14 +195,17 @@ h1 span {
 .coin-card {
   border: 1px solid var(--line);
   border-radius: 13px;
-  background:
-    linear-gradient(150deg, rgba(16, 16, 22, 0.95), rgba(5, 5, 8, 0.96)),
-    repeating-linear-gradient(130deg, rgba(255, 255, 255, 0.018) 0 7px, transparent 7px 13px);
+  background: #000;
   color: var(--text);
   padding: 0.73rem;
   text-align: left;
   cursor: pointer;
-  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 220ms ease,
+    filter 220ms ease;
   position: relative;
   overflow: hidden;
 }
@@ -211,9 +223,7 @@ h1 span {
 }
 
 .coin-card:nth-child(even) {
-  background:
-    linear-gradient(150deg, rgba(10, 10, 15, 0.95), rgba(20, 20, 25, 0.95)),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 2px, transparent 2px 6px);
+  background: #000;
 }
 
 .coin-card:nth-child(3n)::after {
@@ -225,7 +235,20 @@ h1 span {
 
 .coin-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(255, 255, 255, 0.36);
+  border-color: rgba(214, 232, 255, 0.62);
+  background:
+    linear-gradient(
+      140deg,
+      rgba(98, 170, 255, 0.16) 0%,
+      rgba(92, 212, 181, 0.14) 44%,
+      rgba(211, 128, 185, 0.14) 100%
+    ),
+    #040404;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 14px 26px rgba(0, 0, 0, 0.5);
+  filter: saturate(112%);
 }
 
 .coin-card.active {
@@ -234,6 +257,11 @@ h1 span {
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     0 0 0 1px rgba(255, 255, 255, 0.18),
     0 16px 30px rgba(0, 0, 0, 0.67);
+}
+
+.coin-card:hover .symbol-pill {
+  background: rgba(219, 235, 255, 0.18);
+  border-color: rgba(219, 235, 255, 0.5);
 }
 
 .coin-head {
@@ -245,9 +273,84 @@ h1 span {
   text-transform: uppercase;
 }
 
-.coin-card h3 {
+.coin-title-row {
   margin-top: 0.38rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.44rem;
+}
+
+.coin-title-main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.coin-card h3 {
+  margin: 0;
   font-size: 0.97rem;
+  min-width: 0;
+}
+
+.coin-title-row h3 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.symbol-pill {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  padding: 0.22rem 0.54rem;
+  font-family: "Sora", sans-serif;
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.asset-logo,
+.logo-fallback {
+  width: 1.28rem;
+  height: 1.28rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  background: radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.28), rgba(8, 8, 8, 0.94));
+  object-fit: cover;
+}
+
+.logo-fallback {
+  display: inline-grid;
+  place-items: center;
+  font-family: "Sora", sans-serif;
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.surface-symbol {
+  padding-inline: 0.42rem;
+  font-size: 0.58rem;
+  color: var(--text-dim);
+}
+
+.surface-title-accent .asset-logo,
+.surface-title-accent .logo-fallback {
+  width: 1.16rem;
+  height: 1.16rem;
 }
 
 .coin-price {
@@ -348,9 +451,7 @@ h1 span {
 }
 
 .chart-surface {
-  background:
-    linear-gradient(150deg, rgba(12, 12, 16, 0.92), rgba(5, 5, 8, 0.96)),
-    radial-gradient(450px 140px at 72% 0%, rgba(255, 255, 255, 0.07), transparent);
+  background: #000;
 }
 
 .chart-wrap {
@@ -360,9 +461,7 @@ h1 span {
 
 .midnight-surface {
   border-color: rgba(255, 255, 255, 0.24);
-  background:
-    radial-gradient(650px 260px at 12% -30%, rgba(255, 255, 255, 0.12), transparent 56%),
-    linear-gradient(155deg, rgba(15, 15, 20, 0.94), rgba(4, 4, 6, 0.97));
+  background: #000;
 }
 
 .midnight-layout {
@@ -501,18 +600,86 @@ h1 span {
 
 /* ── Global Assets ─── */
 .global-assets-surface {
-  border-color: rgba(255, 255, 255, 0.2);
-  background:
-    radial-gradient(600px 220px at 80% -20%, rgba(255, 255, 255, 0.09), transparent 56%),
-    linear-gradient(155deg, rgba(14, 14, 19, 0.94), rgba(4, 4, 6, 0.97));
+  border-color: rgba(255, 255, 255, 0.34);
+  background: #000;
 }
 
 .asset-card {
   cursor: default;
+  position: relative;
+  overflow: hidden;
+  background: rgba(14, 14, 14, 0.72);
+  border-color: rgba(255, 255, 255, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px) saturate(135%);
+  -webkit-backdrop-filter: blur(10px) saturate(135%);
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease,
+    filter 220ms ease;
+}
+
+.asset-card::before {
+  content: "";
+  position: absolute;
+  inset: -45%;
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0) 34%,
+    rgba(255, 255, 255, 0.26) 48%,
+    rgba(255, 255, 255, 0.08) 58%,
+    rgba(255, 255, 255, 0) 72%
+  );
+  transform: translateX(-120%) rotate(14deg);
+  transition: transform 520ms ease;
+  pointer-events: none;
+}
+
+.asset-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(98, 195, 255, 0.3), transparent 40%),
+    radial-gradient(circle at 84% 20%, rgba(198, 144, 255, 0.28), transparent 44%),
+    radial-gradient(circle at 80% 88%, rgba(255, 205, 145, 0.26), transparent 40%),
+    radial-gradient(circle at 14% 82%, rgba(255, 124, 196, 0.24), transparent 38%);
+  transition: opacity 320ms ease;
 }
 
 .asset-card:hover {
   transform: none;
+  border-color: rgba(224, 238, 255, 0.78);
+  background:
+    linear-gradient(
+      140deg,
+      rgba(255, 100, 170, 0.23) 0%,
+      rgba(116, 197, 255, 0.21) 36%,
+      rgba(137, 225, 255, 0.19) 58%,
+      rgba(195, 144, 255, 0.2) 82%,
+      rgba(255, 209, 148, 0.18) 100%
+    ),
+    rgba(24, 24, 24, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 18px 34px rgba(0, 0, 0, 0.58);
+  filter: saturate(118%);
+}
+
+.asset-card:hover::before {
+  transform: translateX(120%) rotate(14deg);
+}
+
+.asset-card:hover::after {
+  opacity: 1;
 }
 
 .asset-category {
@@ -521,11 +688,26 @@ h1 span {
   color: var(--text-muted);
 }
 
-.asset-mcap {
+.asset-mcap,
+.asset-note {
   margin: 0.3rem 0 0;
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: var(--text-dim);
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.asset-card .coin-price {
+  letter-spacing: 0.01em;
+}
+
+.asset-card .symbol-pill {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.42);
+}
+
+.asset-card:hover .symbol-pill {
+  background: rgba(224, 238, 255, 0.2);
+  border-color: rgba(224, 238, 255, 0.54);
 }
 
 .disclaimer {
@@ -538,9 +720,7 @@ h1 span {
 /* ── Education ─── */
 .education-surface {
   border-color: rgba(255, 255, 255, 0.22);
-  background:
-    radial-gradient(550px 200px at 30% -15%, rgba(255, 255, 255, 0.1), transparent 55%),
-    linear-gradient(155deg, rgba(14, 14, 19, 0.94), rgba(4, 4, 6, 0.97));
+  background: #000;
 }
 
 .education-layout {
@@ -610,9 +790,7 @@ h1 span {
 /* ── Exchanges ─── */
 .exchange-surface {
   border-color: rgba(255, 255, 255, 0.2);
-  background:
-    radial-gradient(500px 180px at 60% -10%, rgba(255, 255, 255, 0.08), transparent 55%),
-    linear-gradient(155deg, rgba(13, 13, 18, 0.94), rgba(4, 4, 6, 0.97));
+  background: #000;
 }
 
 .exchange-grid {
@@ -653,9 +831,7 @@ h1 span {
 /* ── Get Involved ─── */
 .involved-surface {
   border-color: rgba(255, 255, 255, 0.2);
-  background:
-    radial-gradient(550px 200px at 40% -15%, rgba(255, 255, 255, 0.09), transparent 55%),
-    linear-gradient(155deg, rgba(14, 14, 19, 0.94), rgba(4, 4, 6, 0.97));
+  background: #000;
 }
 
 .involved-grid {
