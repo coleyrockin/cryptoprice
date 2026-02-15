@@ -22,19 +22,9 @@ export type Ticker = {
   };
 };
 
-export type OhlcCandle = {
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  time_open: string;
-  time_close: string;
-};
-
 const API = {
   topTen: "https://api.coinpaprika.com/v1/tickers?quotes=USD&limit=10",
   night: "https://api.coinpaprika.com/v1/tickers/night-midnight2?quotes=USD",
-  nightRange: "https://api.coinpaprika.com/v1/coins/night-midnight2/ohlcv/latest?quote=usd",
 };
 
 async function getJson<T>(url: string): Promise<T> {
@@ -65,16 +55,18 @@ export async function fetchNight(): Promise<Ticker> {
   return getJson<Ticker>(API.night);
 }
 
-export async function fetchNightRange(): Promise<OhlcCandle | null> {
-  const payload = await getJson<OhlcCandle[]>(API.nightRange);
-  return payload[0] ?? null;
-}
-
 export type GlobalAsset = {
   rank: number;
   name: string;
   symbol: string;
   category: string;
+  marketCap: number;
+};
+
+export type StockAsset = {
+  rank: number;
+  name: string;
+  symbol: string;
   marketCap: number;
 };
 
@@ -92,6 +84,23 @@ const GLOBAL_ASSETS: GlobalAsset[] = [
   { rank: 10, name: "Bitcoin", symbol: "BTC", category: "Crypto", marketCap: 1_300_000_000_000 },
 ];
 
+const TOP_STOCKS: StockAsset[] = [
+  { rank: 1, name: "Apple", symbol: "AAPL", marketCap: 3_400_000_000_000 },
+  { rank: 2, name: "Microsoft", symbol: "MSFT", marketCap: 3_100_000_000_000 },
+  { rank: 3, name: "NVIDIA", symbol: "NVDA", marketCap: 1_800_000_000_000 },
+  { rank: 4, name: "Saudi Aramco", symbol: "2222.SR", marketCap: 1_800_000_000_000 },
+  { rank: 5, name: "Amazon", symbol: "AMZN", marketCap: 1_700_000_000_000 },
+  { rank: 6, name: "Alphabet", symbol: "GOOGL", marketCap: 1_600_000_000_000 },
+  { rank: 7, name: "Meta Platforms", symbol: "META", marketCap: 1_300_000_000_000 },
+  { rank: 8, name: "Berkshire Hathaway", symbol: "BRK.B", marketCap: 950_000_000_000 },
+  { rank: 9, name: "Taiwan Semiconductor", symbol: "TSM", marketCap: 900_000_000_000 },
+  { rank: 10, name: "Broadcom", symbol: "AVGO", marketCap: 850_000_000_000 },
+];
+
 export function getGlobalAssets(): GlobalAsset[] {
   return GLOBAL_ASSETS;
+}
+
+export function getTopStocks(): StockAsset[] {
+  return TOP_STOCKS;
 }
