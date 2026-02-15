@@ -6,7 +6,15 @@ import { fetchNight, fetchTopTen, getGlobalAssets, getTopStocks } from "./api";
 
 const REFRESH_MS = 60_000;
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
 function formatCurrency(value: number): string {
+  if (!isFiniteNumber(value)) {
+    return "—";
+  }
+
   const abs = Math.abs(value);
 
   let maxDigits = 2;
@@ -24,6 +32,10 @@ function formatCurrency(value: number): string {
 }
 
 function formatCompactCurrency(value: number): string {
+  if (!isFiniteNumber(value)) {
+    return "—";
+  }
+
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -33,6 +45,10 @@ function formatCompactCurrency(value: number): string {
 }
 
 function formatPercent(value: number): string {
+  if (!isFiniteNumber(value)) {
+    return "—";
+  }
+
   const sign = value > 0 ? "+" : "";
   return `${sign}${value.toFixed(2)}%`;
 }
