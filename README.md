@@ -75,6 +75,14 @@ src/
 - Structured issue templates and pull request template.
 - Consistent formatting through `.editorconfig` and `.gitattributes`.
 
+## Suggested Upgrades
+
+- Add ESLint + Prettier checks in CI to keep style and common bug patterns consistent.
+- Add a lightweight test layer (for example Vitest + React Testing Library) to cover formatting helpers and API adapter behavior.
+- Move API endpoints in `src/api.ts` to environment variables (`VITE_*`) to simplify provider changes across environments.
+- Add a React error boundary around the dashboard shell to provide graceful fallback UI for rendering failures.
+- Add route/component-level code splitting to reduce the current large bundle warning in production builds.
+
 ## License
 
 MIT, see [LICENSE](./LICENSE).
