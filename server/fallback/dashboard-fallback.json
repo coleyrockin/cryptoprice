@@ -1,0 +1,444 @@
+{
+  "generatedAt": "2026-02-16T00:00:00.000Z",
+  "stale": true,
+  "refreshInSec": 60,
+  "source": {
+    "equities": "fmp",
+    "crypto": "coinpaprika",
+    "fallbackUsed": true
+  },
+  "topCryptos": [
+    {
+      "id": "btc-bitcoin",
+      "rank": 1,
+      "name": "Bitcoin",
+      "symbol": "BTC",
+      "category": "Crypto",
+      "priceUsd": 67000,
+      "marketCapUsd": 1320000000000,
+      "change24h": 1.62,
+      "logoUrl": "https://static.coinpaprika.com/coin/btc-bitcoin/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/btc/200",
+        "https://cryptoicon-api.pages.dev/api/icon/btc"
+      ]
+    },
+    {
+      "id": "eth-ethereum",
+      "rank": 2,
+      "name": "Ethereum",
+      "symbol": "ETH",
+      "category": "Crypto",
+      "priceUsd": 3500,
+      "marketCapUsd": 420000000000,
+      "change24h": 1.27,
+      "logoUrl": "https://static.coinpaprika.com/coin/eth-ethereum/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/eth/200",
+        "https://cryptoicon-api.pages.dev/api/icon/eth"
+      ]
+    },
+    {
+      "id": "usdt-tether",
+      "rank": 3,
+      "name": "Tether",
+      "symbol": "USDT",
+      "category": "Crypto",
+      "priceUsd": 1,
+      "marketCapUsd": 104000000000,
+      "change24h": 0,
+      "logoUrl": "https://static.coinpaprika.com/coin/usdt-tether/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/usdt/200",
+        "https://cryptoicon-api.pages.dev/api/icon/usdt"
+      ]
+    },
+    {
+      "id": "bnb-binance-coin",
+      "rank": 4,
+      "name": "BNB",
+      "symbol": "BNB",
+      "category": "Crypto",
+      "priceUsd": 570,
+      "marketCapUsd": 85000000000,
+      "change24h": 0.9,
+      "logoUrl": "https://static.coinpaprika.com/coin/bnb-binance-coin/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/bnb/200",
+        "https://cryptoicon-api.pages.dev/api/icon/bnb"
+      ]
+    },
+    {
+      "id": "sol-solana",
+      "rank": 5,
+      "name": "Solana",
+      "symbol": "SOL",
+      "category": "Crypto",
+      "priceUsd": 150,
+      "marketCapUsd": 72000000000,
+      "change24h": 2.41,
+      "logoUrl": "https://static.coinpaprika.com/coin/sol-solana/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/sol/200",
+        "https://cryptoicon-api.pages.dev/api/icon/sol"
+      ]
+    },
+    {
+      "id": "xrp-xrp",
+      "rank": 6,
+      "name": "XRP",
+      "symbol": "XRP",
+      "category": "Crypto",
+      "priceUsd": 0.57,
+      "marketCapUsd": 31000000000,
+      "change24h": -0.91,
+      "logoUrl": "https://static.coinpaprika.com/coin/xrp-xrp/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/xrp/200",
+        "https://cryptoicon-api.pages.dev/api/icon/xrp"
+      ]
+    },
+    {
+      "id": "usdc-usd-coin",
+      "rank": 7,
+      "name": "USD Coin",
+      "symbol": "USDC",
+      "category": "Crypto",
+      "priceUsd": 1,
+      "marketCapUsd": 28000000000,
+      "change24h": 0,
+      "logoUrl": "https://static.coinpaprika.com/coin/usdc-usd-coin/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/usdc/200",
+        "https://cryptoicon-api.pages.dev/api/icon/usdc"
+      ]
+    },
+    {
+      "id": "doge-dogecoin",
+      "rank": 8,
+      "name": "Dogecoin",
+      "symbol": "DOGE",
+      "category": "Crypto",
+      "priceUsd": 0.13,
+      "marketCapUsd": 19000000000,
+      "change24h": 1.88,
+      "logoUrl": "https://static.coinpaprika.com/coin/doge-dogecoin/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/doge/200",
+        "https://cryptoicon-api.pages.dev/api/icon/doge"
+      ]
+    },
+    {
+      "id": "ada-cardano",
+      "rank": 9,
+      "name": "Cardano",
+      "symbol": "ADA",
+      "category": "Crypto",
+      "priceUsd": 0.6,
+      "marketCapUsd": 18000000000,
+      "change24h": 0.66,
+      "logoUrl": "https://static.coinpaprika.com/coin/ada-cardano/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/ada/200",
+        "https://cryptoicon-api.pages.dev/api/icon/ada"
+      ]
+    },
+    {
+      "id": "trx-tron",
+      "rank": 10,
+      "name": "TRON",
+      "symbol": "TRX",
+      "category": "Crypto",
+      "priceUsd": 0.13,
+      "marketCapUsd": 13000000000,
+      "change24h": -0.23,
+      "logoUrl": "https://static.coinpaprika.com/coin/trx-tron/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/trx/200",
+        "https://cryptoicon-api.pages.dev/api/icon/trx"
+      ]
+    }
+  ],
+  "topStocks": [
+    {
+      "id": "stock-aapl",
+      "rank": 1,
+      "name": "Apple",
+      "symbol": "AAPL",
+      "category": "Stock",
+      "marketCapUsd": 3400000000000,
+      "priceUsd": 210,
+      "changePercent": 0.8,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/AAPL.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/AAPL.png"
+      ]
+    },
+    {
+      "id": "stock-msft",
+      "rank": 2,
+      "name": "Microsoft",
+      "symbol": "MSFT",
+      "category": "Stock",
+      "marketCapUsd": 3100000000000,
+      "priceUsd": 430,
+      "changePercent": 0.55,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/MSFT.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/MSFT.png"
+      ]
+    },
+    {
+      "id": "stock-nvda",
+      "rank": 3,
+      "name": "NVIDIA",
+      "symbol": "NVDA",
+      "category": "Stock",
+      "marketCapUsd": 2800000000000,
+      "priceUsd": 950,
+      "changePercent": 1.24,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/NVDA.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/NVDA.png"
+      ]
+    },
+    {
+      "id": "stock-amzn",
+      "rank": 4,
+      "name": "Amazon",
+      "symbol": "AMZN",
+      "category": "Stock",
+      "marketCapUsd": 1900000000000,
+      "priceUsd": 185,
+      "changePercent": -0.12,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/AMZN.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/AMZN.png"
+      ]
+    },
+    {
+      "id": "stock-googl",
+      "rank": 5,
+      "name": "Alphabet",
+      "symbol": "GOOGL",
+      "category": "Stock",
+      "marketCapUsd": 1800000000000,
+      "priceUsd": 170,
+      "changePercent": 0.38,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/GOOGL.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/GOOGL.png"
+      ]
+    },
+    {
+      "id": "stock-meta",
+      "rank": 6,
+      "name": "Meta Platforms",
+      "symbol": "META",
+      "category": "Stock",
+      "marketCapUsd": 1300000000000,
+      "priceUsd": 500,
+      "changePercent": 0.42,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/META.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/META.png"
+      ]
+    },
+    {
+      "id": "stock-brk-b",
+      "rank": 7,
+      "name": "Berkshire Hathaway",
+      "symbol": "BRK.B",
+      "category": "Stock",
+      "marketCapUsd": 920000000000,
+      "priceUsd": 445,
+      "changePercent": 0.17,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/BRK.B.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/BRK.B.png"
+      ]
+    },
+    {
+      "id": "stock-tsm",
+      "rank": 8,
+      "name": "Taiwan Semiconductor",
+      "symbol": "TSM",
+      "category": "Stock",
+      "marketCapUsd": 880000000000,
+      "priceUsd": 170,
+      "changePercent": -0.21,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/TSM.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/TSM.png"
+      ]
+    },
+    {
+      "id": "stock-avgo",
+      "rank": 9,
+      "name": "Broadcom",
+      "symbol": "AVGO",
+      "category": "Stock",
+      "marketCapUsd": 840000000000,
+      "priceUsd": 1670,
+      "changePercent": 0.61,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/AVGO.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/AVGO.png"
+      ]
+    },
+    {
+      "id": "stock-eli-l",
+      "rank": 10,
+      "name": "Eli Lilly",
+      "symbol": "LLY",
+      "category": "Stock",
+      "marketCapUsd": 720000000000,
+      "priceUsd": 800,
+      "changePercent": 0.31,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/LLY.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/LLY.png"
+      ]
+    }
+  ],
+  "topAssets": [
+    {
+      "id": "commodity-gold",
+      "rank": 1,
+      "name": "Gold",
+      "symbol": "XAU",
+      "category": "Commodity",
+      "marketCapUsd": 16100000000000,
+      "logoUrl": "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f7e1.svg",
+      "fallbackLogoUrls": [
+        "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f947.svg"
+      ]
+    },
+    {
+      "id": "stock-aapl",
+      "rank": 2,
+      "name": "Apple",
+      "symbol": "AAPL",
+      "category": "Stock",
+      "marketCapUsd": 3400000000000,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/AAPL.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/AAPL.png"
+      ]
+    },
+    {
+      "id": "stock-msft",
+      "rank": 3,
+      "name": "Microsoft",
+      "symbol": "MSFT",
+      "category": "Stock",
+      "marketCapUsd": 3100000000000,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/MSFT.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/MSFT.png"
+      ]
+    },
+    {
+      "id": "stock-nvda",
+      "rank": 4,
+      "name": "NVIDIA",
+      "symbol": "NVDA",
+      "category": "Stock",
+      "marketCapUsd": 2800000000000,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/NVDA.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/NVDA.png"
+      ]
+    },
+    {
+      "id": "stock-amzn",
+      "rank": 5,
+      "name": "Amazon",
+      "symbol": "AMZN",
+      "category": "Stock",
+      "marketCapUsd": 1900000000000,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/AMZN.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/AMZN.png"
+      ]
+    },
+    {
+      "id": "stock-googl",
+      "rank": 6,
+      "name": "Alphabet",
+      "symbol": "GOOGL",
+      "category": "Stock",
+      "marketCapUsd": 1800000000000,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/GOOGL.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/GOOGL.png"
+      ]
+    },
+    {
+      "id": "commodity-silver",
+      "rank": 7,
+      "name": "Silver",
+      "symbol": "XAG",
+      "category": "Commodity",
+      "marketCapUsd": 1400000000000,
+      "logoUrl": "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/26aa.svg",
+      "fallbackLogoUrls": [
+        "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f948.svg"
+      ]
+    },
+    {
+      "id": "btc-bitcoin",
+      "rank": 8,
+      "name": "Bitcoin",
+      "symbol": "BTC",
+      "category": "Crypto",
+      "marketCapUsd": 1320000000000,
+      "logoUrl": "https://static.coinpaprika.com/coin/btc-bitcoin/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/btc/200",
+        "https://cryptoicon-api.pages.dev/api/icon/btc"
+      ]
+    },
+    {
+      "id": "stock-meta",
+      "rank": 9,
+      "name": "Meta Platforms",
+      "symbol": "META",
+      "category": "Stock",
+      "marketCapUsd": 1300000000000,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/META.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/META.png"
+      ]
+    },
+    {
+      "id": "eth-ethereum",
+      "rank": 10,
+      "name": "Ethereum",
+      "symbol": "ETH",
+      "category": "Crypto",
+      "marketCapUsd": 420000000000,
+      "logoUrl": "https://static.coinpaprika.com/coin/eth-ethereum/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/eth/200",
+        "https://cryptoicon-api.pages.dev/api/icon/eth"
+      ]
+    }
+  ],
+  "night": {
+    "id": "night-midnight2",
+    "name": "Midnight",
+    "symbol": "NIGHT",
+    "logoUrl": "https://static.coinpaprika.com/coin/night-midnight2/logo.png",
+    "fallbackLogoUrls": [
+      "https://cryptoicons.org/api/icon/night/200",
+      "https://cryptoicon-api.pages.dev/api/icon/night"
+    ],
+    "priceUsd": 0.84,
+    "marketCapUsd": 123000000,
+    "volume24hUsd": 5100000,
+    "athPriceUsd": 1.22,
+    "change24h": 3.1,
+    "percentFromAth": -31.15
+  }
+}

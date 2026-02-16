@@ -4,10 +4,10 @@
     "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true,
     "types": ["node"],
     "strict": true,
+    "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "vitest.config.ts"]
+  "include": ["api/**/*.ts", "server/**/*.ts"]
 }
