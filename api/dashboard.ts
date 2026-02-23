@@ -1,5 +1,6 @@
 import { buildDashboardPayload } from "../server/dashboard";
 import { readDurableDashboard, writeDurableDashboard } from "../server/durable-cache";
+import { envInt } from "../server/env";
 import {
   recordDashboardError,
   recordDashboardRequest,
@@ -17,20 +18,6 @@ type ApiResponse = {
   status: (code: number) => ApiResponse;
   json: (value: unknown) => void;
 };
-
-function envInt(name: string, fallback: number, min: number, max: number): number {
-  const raw = process.env[name];
-  if (!raw) {
-    return fallback;
-  }
-
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed)) {
-    return fallback;
-  }
-
-  return Math.min(max, Math.max(min, parsed));
-}
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   if (request.method && request.method !== "GET") {

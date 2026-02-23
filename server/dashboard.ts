@@ -1,4 +1,5 @@
 import { runtimeCache, type MemoryCache } from "./cache";
+import { envInt } from "./env";
 import fallbackPayloadJson from "./fallback/dashboard-fallback.json";
 import { recordProviderFailure, recordProviderFallback, recordProviderSuccess, type ProviderMetricKey } from "./metrics";
 import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./providers/coinpaprika";
@@ -30,20 +31,6 @@ export type DashboardBuildOptions = {
 };
 
 const FALLBACK_PAYLOAD = fallbackPayloadJson as DashboardPayload;
-
-function envInt(name: string, fallback: number, min: number, max: number): number {
-  const raw = process.env[name];
-  if (!raw) {
-    return fallback;
-  }
-
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed)) {
-    return fallback;
-  }
-
-  return Math.min(max, Math.max(min, parsed));
-}
 
 function normalizeStocks(stocks: DashboardStock[]): DashboardStock[] {
   return stocks.map((stock, index) => ({
