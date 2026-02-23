@@ -1,5 +1,6 @@
 import { runtimeCache, type MemoryCache } from "./cache";
 import fallbackPayloadJson from "./fallback/dashboard-fallback.json";
+import { recordProviderFailure, recordProviderFallback, recordProviderSuccess, type ProviderMetricKey } from "./metrics";
 import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./providers/coinpaprika";
 import { fetchTopStocksFromFmp } from "./providers/fmp";
 import { toFiniteNumber } from "./sanitize";
@@ -61,6 +62,12 @@ function normalizeCryptos(cryptos: DashboardCrypto[]): DashboardCrypto[] {
     priceUsd: toFiniteNumber(crypto.priceUsd),
     marketCapUsd: toFiniteNumber(crypto.marketCapUsd),
     change24h: toFiniteNumber(crypto.change24h),
+    sparkline7d: Array.isArray(crypto.sparkline7d)
+      ? crypto.sparkline7d
+          .map((point) => toFiniteNumber(point))
+          .filter((point): point is number => point !== null)
+          .slice(-12)
+      : [],
   }));
 }
 
@@ -140,6 +147,7 @@ function buildTopAssets(topStocks: DashboardStock[], topCryptos: DashboardCrypto
 
 async function resolveSegment<T>(options: {
   key: string;
+  metricKey: ProviderMetricKey;
   label: string;
   fetcher: () => Promise<T>;
   fallbackValue: T;
@@ -164,7 +172,9 @@ async function resolveSegment<T>(options: {
   try {
     const live = await options.fetcher();
     options.cache.set(options.key, live, options.nowMs);
-    options.logger.info(`[dashboard] ${options.label} source=live latencyMs=${Date.now() - startedAt}`);
+    const latencyMs = Date.now() - startedAt;
+    recordProviderSuccess(options.metricKey, latencyMs);
+    options.logger.info(`[dashboard] ${options.label} source=live latencyMs=${latencyMs}`);
 
     return {
       data: live,
@@ -173,11 +183,13 @@ async function resolveSegment<T>(options: {
       source: "live",
     };
   } catch (error) {
+    recordProviderFailure(options.metricKey);
     const message = error instanceof Error ? error.message : "unknown error";
     options.logger.warn(`[dashboard] ${options.label} provider-failure reason=${message}`);
 
     const stale = options.cache.getStale<T>(options.key, options.fallbackTtlSec, options.nowMs);
     if (stale) {
+      recordProviderFallback(options.metricKey);
       options.logger.warn(`[dashboard] ${options.label} source=stale-cache`);
       return {
         data: stale,
@@ -187,6 +199,7 @@ async function resolveSegment<T>(options: {
       };
     }
 
+    recordProviderFallback(options.metricKey);
     options.logger.warn(`[dashboard] ${options.label} source=fallback`);
     return {
       data: options.fallbackValue,
@@ -210,6 +223,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
   const [cryptosResult, stocksResult, nightResult] = await Promise.all([
     resolveSegment<DashboardCrypto[]>({
       key: "coinpaprika:top-cryptos",
+      metricKey: "topCryptos",
       label: "topCryptos",
       fallbackValue: FALLBACK_PAYLOAD.topCryptos,
       cache,
@@ -227,6 +241,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
     }),
     resolveSegment<DashboardStock[]>({
       key: "fmp:top-stocks",
+      metricKey: "topStocks",
       label: "topStocks",
       fallbackValue: FALLBACK_PAYLOAD.topStocks,
       cache,
@@ -244,6 +259,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
     }),
     resolveSegment<DashboardNight | null>({
       key: "coinpaprika:night",
+      metricKey: "night",
       label: "night",
       fallbackValue: FALLBACK_PAYLOAD.night,
       cache,

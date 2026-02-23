@@ -31,6 +31,7 @@ const payload: DashboardPayload = {
       priceUsd: null,
       marketCapUsd: 123,
       change24h: null,
+      sparkline7d: [],
       logoUrl: null,
       fallbackLogoUrls: [],
     },

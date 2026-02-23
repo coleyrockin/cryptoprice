@@ -9,7 +9,11 @@ type CoinpaprikaUsdQuote = {
   price?: number | string;
   market_cap?: number | string;
   volume_24h?: number | string;
+  percent_change_15m?: number | string;
+  percent_change_1h?: number | string;
+  percent_change_6h?: number | string;
   percent_change_24h?: number | string;
+  percent_change_7d?: number | string;
   ath_price?: number | string;
   percent_from_price_ath?: number | string;
 };
@@ -43,6 +47,20 @@ function normalizeSymbol(value: unknown): string {
   return toSafeString(value, "UNK").toUpperCase();
 }
 
+function buildSparkline(quote: CoinpaprikaUsdQuote): number[] {
+  const points = [
+    0,
+    toFiniteNumber(quote.percent_change_15m) ?? 0,
+    toFiniteNumber(quote.percent_change_1h) ?? 0,
+    toFiniteNumber(quote.percent_change_6h) ?? 0,
+    toFiniteNumber(quote.percent_change_24h) ?? 0,
+    toFiniteNumber(quote.percent_change_7d) ?? 0,
+  ];
+
+  // Keep sparkline bounded for stable visuals even with occasional outliers.
+  return points.map((point) => Math.max(-35, Math.min(35, point)));
+}
+
 function normalizeCoinTicker(item: CoinpaprikaTicker, rank: number): DashboardCrypto | null {
   const id = toSafeString(item.id, "unknown-coin");
   const symbol = normalizeSymbol(item.symbol);
@@ -64,6 +82,7 @@ function normalizeCoinTicker(item: CoinpaprikaTicker, rank: number): DashboardCr
     priceUsd: toFiniteNumber(usd.price),
     marketCapUsd: toFiniteNumber(usd.market_cap),
     change24h: toFiniteNumber(usd.percent_change_24h),
+    sparkline7d: buildSparkline(usd),
     logoUrl: logoUrl ?? null,
     fallbackLogoUrls,
   };

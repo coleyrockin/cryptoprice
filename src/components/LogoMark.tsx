@@ -9,6 +9,18 @@ type LogoMarkProps = {
   fallbackLogoUrls?: string[];
 };
 
+function logoSourceUrl(source: string): string {
+  if (!import.meta.env.PROD) {
+    return source;
+  }
+
+  if (!/^https?:\/\//i.test(source)) {
+    return source;
+  }
+
+  return `/api/logo?url=${encodeURIComponent(source)}`;
+}
+
 export function LogoMark({ name, symbol, logoUrl, fallbackLogoUrls = [] }: LogoMarkProps) {
   const [logoIndex, setLogoIndex] = useState(0);
 
@@ -33,7 +45,7 @@ export function LogoMark({ name, symbol, logoUrl, fallbackLogoUrls = [] }: LogoM
 
   return (
     <img
-      src={currentSource}
+      src={logoSourceUrl(currentSource)}
       alt={`${name} logo`}
       className="asset-logo"
       loading="lazy"

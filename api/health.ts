@@ -1,3 +1,6 @@
+import { isDurableCacheConfigured } from "../server/durable-cache";
+import { getMetricsSnapshot } from "../server/metrics";
+
 type ApiRequest = {
   method?: string;
 };
@@ -19,5 +22,9 @@ export default function handler(request: ApiRequest, response: ApiResponse): voi
     ok: true,
     service: "cryptoprice-api",
     timestamp: new Date().toISOString(),
+    durableCache: {
+      configured: isDurableCacheConfigured(),
+    },
+    metrics: getMetricsSnapshot(),
   });
 }

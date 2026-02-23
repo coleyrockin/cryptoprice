@@ -1,6 +1,7 @@
 import type { DashboardPayload } from "./types/dashboard";
 
 const DASHBOARD_ENDPOINT = import.meta.env.DEV ? "/__local_api/dashboard" : "/api/dashboard";
+const CLIENT_ERROR_ENDPOINT = import.meta.env.DEV ? "/__local_api/client-error" : "/api/client-error";
 
 async function getJson<T>(url: string): Promise<T> {
   const response = await fetch(url, {
@@ -31,4 +32,29 @@ function normalizeDashboardPayload(payload: DashboardPayload): DashboardPayload 
 export async function fetchDashboard(): Promise<DashboardPayload> {
   const payload = await getJson<DashboardPayload>(DASHBOARD_ENDPOINT);
   return normalizeDashboardPayload(payload);
+}
+
+type ClientErrorPayload = {
+  message: string;
+  source?: string;
+  stack?: string;
+};
+
+export async function reportClientError(payload: ClientErrorPayload): Promise<void> {
+  if (!import.meta.env.PROD) {
+    return;
+  }
+
+  try {
+    await fetch(CLIENT_ERROR_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    });
+  } catch {
+    // Fire-and-forget client telemetry.
+  }
 }

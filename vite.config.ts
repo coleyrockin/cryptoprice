@@ -5,19 +5,22 @@ import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 
 import { buildDashboardPayload } from "./server/dashboard";
+import { isDurableCacheConfigured } from "./server/durable-cache";
+import { getMetricsSnapshot } from "./server/metrics";
 
 function localApiPlugin(): Plugin {
   return {
     name: "local-api-plugin",
     configureServer(server) {
       const localApiHandler = async (request: IncomingMessage, response: ServerResponse, next: () => void) => {
-        const url = request.url?.split("?")[0];
-        if (request.method !== "GET" || !url) {
+        const parsedUrl = new URL(request.url ?? "/", "http://localhost");
+        const url = parsedUrl.pathname;
+        if (!url) {
           next();
           return;
         }
 
-        if (url === "/__local_api/health") {
+        if (url === "/__local_api/health" && request.method === "GET") {
           response.setHeader("Content-Type", "application/json");
           response.statusCode = 200;
           response.end(
@@ -25,12 +28,16 @@ function localApiPlugin(): Plugin {
               ok: true,
               service: "cryptoprice-api-local",
               timestamp: new Date().toISOString(),
+              durableCache: {
+                configured: isDurableCacheConfigured(),
+              },
+              metrics: getMetricsSnapshot(),
             }),
           );
           return;
         }
 
-        if (url === "/__local_api/dashboard") {
+        if (url === "/__local_api/dashboard" && request.method === "GET") {
           try {
             const payload = await buildDashboardPayload();
             response.setHeader("Content-Type", "application/json");
@@ -42,6 +49,13 @@ function localApiPlugin(): Plugin {
             response.statusCode = 502;
             response.end(JSON.stringify({ error: "Failed to build dashboard payload", reason: message }));
           }
+          return;
+        }
+
+        if (url === "/__local_api/client-error" && request.method === "POST") {
+          response.setHeader("Content-Type", "application/json");
+          response.statusCode = 202;
+          response.end(JSON.stringify({ ok: true }));
           return;
         }
 

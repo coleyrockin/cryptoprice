@@ -29,6 +29,7 @@ describe("CoinPaprika provider normalization", () => {
       marketCapUsd: 1300000000000,
       change24h: 1.2,
     });
+    expect(cryptos[0].sparkline7d.length).toBeGreaterThan(1);
     expect(cryptos[0].fallbackLogoUrls.length).toBeGreaterThan(0);
   });
 

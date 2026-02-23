@@ -18,6 +18,7 @@ export type DashboardCrypto = DashboardEntryBase & {
   priceUsd: number | null;
   marketCapUsd: number | null;
   change24h: number | null;
+  sparkline7d: number[];
 };
 
 export type DashboardStock = DashboardEntryBase & {

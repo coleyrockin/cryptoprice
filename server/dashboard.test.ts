@@ -51,6 +51,7 @@ const sampleCryptos: DashboardCrypto[] = [
     priceUsd: 67000,
     marketCapUsd: 1300000000000,
     change24h: 1.1,
+    sparkline7d: [0, 0.2, 0.6, 1.1, 2.1, 4.2],
     logoUrl: "https://static.coinpaprika.com/coin/btc-bitcoin/logo.png",
     fallbackLogoUrls: [],
   },

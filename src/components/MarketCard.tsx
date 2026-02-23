@@ -20,7 +20,37 @@ type MarketCardProps = {
   active?: boolean;
   onClick?: () => void;
   assetStyle?: boolean;
+  pinned?: boolean;
+  onTogglePin?: () => void;
+  compared?: boolean;
+  onToggleCompare?: () => void;
+  sparkline?: number[];
 };
+
+function renderSparkline(points: number[]): ReactNode {
+  if (points.length < 2) {
+    return null;
+  }
+
+  const safePoints = points.map((point) => (Number.isFinite(point) ? point : 0));
+  const min = Math.min(...safePoints);
+  const max = Math.max(...safePoints);
+  const range = Math.max(1, max - min);
+
+  const polyline = safePoints
+    .map((point, index) => {
+      const x = (index / (safePoints.length - 1)) * 100;
+      const y = 24 - ((point - min) / range) * 20;
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(" ");
+
+  return (
+    <svg className="card-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
+      <polyline points={polyline} />
+    </svg>
+  );
+}
 
 export function MarketCard({
   id,
@@ -38,10 +68,49 @@ export function MarketCard({
   active = false,
   onClick,
   assetStyle = false,
+  pinned = false,
+  onTogglePin,
+  compared = false,
+  onToggleCompare,
+  sparkline,
 }: MarketCardProps) {
   const cardStyle = {
     "--card-index": index,
   } as CSSProperties;
+
+  const actionButtons = (
+    <div className="card-actions">
+      {onTogglePin ? (
+        <button
+          type="button"
+          className={clsx("card-chip", pinned && "active")}
+          onClick={(event) => {
+            event.stopPropagation();
+            onTogglePin();
+          }}
+          aria-pressed={pinned}
+          aria-label={pinned ? `Unpin ${name} from watchlist` : `Pin ${name} to watchlist`}
+        >
+          {pinned ? "Pinned" : "Pin"}
+        </button>
+      ) : null}
+
+      {onToggleCompare ? (
+        <button
+          type="button"
+          className={clsx("card-chip", compared && "active")}
+          onClick={(event) => {
+            event.stopPropagation();
+            onToggleCompare();
+          }}
+          aria-pressed={compared}
+          aria-label={compared ? `Remove ${name} from compare` : `Add ${name} to compare`}
+        >
+          {compared ? "Comparing" : "Compare"}
+        </button>
+      ) : null}
+    </div>
+  );
 
   const content: ReactNode = (
     <>
@@ -60,6 +129,11 @@ export function MarketCard({
 
       <p className="coin-price">{value}</p>
       {secondary ? <p className={secondaryClassName}>{secondary}</p> : null}
+
+      <div className="coin-foot">
+        {actionButtons}
+        {Array.isArray(sparkline) && sparkline.length > 1 ? renderSparkline(sparkline) : null}
+      </div>
     </>
   );
 
@@ -72,19 +146,26 @@ export function MarketCard({
   }
 
   return (
-    <motion.button
+    <motion.article
       key={id}
-      type="button"
       className={clsx("coin-card", "interactive-card", active && "active", assetStyle && "asset-card")}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.22 }}
       style={cardStyle}
       onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick?.();
+        }
+      }}
       aria-pressed={active}
       aria-label={`Show ${name} details`}
     >
       {content}
-    </motion.button>
+    </motion.article>
   );
 }
