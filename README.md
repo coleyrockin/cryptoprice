@@ -6,6 +6,10 @@
 
 Cryptoprice is a React dashboard for live cryptocurrency market monitoring, with a dedicated telemetry panel for Midnight Token (`NIGHT`).
 
+## Preview
+
+![Cryptoprice dashboard preview](./site-preview.png)
+
 ## Highlights
 
 - Top 10 market-cap coins with live polling.
