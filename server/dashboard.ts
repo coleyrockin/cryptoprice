@@ -41,6 +41,23 @@ const FALLBACK_GENERATED_AT_MS = Date.parse(FALLBACK_PAYLOAD.generatedAt);
 
 const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "night"];
 
+type StaleAlertGlobal = typeof globalThis & {
+  __CRYPTOPRICE_STALE_ALERTS__?: Map<DashboardSegmentKey, number>;
+};
+
+const staleAlertGlobal = globalThis as StaleAlertGlobal;
+const staleAlerts = staleAlertGlobal.__CRYPTOPRICE_STALE_ALERTS__ ?? (staleAlertGlobal.__CRYPTOPRICE_STALE_ALERTS__ = new Map());
+
+function shouldEmitStaleAlert(segment: DashboardSegmentKey, thresholdSec: number, nowMs: number): boolean {
+  const lastEmittedMs = staleAlerts.get(segment);
+  if (lastEmittedMs && nowMs - lastEmittedMs < thresholdSec * 1_000) {
+    return false;
+  }
+
+  staleAlerts.set(segment, nowMs);
+  return true;
+}
+
 function envInt(name: string, fallback: number, min: number, max: number): number {
   const raw = process.env[name];
   if (!raw) {
@@ -326,7 +343,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
 
   logger.info(`[dashboard] assembled stale=${stale} fallbackUsed=${fallbackUsed}`);
   for (const segment of degradedSegments) {
-    if (segmentMeta[segment].ageSec >= staleAlertSec) {
+    if (segmentMeta[segment].ageSec >= staleAlertSec && shouldEmitStaleAlert(segment, staleAlertSec, nowMs)) {
       logger.warn(`[dashboard] stale-threshold segment=${segment} ageSec=${segmentMeta[segment].ageSec} thresholdSec=${staleAlertSec}`);
     }
   }

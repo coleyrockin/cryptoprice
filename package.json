@@ -34,7 +34,7 @@
     "dev": "vite --config vite.config.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "vitest run",
+    "test": "vitest run src server",
     "test:routes": "vitest run api",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
