@@ -5,7 +5,7 @@
 1. Use Node.js `20.x` or newer.
 2. Install dependencies: `npm install`
 3. Start dev server: `npm run dev`
-4. Run quality checks before opening a PR: `npm run check`
+4. Run validation checks before opening a PR: `npm run check`
 
 ## Branching and commits
 
@@ -18,7 +18,8 @@
 1. Fill out the pull request template completely.
 2. Link related issues using `Fixes #<id>` when applicable.
 3. Include screenshots for UI changes.
-4. Ensure CI is green before requesting review.
+4. Run `npm run test:e2e` for UI-affecting changes.
+5. Ensure CI is green before requesting review.
 
 ## Code standards
 

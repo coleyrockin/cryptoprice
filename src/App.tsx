@@ -306,15 +306,19 @@ function App() {
   const isBooting = dashboardQuery.isPending && !dashboard;
   const hasError = dashboardQuery.isError && !dashboard;
   const isStale = Boolean(dashboard?.stale);
+  const degradedSegments = dashboard?.degradedSegments ?? [];
 
   const statusTone = hasError ? "status error" : isBooting ? "status loading" : isStale ? "status stale" : "status live";
+
+  const degradedDetail =
+    degradedSegments.length > 0 ? ` (${degradedSegments.map((segment) => segment.replace("top", "")).join(", ").toLowerCase()})` : "";
 
   const statusPrefix = hasError
     ? "Feed unavailable - retrying"
     : isBooting
       ? "Connecting market feeds"
       : isStale
-        ? "Stale cache in use"
+        ? `Stale cache in use${degradedDetail}`
         : "Live market data";
 
   const statusAriaLabel = `${statusPrefix}. Dashboard refreshes every ${refreshInSec} seconds.`;

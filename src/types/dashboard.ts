@@ -4,6 +4,15 @@ export type DashboardSource = {
   fallbackUsed: boolean;
 };
 
+export type DashboardSegmentKey = "topCryptos" | "topStocks" | "night";
+
+export type DashboardSegmentSource = "live" | "fresh-cache" | "stale-cache" | "fallback" | "durable-cache";
+
+export type DashboardSegmentMeta = {
+  source: DashboardSegmentSource;
+  ageSec: number;
+};
+
 export type DashboardEntryBase = {
   id: string;
   rank: number;
@@ -52,8 +61,11 @@ export type DashboardPayload = {
   stale: boolean;
   refreshInSec: number;
   source: DashboardSource;
+  degradedSegments: DashboardSegmentKey[];
+  segmentMeta: Record<DashboardSegmentKey, DashboardSegmentMeta>;
   topCryptos: DashboardCrypto[];
   topStocks: DashboardStock[];
   topAssets: DashboardAsset[];
   night: DashboardNight | null;
+  requestId?: string;
 };

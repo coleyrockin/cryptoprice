@@ -37,15 +37,8 @@ function createProviderMetric(): ProviderMetric {
   };
 }
 
-type GlobalMetrics = typeof globalThis & {
-  __CRYPTOPRICE_METRICS__?: MetricsState;
-};
-
-const globalMetrics = globalThis as GlobalMetrics;
-
-const metricsState =
-  globalMetrics.__CRYPTOPRICE_METRICS__ ??
-  (globalMetrics.__CRYPTOPRICE_METRICS__ = {
+function createMetricsState(): MetricsState {
+  return {
     startedAt: new Date().toISOString(),
     dashboardRequests: 0,
     dashboardErrors: 0,
@@ -60,7 +53,16 @@ const metricsState =
       topStocks: createProviderMetric(),
       night: createProviderMetric(),
     },
-  });
+  };
+}
+
+type GlobalMetrics = typeof globalThis & {
+  __CRYPTOPRICE_METRICS__?: MetricsState;
+};
+
+const globalMetrics = globalThis as GlobalMetrics;
+
+const metricsState = globalMetrics.__CRYPTOPRICE_METRICS__ ?? (globalMetrics.__CRYPTOPRICE_METRICS__ = createMetricsState());
 
 export function recordDashboardRequest(): void {
   metricsState.dashboardRequests += 1;
@@ -119,4 +121,18 @@ export function recordProviderFallback(key: ProviderMetricKey): void {
 
 export function getMetricsSnapshot() {
   return structuredClone(metricsState);
+}
+
+export function resetMetrics(): void {
+  const next = createMetricsState();
+  metricsState.startedAt = next.startedAt;
+  metricsState.dashboardRequests = next.dashboardRequests;
+  metricsState.dashboardErrors = next.dashboardErrors;
+  metricsState.fallbackServes = next.fallbackServes;
+  metricsState.durableCacheHits = next.durableCacheHits;
+  metricsState.durableCacheWrites = next.durableCacheWrites;
+  metricsState.logoProxyRequests = next.logoProxyRequests;
+  metricsState.logoProxyErrors = next.logoProxyErrors;
+  metricsState.clientErrors = next.clientErrors;
+  metricsState.provider = next.provider;
 }

@@ -2,17 +2,20 @@
   "name": "cryptoprice",
   "private": true,
   "version": "0.1.0",
-  "description": "Black-market style crypto dashboard for top 10 coins plus Midnight Token (NIGHT).",
+  "description": "Production-grade crypto and global assets dashboard with resilient API fallbacks and quality gates.",
   "author": "Cryptoprice Maintainers",
   "license": "MIT",
   "keywords": [
     "crypto",
     "dashboard",
+    "stocks",
+    "assets",
+    "vercel",
+    "typescript",
     "react",
     "vite",
     "night",
-    "midnight-token",
-    "recharts"
+    "midnight-token"
   ],
   "repository": {
     "type": "git",
@@ -32,11 +35,13 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
+    "test:routes": "vitest run api",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.server.json",
     "build": "npm run typecheck && vite build --config vite.config.ts",
-    "check": "npm run build",
+    "check:bundle": "node ./scripts/check-bundle.mjs",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run test:routes && npm run build && npm run check:bundle",
     "preview": "vite preview --config vite.config.ts"
   },
   "dependencies": {

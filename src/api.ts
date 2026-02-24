@@ -19,9 +19,27 @@ async function getJson<T>(url: string): Promise<T> {
 }
 
 function normalizeDashboardPayload(payload: DashboardPayload): DashboardPayload {
+  const generatedAtMs = Date.parse(payload.generatedAt);
+  const ageSec = Number.isFinite(generatedAtMs) ? Math.max(0, Math.floor((Date.now() - generatedAtMs) / 1_000)) : 0;
+
   return {
     ...payload,
     refreshInSec: Number.isFinite(payload.refreshInSec) ? payload.refreshInSec : 60,
+    degradedSegments: Array.isArray(payload.degradedSegments) ? payload.degradedSegments : [],
+    segmentMeta: payload.segmentMeta ?? {
+      topCryptos: {
+        source: "fallback",
+        ageSec,
+      },
+      topStocks: {
+        source: "fallback",
+        ageSec,
+      },
+      night: {
+        source: "fallback",
+        ageSec,
+      },
+    },
     topCryptos: Array.isArray(payload.topCryptos) ? payload.topCryptos : [],
     topStocks: Array.isArray(payload.topStocks) ? payload.topStocks : [],
     topAssets: Array.isArray(payload.topAssets) ? payload.topAssets : [],
@@ -38,6 +56,9 @@ type ClientErrorPayload = {
   message: string;
   source?: string;
   stack?: string;
+  url?: string;
+  userAgent?: string;
+  timestamp?: string;
 };
 
 export async function reportClientError(payload: ClientErrorPayload): Promise<void> {

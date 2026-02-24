@@ -30,3 +30,23 @@ test("dashboard smoke renders cards, symbols, logos, and status", async ({ page 
   expect(after).not.toBeNull();
   expect(after).not.toEqual(before);
 });
+
+test("shows stale/degraded status when providers are unavailable", async ({ page }) => {
+  await page.goto("/");
+
+  const status = page.locator(".status");
+  await expect(status).toContainText("Stale cache in use");
+  await expect(status).toContainText("refresh in");
+});
+
+test("renders logo fallback marks when logo network requests fail", async ({ page }) => {
+  await page.route(/\.(png|jpg|jpeg|webp|avif|svg)(\?.*)?$/i, async (route) => {
+    await route.abort();
+  });
+
+  await page.goto("/");
+
+  const fallbackMarks = page.locator(".logo-fallback");
+  await expect(fallbackMarks.first()).toBeVisible({ timeout: 15_000 });
+  expect(await fallbackMarks.count()).toBeGreaterThan(0);
+});

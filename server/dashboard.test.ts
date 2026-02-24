@@ -141,6 +141,8 @@ describe("buildDashboardPayload", () => {
 
     expect(payload.stale).toBe(true);
     expect(payload.source.fallbackUsed).toBe(false);
+    expect(payload.degradedSegments).toEqual(["topCryptos", "topStocks", "night"]);
+    expect(payload.segmentMeta.topCryptos.source).toBe("stale-cache");
     expect(payload.topStocks[0]?.symbol).toBe("AAPL");
   });
 
@@ -159,6 +161,31 @@ describe("buildDashboardPayload", () => {
 
     expect(payload.stale).toBe(true);
     expect(payload.source.fallbackUsed).toBe(true);
+    expect(payload.degradedSegments).toEqual(["topCryptos", "topStocks", "night"]);
+    expect(payload.segmentMeta.topStocks.source).toBe("fallback");
     expect(payload.topCryptos[0]?.id).toBe(dashboardFallbackPayload.topCryptos[0]?.id);
+  });
+
+  it("reports partially degraded segments when a single provider fails", async () => {
+    const cache = new MemoryCache();
+    const now = 4_000_000;
+
+    mockedFetchTopStocksFromFmp.mockRejectedValue(new Error("fmp down"));
+    mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
+    mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
+
+    const payload = await buildDashboardPayload({
+      cache,
+      now: () => now,
+      cacheTtlSec: 60,
+      fallbackTtlSec: 600,
+      logger,
+    });
+
+    expect(payload.stale).toBe(true);
+    expect(payload.source.fallbackUsed).toBe(true);
+    expect(payload.degradedSegments).toEqual(["topStocks"]);
+    expect(payload.segmentMeta.topCryptos.source).toBe("live");
+    expect(payload.segmentMeta.topStocks.source).toBe("fallback");
   });
 });

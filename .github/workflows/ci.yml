@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  quality:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -28,14 +28,41 @@ jobs:
       - name: Run lint
         run: npm run lint
 
+      - name: Run typecheck
+        run: npm run typecheck
+
       - name: Run unit and integration tests
         run: npm run test
+
+      - name: Run API route tests
+        run: npm run test:routes
+
+      - name: Run build
+        run: npm run build
+
+      - name: Run bundle size check
+        run: npm run check:bundle
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: quality
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
       - name: Run smoke e2e
         run: npm run test:e2e
-
-      - name: Run build
-        run: npm run build

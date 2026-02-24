@@ -11,6 +11,15 @@ export class MemoryCache {
   }
 
   getFresh<T>(key: string, ttlSec: number, now = Date.now()): T | null {
+    const entry = this.getFreshEntry<T>(key, ttlSec, now);
+    if (!entry) {
+      return null;
+    }
+
+    return entry.value;
+  }
+
+  getFreshEntry<T>(key: string, ttlSec: number, now = Date.now()): CacheEntry<T> | null {
     const entry = this.entries.get(key);
     if (!entry) {
       return null;
@@ -20,10 +29,19 @@ export class MemoryCache {
       return null;
     }
 
-    return entry.value as T;
+    return entry as CacheEntry<T>;
   }
 
   getStale<T>(key: string, maxAgeSec: number, now = Date.now()): T | null {
+    const entry = this.getStaleEntry<T>(key, maxAgeSec, now);
+    if (!entry) {
+      return null;
+    }
+
+    return entry.value;
+  }
+
+  getStaleEntry<T>(key: string, maxAgeSec: number, now = Date.now()): CacheEntry<T> | null {
     const entry = this.entries.get(key);
     if (!entry) {
       return null;
@@ -33,7 +51,16 @@ export class MemoryCache {
       return null;
     }
 
-    return entry.value as T;
+    return entry as CacheEntry<T>;
+  }
+
+  getEntry<T>(key: string): CacheEntry<T> | null {
+    const entry = this.entries.get(key);
+    if (!entry) {
+      return null;
+    }
+
+    return entry as CacheEntry<T>;
   }
 
   clear(): void {

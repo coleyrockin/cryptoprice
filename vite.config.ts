@@ -5,8 +5,8 @@ import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 
 import { buildDashboardPayload } from "./server/dashboard";
-import { isDurableCacheConfigured } from "./server/durable-cache";
-import { getMetricsSnapshot } from "./server/metrics";
+import { buildHealthPayload } from "./server/health";
+import { createRequestId } from "./server/log";
 
 function localApiPlugin(): Plugin {
   return {
@@ -21,33 +21,25 @@ function localApiPlugin(): Plugin {
         }
 
         if (url === "/__local_api/health" && request.method === "GET") {
+          const requestId = createRequestId();
           response.setHeader("Content-Type", "application/json");
           response.statusCode = 200;
-          response.end(
-            JSON.stringify({
-              ok: true,
-              service: "cryptoprice-api-local",
-              timestamp: new Date().toISOString(),
-              durableCache: {
-                configured: isDurableCacheConfigured(),
-              },
-              metrics: getMetricsSnapshot(),
-            }),
-          );
+          response.end(JSON.stringify(buildHealthPayload(requestId)));
           return;
         }
 
         if (url === "/__local_api/dashboard" && request.method === "GET") {
+          const requestId = createRequestId();
           try {
             const payload = await buildDashboardPayload();
             response.setHeader("Content-Type", "application/json");
             response.statusCode = 200;
-            response.end(JSON.stringify(payload));
+            response.end(JSON.stringify({ ...payload, requestId }));
           } catch (error) {
             const message = error instanceof Error ? error.message : "unknown error";
             response.setHeader("Content-Type", "application/json");
             response.statusCode = 502;
-            response.end(JSON.stringify({ error: "Failed to build dashboard payload", reason: message }));
+            response.end(JSON.stringify({ error: "Failed to build dashboard payload", reason: message, requestId }));
           }
           return;
         }

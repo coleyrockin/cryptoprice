@@ -23,6 +23,9 @@ if (import.meta.env.PROD) {
       source: "window-error",
       message: event.message || "Unhandled window error",
       stack: event.error instanceof Error ? event.error.stack : undefined,
+      url: window.location.href,
+      userAgent: window.navigator.userAgent,
+      timestamp: new Date().toISOString(),
     });
   });
 
@@ -33,6 +36,9 @@ if (import.meta.env.PROD) {
       source: "unhandledrejection",
       message: reason,
       stack,
+      url: window.location.href,
+      userAgent: window.navigator.userAgent,
+      timestamp: new Date().toISOString(),
     });
   });
 }

@@ -1,5 +1,5 @@
-import { isDurableCacheConfigured } from "../server/durable-cache";
-import { getMetricsSnapshot } from "../server/metrics";
+import { buildHealthPayload } from "../server/health";
+import { createRequestId, logEvent } from "../server/log";
 
 type ApiRequest = {
   method?: string;
@@ -12,19 +12,17 @@ type ApiResponse = {
 };
 
 export default function handler(request: ApiRequest, response: ApiResponse): void {
+  const requestId = createRequestId();
   if (request.method && request.method !== "GET") {
     response.setHeader("Allow", "GET");
+    response.setHeader("X-Cryptoprice-Request-Id", requestId);
     response.status(405).json({ error: "Method Not Allowed" });
     return;
   }
 
-  response.status(200).json({
-    ok: true,
-    service: "cryptoprice-api",
-    timestamp: new Date().toISOString(),
-    durableCache: {
-      configured: isDurableCacheConfigured(),
-    },
-    metrics: getMetricsSnapshot(),
-  });
+  logEvent("info", "api.health.request", { requestId });
+  const payload = buildHealthPayload(requestId);
+
+  response.setHeader("X-Cryptoprice-Request-Id", requestId);
+  response.status(200).json(payload);
 }

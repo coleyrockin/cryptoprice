@@ -36,13 +36,14 @@ Frontend (Vite + React + React Query)
 
 - `GET /api/dashboard`
   - Returns normalized dashboard payload for cryptos, stocks, assets, and NIGHT.
-  - Sets `X-Cryptoprice-Stale` and `X-Cryptoprice-Fallback` headers.
+  - Adds `degradedSegments`, `segmentMeta`, and `requestId` for operational clarity.
+  - Sets `X-Cryptoprice-Stale`, `X-Cryptoprice-Fallback`, and `X-Cryptoprice-Request-Id` headers.
 - `GET /api/health`
-  - Returns service status, durable cache configuration state, and runtime metrics.
+  - Returns readiness (`ready`/`degraded`/`down`), checks, provider status, and runtime metrics.
 - `GET /api/logo?url=<https-logo-url>`
-  - Proxies remote logos with safe URL validation and cache headers.
+  - Proxies remote logos with strict host allowlist, payload-size limits, and rate limiting.
 - `POST /api/client-error`
-  - Accepts client-side error events for operational visibility.
+  - Accepts schema-validated client-side error events with body-size guard and rate limiting.
 
 ### Dashboard Response Shape
 
@@ -56,6 +57,13 @@ Frontend (Vite + React + React Query)
     "crypto": "coinpaprika",
     "fallbackUsed": false
   },
+  "degradedSegments": [],
+  "segmentMeta": {
+    "topCryptos": { "source": "live", "ageSec": 0 },
+    "topStocks": { "source": "live", "ageSec": 0 },
+    "night": { "source": "live", "ageSec": 0 }
+  },
+  "requestId": "f83a90f9-7b34-4cae-b6f6-0fbcb84f8bb3",
   "topCryptos": [],
   "topStocks": [],
   "topAssets": [],
@@ -113,6 +121,13 @@ From `.env.example`:
 - `KV_REST_API_URL` (optional)
 - `KV_REST_API_TOKEN` (optional)
 - `DURABLE_CACHE_KEY` (optional)
+- `STALE_ALERT_SEC`
+- `LOGO_ALLOWED_HOSTS`
+- `LOGO_PROXY_TIMEOUT_MS`
+- `LOGO_PROXY_MAX_BYTES`
+- `LOGO_PROXY_RATE_LIMIT_PER_MIN`
+- `CLIENT_ERROR_MAX_BYTES`
+- `CLIENT_ERROR_RATE_LIMIT_PER_MIN`
 
 ## Scripts
 
@@ -121,10 +136,12 @@ From `.env.example`:
 - `npm run lint:fix` - autofix lintable issues.
 - `npm run typecheck` - TypeScript checks for app, node, and server projects.
 - `npm run test` - Vitest unit/integration suite.
+- `npm run test:routes` - API route test suite.
 - `npm run test:e2e` - Playwright smoke test.
 - `npm run build` - typecheck + production build.
+- `npm run check:bundle` - fail if main bundle exceeds configured size budget.
 - `npm run preview` - serve production build locally.
-- `npm run check` - CI-style validation alias.
+- `npm run check` - local full-gate validation (lint, typecheck, tests, routes, build, bundle budget).
 
 ## Testing and Quality Gates
 
@@ -134,8 +151,10 @@ Local parity with CI:
 npm run lint
 npm run typecheck
 npm run test
-npm run test:e2e
+npm run test:routes
 npm run build
+npm run check:bundle
+npm run test:e2e
 ```
 
 Coverage focus:

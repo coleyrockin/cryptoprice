@@ -4,17 +4,24 @@ import { recordProviderFailure, recordProviderFallback, recordProviderSuccess, t
 import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./providers/coinpaprika";
 import { fetchTopStocksFromFmp } from "./providers/fmp";
 import { toFiniteNumber } from "./sanitize";
-import type { DashboardAsset, DashboardCrypto, DashboardPayload, DashboardStock, DashboardNight } from "./types";
+import type {
+  DashboardAsset,
+  DashboardCrypto,
+  DashboardNight,
+  DashboardPayload,
+  DashboardSegmentKey,
+  DashboardSegmentSource,
+  DashboardStock,
+} from "./types";
 
 type Logger = Pick<Console, "info" | "warn" | "error">;
-
-type SegmentSource = "fresh-cache" | "live" | "stale-cache" | "fallback";
 
 type SegmentResult<T> = {
   data: T;
   stale: boolean;
   fallbackUsed: boolean;
-  source: SegmentSource;
+  source: DashboardSegmentSource;
+  updatedAtMs: number;
 };
 
 export type DashboardBuildOptions = {
@@ -30,6 +37,9 @@ export type DashboardBuildOptions = {
 };
 
 const FALLBACK_PAYLOAD = fallbackPayloadJson as DashboardPayload;
+const FALLBACK_GENERATED_AT_MS = Date.parse(FALLBACK_PAYLOAD.generatedAt);
+
+const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "night"];
 
 function envInt(name: string, fallback: number, min: number, max: number): number {
   const raw = process.env[name];
@@ -151,20 +161,22 @@ async function resolveSegment<T>(options: {
   label: string;
   fetcher: () => Promise<T>;
   fallbackValue: T;
+  fallbackUpdatedAtMs: number;
   cache: MemoryCache;
   nowMs: number;
   cacheTtlSec: number;
   fallbackTtlSec: number;
   logger: Logger;
 }): Promise<SegmentResult<T>> {
-  const fresh = options.cache.getFresh<T>(options.key, options.cacheTtlSec, options.nowMs);
+  const fresh = options.cache.getFreshEntry<T>(options.key, options.cacheTtlSec, options.nowMs);
   if (fresh) {
     options.logger.info(`[dashboard] ${options.label} source=fresh-cache`);
     return {
-      data: fresh,
+      data: fresh.value,
       stale: false,
       fallbackUsed: false,
       source: "fresh-cache",
+      updatedAtMs: fresh.updatedAt,
     };
   }
 
@@ -181,21 +193,23 @@ async function resolveSegment<T>(options: {
       stale: false,
       fallbackUsed: false,
       source: "live",
+      updatedAtMs: options.nowMs,
     };
   } catch (error) {
     recordProviderFailure(options.metricKey);
     const message = error instanceof Error ? error.message : "unknown error";
     options.logger.warn(`[dashboard] ${options.label} provider-failure reason=${message}`);
 
-    const stale = options.cache.getStale<T>(options.key, options.fallbackTtlSec, options.nowMs);
+    const stale = options.cache.getStaleEntry<T>(options.key, options.fallbackTtlSec, options.nowMs);
     if (stale) {
       recordProviderFallback(options.metricKey);
       options.logger.warn(`[dashboard] ${options.label} source=stale-cache`);
       return {
-        data: stale,
+        data: stale.value,
         stale: true,
         fallbackUsed: false,
         source: "stale-cache",
+        updatedAtMs: stale.updatedAt,
       };
     }
 
@@ -206,6 +220,7 @@ async function resolveSegment<T>(options: {
       stale: true,
       fallbackUsed: true,
       source: "fallback",
+      updatedAtMs: options.fallbackUpdatedAtMs,
     };
   }
 }
@@ -217,8 +232,10 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
 
   const cacheTtlSec = options.cacheTtlSec ?? envInt("CACHE_TTL_SEC", 60, 15, 300);
   const fallbackTtlSec = options.fallbackTtlSec ?? envInt("FALLBACK_TTL_SEC", 600, 60, 3_600);
+  const staleAlertSec = envInt("STALE_ALERT_SEC", 300, 60, 86_400);
   const timeoutMs = options.timeoutMs ?? 4_500;
   const retries = options.retries ?? 1;
+  const fallbackUpdatedAtMs = Number.isFinite(FALLBACK_GENERATED_AT_MS) ? FALLBACK_GENERATED_AT_MS : nowMs;
 
   const [cryptosResult, stocksResult, nightResult] = await Promise.all([
     resolveSegment<DashboardCrypto[]>({
@@ -226,6 +243,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       metricKey: "topCryptos",
       label: "topCryptos",
       fallbackValue: FALLBACK_PAYLOAD.topCryptos,
+      fallbackUpdatedAtMs,
       cache,
       nowMs,
       cacheTtlSec,
@@ -244,6 +262,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       metricKey: "topStocks",
       label: "topStocks",
       fallbackValue: FALLBACK_PAYLOAD.topStocks,
+      fallbackUpdatedAtMs,
       cache,
       nowMs,
       cacheTtlSec,
@@ -262,6 +281,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       metricKey: "night",
       label: "night",
       fallbackValue: FALLBACK_PAYLOAD.night,
+      fallbackUpdatedAtMs,
       cache,
       nowMs,
       cacheTtlSec,
@@ -284,7 +304,32 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
   const stale = cryptosResult.stale || stocksResult.stale || nightResult.stale;
   const fallbackUsed = cryptosResult.fallbackUsed || stocksResult.fallbackUsed || nightResult.fallbackUsed;
 
+  const segmentMeta = {
+    topCryptos: {
+      source: cryptosResult.source,
+      ageSec: Math.max(0, Math.floor((nowMs - cryptosResult.updatedAtMs) / 1_000)),
+    },
+    topStocks: {
+      source: stocksResult.source,
+      ageSec: Math.max(0, Math.floor((nowMs - stocksResult.updatedAtMs) / 1_000)),
+    },
+    night: {
+      source: nightResult.source,
+      ageSec: Math.max(0, Math.floor((nowMs - nightResult.updatedAtMs) / 1_000)),
+    },
+  } satisfies DashboardPayload["segmentMeta"];
+
+  const degradedSegments = SEGMENT_KEYS.filter((segment) => {
+    const source = segmentMeta[segment].source;
+    return source === "stale-cache" || source === "fallback" || source === "durable-cache";
+  });
+
   logger.info(`[dashboard] assembled stale=${stale} fallbackUsed=${fallbackUsed}`);
+  for (const segment of degradedSegments) {
+    if (segmentMeta[segment].ageSec >= staleAlertSec) {
+      logger.warn(`[dashboard] stale-threshold segment=${segment} ageSec=${segmentMeta[segment].ageSec} thresholdSec=${staleAlertSec}`);
+    }
+  }
 
   return {
     generatedAt: new Date(nowMs).toISOString(),
@@ -295,6 +340,8 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       crypto: "coinpaprika",
       fallbackUsed,
     },
+    degradedSegments,
+    segmentMeta,
     topCryptos,
     topStocks,
     topAssets,

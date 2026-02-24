@@ -26,6 +26,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       source: "error-boundary",
       message: error.message,
       stack: `${error.stack ?? ""}\n${errorInfo.componentStack}`,
+      url: window.location.href,
+      userAgent: window.navigator.userAgent,
+      timestamp: new Date().toISOString(),
     });
   }
 

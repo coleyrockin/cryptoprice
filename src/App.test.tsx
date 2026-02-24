@@ -21,6 +21,21 @@ const payload: DashboardPayload = {
     crypto: "coinpaprika",
     fallbackUsed: false,
   },
+  degradedSegments: [],
+  segmentMeta: {
+    topCryptos: {
+      source: "live",
+      ageSec: 0,
+    },
+    topStocks: {
+      source: "live",
+      ageSec: 0,
+    },
+    night: {
+      source: "live",
+      ageSec: 0,
+    },
+  },
   topCryptos: [
     {
       id: "btc-bitcoin",
