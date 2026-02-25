@@ -20,12 +20,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/coleyrockin/world-asset-prices.git"
+    "url": "https://github.com/coleyrockin/cryptoprice.git"
   },
   "bugs": {
-    "url": "https://github.com/coleyrockin/world-asset-prices/issues"
+    "url": "https://github.com/coleyrockin/cryptoprice/issues"
   },
-  "homepage": "https://github.com/coleyrockin/world-asset-prices",
+  "homepage": "https://github.com/coleyrockin/cryptoprice",
   "engines": {
     "node": ">=20.0.0"
   },
