@@ -61,7 +61,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
   if (request.method && request.method !== "GET") {
     response.setHeader("Allow", "GET");
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
+    response.setHeader("X-Wap-Request-Id", requestId);
     response.status(405).json({ error: "Method Not Allowed" });
     return;
   }
@@ -104,15 +104,15 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       requestId,
     };
 
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
-    response.setHeader("X-Cryptoprice-Stale", String(resolvedPayload.stale));
-    response.setHeader("X-Cryptoprice-Fallback", String(resolvedPayload.source.fallbackUsed));
+    response.setHeader("X-Wap-Request-Id", requestId);
+    response.setHeader("X-Wap-Stale", String(resolvedPayload.stale));
+    response.setHeader("X-Wap-Fallback", String(resolvedPayload.source.fallbackUsed));
     response.setHeader("Cache-Control", "no-store");
     response.status(200).json(responsePayload);
   } catch (error) {
     recordDashboardError();
     logError("api.dashboard.failed", error, { requestId });
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
+    response.setHeader("X-Wap-Request-Id", requestId);
     response.status(502).json({
       error: "Failed to build dashboard payload",
       requestId,

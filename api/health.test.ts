@@ -6,7 +6,7 @@ vi.mock("../server/health", () => ({
     ok: true,
     readiness: "ready",
     requestId: "req-1",
-    service: "cryptoprice-api",
+    service: "wap-api",
   })),
 }));
 
@@ -33,7 +33,7 @@ describe("GET /api/health", () => {
 
     expect(state.statusCode).toBe(200);
     expect(mockedBuildHealthPayload).toHaveBeenCalledTimes(1);
-    expect(state.headers["x-cryptoprice-request-id"]).toBeTruthy();
+    expect(state.headers["x-wap-request-id"]).toBeTruthy();
 
     const body = state.jsonBody as { readiness: string };
     expect(body.readiness).toBe("ready");

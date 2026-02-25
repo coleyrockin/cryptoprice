@@ -9,8 +9,24 @@ import { formatCompactCurrency, formatCurrency, formatPercent, trendClass } from
 import type { DashboardAsset, DashboardCrypto, DashboardStock } from "./types/dashboard";
 
 const DEFAULT_REFRESH_SEC = 60;
-const WATCHLIST_STORAGE_KEY = "cryptoprice.watchlist.v1";
+const WATCHLIST_STORAGE_KEY = "wap.watchlist.v1";
+const LEGACY_WATCHLIST_KEY = "cryptoprice.watchlist.v1";
 const EMPTY_CRYPTOS: DashboardCrypto[] = [];
+
+// One-time migration: copy old watchlist to new key and remove the old one
+(function migrateWatchlist() {
+  try {
+    const newVal = localStorage.getItem(WATCHLIST_STORAGE_KEY);
+    if (newVal) return; // already migrated or user has new data
+    const oldVal = localStorage.getItem(LEGACY_WATCHLIST_KEY);
+    if (oldVal) {
+      localStorage.setItem(WATCHLIST_STORAGE_KEY, oldVal);
+      localStorage.removeItem(LEGACY_WATCHLIST_KEY);
+    }
+  } catch {
+    // localStorage may be unavailable — ignore
+  }
+})();
 const EMPTY_STOCKS: DashboardStock[] = [];
 const EMPTY_ASSETS: DashboardAsset[] = [];
 
@@ -438,9 +454,9 @@ function App() {
   return (
     <main className="shell">
       <header className="hero">
-        <p className="eyebrow">Cryptoprice</p>
+        <p className="eyebrow">World Asset Prices</p>
         <h1>
-          Crypto & Global Assets <span>Dashboard</span>
+          Global Assets <span>Dashboard</span>
         </h1>
         <p className="tagline">Top 10 cryptos, top 10 stocks, top 10 global assets, and NIGHT price.</p>
 

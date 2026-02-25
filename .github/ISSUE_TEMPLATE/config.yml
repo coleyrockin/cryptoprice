@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security disclosures
-    url: https://github.com/coleyrockin/cryptoprice/security/advisories/new
+    url: https://github.com/coleyrockin/world-asset-prices/security/advisories/new
     about: Report security vulnerabilities privately.

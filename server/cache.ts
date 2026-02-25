@@ -69,10 +69,10 @@ export class MemoryCache {
 }
 
 type GlobalCache = typeof globalThis & {
-  __CRYPTOPRICE_RUNTIME_CACHE__?: MemoryCache;
+  __WAP_RUNTIME_CACHE__?: MemoryCache;
 };
 
 const globalCache = globalThis as GlobalCache;
 
 export const runtimeCache =
-  globalCache.__CRYPTOPRICE_RUNTIME_CACHE__ ?? (globalCache.__CRYPTOPRICE_RUNTIME_CACHE__ = new MemoryCache());
+  globalCache.__WAP_RUNTIME_CACHE__ ?? (globalCache.__WAP_RUNTIME_CACHE__ = new MemoryCache());

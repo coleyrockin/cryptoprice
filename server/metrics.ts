@@ -57,12 +57,12 @@ function createMetricsState(): MetricsState {
 }
 
 type GlobalMetrics = typeof globalThis & {
-  __CRYPTOPRICE_METRICS__?: MetricsState;
+  __WAP_METRICS__?: MetricsState;
 };
 
 const globalMetrics = globalThis as GlobalMetrics;
 
-const metricsState = globalMetrics.__CRYPTOPRICE_METRICS__ ?? (globalMetrics.__CRYPTOPRICE_METRICS__ = createMetricsState());
+const metricsState = globalMetrics.__WAP_METRICS__ ?? (globalMetrics.__WAP_METRICS__ = createMetricsState());
 
 export function recordDashboardRequest(): void {
   metricsState.dashboardRequests += 1;

@@ -1,4 +1,4 @@
-# Contributing to Cryptoprice
+# Contributing to World Asset Prices
 
 ## Setup
 

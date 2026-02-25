@@ -1,14 +1,14 @@
-# Cryptoprice
+# World Asset Prices
 
-[![CI](https://github.com/coleyrockin/cryptoprice/actions/workflows/ci.yml/badge.svg)](https://github.com/coleyrockin/cryptoprice/actions/workflows/ci.yml)
+[![CI](https://github.com/coleyrockin/world-asset-prices/actions/workflows/ci.yml/badge.svg)](https://github.com/coleyrockin/world-asset-prices/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Node >= 20](https://img.shields.io/badge/node-%3E%3D20-3c873a)
 
-Cryptoprice is a full-stack React + Vercel dashboard for live crypto and global-asset market monitoring with resilient fallback behavior, ticker pills, logo support, and a dedicated Midnight Token (`NIGHT`) panel.
+World Asset Prices is a full-stack React + Vercel dashboard for live crypto and global-asset market monitoring with resilient fallback behavior, ticker pills, logo support, and a dedicated Midnight Token (`NIGHT`) panel.
 
 ## Preview
 
-![Cryptoprice dashboard preview](./site-preview.png)
+![World Asset Prices dashboard preview](./site-preview.png)
 
 ## Why This Project
 
@@ -37,7 +37,7 @@ Frontend (Vite + React + React Query)
 - `GET /api/dashboard`
   - Returns normalized dashboard payload for cryptos, stocks, assets, and NIGHT.
   - Adds `degradedSegments`, `segmentMeta`, and `requestId` for operational clarity.
-  - Sets `X-Cryptoprice-Stale`, `X-Cryptoprice-Fallback`, and `X-Cryptoprice-Request-Id` headers.
+  - Sets `X-Wap-Stale`, `X-Wap-Fallback`, and `X-Wap-Request-Id` headers.
 - `GET /api/health`
   - Returns readiness (`ready`/`degraded`/`down`), checks, provider status, and runtime metrics.
 - `GET /api/logo?url=<https-logo-url>`

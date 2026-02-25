@@ -5,7 +5,7 @@ type DurableRecord = {
   payload: DashboardPayload;
 };
 
-const DEFAULT_DASHBOARD_CACHE_KEY = "cryptoprice:dashboard:payload";
+const DEFAULT_DASHBOARD_CACHE_KEY = "wap:dashboard:payload";
 
 function getEnvValue(...keys: string[]): string | null {
   for (const key of keys) {

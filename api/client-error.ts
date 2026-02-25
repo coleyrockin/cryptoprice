@@ -134,7 +134,7 @@ export default function handler(request: ApiRequest, response: ApiResponse): voi
 
   if (request.method && request.method !== "POST") {
     response.setHeader("Allow", "POST");
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
+    response.setHeader("X-Wap-Request-Id", requestId);
     response.status(405).json({ error: "Method Not Allowed", requestId });
     return;
   }
@@ -142,7 +142,7 @@ export default function handler(request: ApiRequest, response: ApiResponse): voi
   const maxBytes = envInt("CLIENT_ERROR_MAX_BYTES", 8_192, 512, 65_536);
   const contentLength = getContentLength(request);
   if (contentLength !== null && contentLength > maxBytes) {
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
+    response.setHeader("X-Wap-Request-Id", requestId);
     response.status(413).json({ error: "Payload too large", requestId });
     return;
   }
@@ -155,21 +155,21 @@ export default function handler(request: ApiRequest, response: ApiResponse): voi
 
   if (!rateLimitResult.allowed) {
     response.setHeader("Retry-After", String(rateLimitResult.retryAfterSec));
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
+    response.setHeader("X-Wap-Request-Id", requestId);
     response.status(429).json({ error: "Rate limit exceeded", requestId });
     return;
   }
 
   const parsedBody = parseBody(request.body);
   if (!parsedBody) {
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
+    response.setHeader("X-Wap-Request-Id", requestId);
     response.status(400).json({ error: "Invalid payload", requestId });
     return;
   }
 
   const normalized = normalizeClientError(parsedBody);
   if (!normalized) {
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
+    response.setHeader("X-Wap-Request-Id", requestId);
     response.status(400).json({ error: "Invalid payload schema", requestId });
     return;
   }
@@ -181,6 +181,6 @@ export default function handler(request: ApiRequest, response: ApiResponse): voi
     payload: normalized,
   });
 
-  response.setHeader("X-Cryptoprice-Request-Id", requestId);
+  response.setHeader("X-Wap-Request-Id", requestId);
   response.status(202).json({ ok: true, requestId });
 }

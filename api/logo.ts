@@ -115,7 +115,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
   if (request.method && request.method !== "GET") {
     response.setHeader("Allow", "GET");
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
+    response.setHeader("X-Wap-Request-Id", requestId);
     response.status(405).json({ error: "Method Not Allowed", requestId });
     return;
   }
@@ -131,7 +131,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   if (!rateLimitResult.allowed) {
     recordLogoProxyError();
     response.setHeader("Retry-After", String(rateLimitResult.retryAfterSec));
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
+    response.setHeader("X-Wap-Request-Id", requestId);
     response.status(429).json({ error: "Rate limit exceeded", requestId });
     return;
   }
@@ -139,7 +139,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   const { url: logoUrl, reason } = parseAndValidateLogoUrl(getUrlParam(request));
   if (!logoUrl) {
     recordLogoProxyError();
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
+    response.setHeader("X-Wap-Request-Id", requestId);
     response.status(400).json({ error: "Invalid logo URL", reason, requestId });
     return;
   }
@@ -159,7 +159,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
     if (!upstream.ok) {
       recordLogoProxyError();
-      response.setHeader("X-Cryptoprice-Request-Id", requestId);
+      response.setHeader("X-Wap-Request-Id", requestId);
       response.status(404).json({ error: "Logo not found", requestId });
       return;
     }
@@ -167,7 +167,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const contentType = upstream.headers.get("content-type") ?? "";
     if (!contentType.startsWith("image/")) {
       recordLogoProxyError();
-      response.setHeader("X-Cryptoprice-Request-Id", requestId);
+      response.setHeader("X-Wap-Request-Id", requestId);
       response.status(415).json({ error: "Unsupported logo response", requestId });
       return;
     }
@@ -175,14 +175,14 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const contentLength = Number.parseInt(upstream.headers.get("content-length") ?? "", 10);
     if (Number.isFinite(contentLength) && contentLength > maxBytes) {
       recordLogoProxyError();
-      response.setHeader("X-Cryptoprice-Request-Id", requestId);
+      response.setHeader("X-Wap-Request-Id", requestId);
       response.status(413).json({ error: "Logo payload too large", requestId });
       return;
     }
 
     const body = await readResponseBodyWithLimit(upstream, maxBytes);
 
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
+    response.setHeader("X-Wap-Request-Id", requestId);
     response.setHeader("Content-Type", contentType);
     response.setHeader("X-Content-Type-Options", "nosniff");
     response.setHeader("Cache-Control", "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400");
@@ -191,7 +191,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     recordLogoProxyError();
 
     if (error instanceof Error && error.message === "payload_too_large") {
-      response.setHeader("X-Cryptoprice-Request-Id", requestId);
+      response.setHeader("X-Wap-Request-Id", requestId);
       response.status(413).json({ error: "Logo payload too large", requestId });
       return;
     }
@@ -201,7 +201,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       upstream: logoUrl.toString(),
     });
 
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
+    response.setHeader("X-Wap-Request-Id", requestId);
     response.status(502).json({ error: "Logo fetch failed", requestId });
   } finally {
     clearTimeout(timeout);

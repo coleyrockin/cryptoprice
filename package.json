@@ -1,9 +1,9 @@
 {
-  "name": "cryptoprice",
+  "name": "world-asset-prices",
   "private": true,
   "version": "0.1.0",
   "description": "Production-grade crypto and global assets dashboard with resilient API fallbacks and quality gates.",
-  "author": "Cryptoprice Maintainers",
+  "author": "World Asset Prices Maintainers",
   "license": "MIT",
   "keywords": [
     "crypto",
@@ -19,12 +19,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/coleyrockin/cryptoprice.git"
+    "url": "https://github.com/coleyrockin/world-asset-prices.git"
   },
   "bugs": {
-    "url": "https://github.com/coleyrockin/cryptoprice/issues"
+    "url": "https://github.com/coleyrockin/world-asset-prices/issues"
   },
-  "homepage": "https://github.com/coleyrockin/cryptoprice",
+  "homepage": "https://github.com/coleyrockin/world-asset-prices",
   "engines": {
     "node": ">=20.0.0"
   },

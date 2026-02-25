@@ -42,11 +42,11 @@ const FALLBACK_GENERATED_AT_MS = Date.parse(FALLBACK_PAYLOAD.generatedAt);
 const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "night"];
 
 type StaleAlertGlobal = typeof globalThis & {
-  __CRYPTOPRICE_STALE_ALERTS__?: Map<DashboardSegmentKey, number>;
+  __WAP_STALE_ALERTS__?: Map<DashboardSegmentKey, number>;
 };
 
 const staleAlertGlobal = globalThis as StaleAlertGlobal;
-const staleAlerts = staleAlertGlobal.__CRYPTOPRICE_STALE_ALERTS__ ?? (staleAlertGlobal.__CRYPTOPRICE_STALE_ALERTS__ = new Map());
+const staleAlerts = staleAlertGlobal.__WAP_STALE_ALERTS__ ?? (staleAlertGlobal.__WAP_STALE_ALERTS__ = new Map());
 
 function shouldEmitStaleAlert(segment: DashboardSegmentKey, thresholdSec: number, nowMs: number): boolean {
   const lastEmittedMs = staleAlerts.get(segment);
@@ -91,9 +91,9 @@ function normalizeCryptos(cryptos: DashboardCrypto[]): DashboardCrypto[] {
     change24h: toFiniteNumber(crypto.change24h),
     sparkline7d: Array.isArray(crypto.sparkline7d)
       ? crypto.sparkline7d
-          .map((point) => toFiniteNumber(point))
-          .filter((point): point is number => point !== null)
-          .slice(-12)
+        .map((point) => toFiniteNumber(point))
+        .filter((point): point is number => point !== null)
+        .slice(-12)
       : [],
   }));
 }

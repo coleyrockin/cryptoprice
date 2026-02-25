@@ -76,7 +76,7 @@ describe("GET /api/dashboard", () => {
     await handler({ method: "GET" }, response);
 
     expect(state.statusCode).toBe(200);
-    expect(state.headers["x-cryptoprice-request-id"]).toBeTruthy();
+    expect(state.headers["x-wap-request-id"]).toBeTruthy();
 
     const body = state.jsonBody as DashboardPayload;
     expect(body.requestId).toBeTruthy();

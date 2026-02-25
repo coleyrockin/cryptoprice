@@ -15,7 +15,7 @@ export default function handler(request: ApiRequest, response: ApiResponse): voi
   const requestId = createRequestId();
   if (request.method && request.method !== "GET") {
     response.setHeader("Allow", "GET");
-    response.setHeader("X-Cryptoprice-Request-Id", requestId);
+    response.setHeader("X-Wap-Request-Id", requestId);
     response.status(405).json({ error: "Method Not Allowed" });
     return;
   }
@@ -23,6 +23,6 @@ export default function handler(request: ApiRequest, response: ApiResponse): voi
   logEvent("info", "api.health.request", { requestId });
   const payload = buildHealthPayload(requestId);
 
-  response.setHeader("X-Cryptoprice-Request-Id", requestId);
+  response.setHeader("X-Wap-Request-Id", requestId);
   response.status(200).json(payload);
 }

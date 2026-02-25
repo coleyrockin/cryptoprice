@@ -8,14 +8,14 @@ type RateLimitState = {
 };
 
 type GlobalRateLimit = typeof globalThis & {
-  __CRYPTOPRICE_RATE_LIMIT__?: RateLimitState;
+  __WAP_RATE_LIMIT__?: RateLimitState;
 };
 
 const globalRateLimit = globalThis as GlobalRateLimit;
 
 const state =
-  globalRateLimit.__CRYPTOPRICE_RATE_LIMIT__ ??
-  (globalRateLimit.__CRYPTOPRICE_RATE_LIMIT__ = {
+  globalRateLimit.__WAP_RATE_LIMIT__ ??
+  (globalRateLimit.__WAP_RATE_LIMIT__ = {
     records: new Map<string, RateLimitRecord>(),
   });
 

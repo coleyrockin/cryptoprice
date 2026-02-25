@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Renamed project from Cryptoprice to World Asset Prices.** All user-visible text, HTTP headers (`X-Wap-*`), internal identifiers, cache keys, localStorage keys, and documentation updated. Existing watchlists are automatically migrated.
 - CI workflow now enforces lint, typecheck, unit/integration tests, route tests, build, bundle budget, and E2E smoke checks.
 - `npm run check` now runs the complete local validation gate sequence.
 - README and contributing docs updated to reflect current architecture, contracts, and quality standards.

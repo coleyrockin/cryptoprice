@@ -38,7 +38,7 @@ export function buildHealthPayload(requestId: string) {
   return {
     ok: readiness !== "down",
     readiness,
-    service: "cryptoprice-api",
+    service: "wap-api",
     requestId,
     timestamp: new Date().toISOString(),
     checks: {
