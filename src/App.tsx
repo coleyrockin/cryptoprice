@@ -458,7 +458,7 @@ function App() {
         <h1>
           Global Assets <span>Dashboard</span>
         </h1>
-        <p className="tagline">Top 10 cryptos, top 10 stocks, top 10 global assets, and NIGHT price.</p>
+        <p className="tagline">Top 10 global assets, top 10 stocks, top 10 cryptocurrencies, and NIGHT price.</p>
 
         <div className={statusTone} role="status" aria-live="polite" aria-atomic="true" aria-label={statusAriaLabel}>
           <span>{statusPrefix}</span>
@@ -469,10 +469,10 @@ function App() {
       </header>
 
       <nav className="section-nav" aria-label="Dashboard sections">
+        <a href="#section-assets">Global Assets</a>
+        <a href="#section-stocks">Stocks</a>
         <a href="#section-cryptos">Cryptos</a>
         <a href="#section-compare">Compare</a>
-        <a href="#section-stocks">Stocks</a>
-        <a href="#section-assets">Assets</a>
         <a href="#section-night">NIGHT</a>
       </nav>
 
@@ -538,8 +538,19 @@ function App() {
         </div>
       </section>
 
+      <section id="section-assets" className="surface global-assets-surface">
+        <SectionHeader title="Top 10 Global Assets" subtitle="By estimated market cap" />
+        {renderAssetGrid()}
+        <p className="disclaimer">* Approximate values. Network/API conditions may delay updates.</p>
+      </section>
+
+      <section id="section-stocks" className="surface global-assets-surface">
+        <SectionHeader title="Top 10 Stocks" subtitle="By estimated market cap" />
+        {renderStockGrid()}
+      </section>
+
       <section id="section-cryptos" className="surface">
-        <SectionHeader title="Top 10 Cryptos" subtitle="Live market feed" />
+        <SectionHeader title="Top 10 Cryptocurrencies" subtitle="Live market feed" />
         {renderCryptoGrid()}
       </section>
 
@@ -563,17 +574,6 @@ function App() {
         ) : (
           <p className="muted">No compare selection yet. Use Compare on crypto cards to add up to 3 entries.</p>
         )}
-      </section>
-
-      <section id="section-stocks" className="surface global-assets-surface">
-        <SectionHeader title="Top 10 Stocks" subtitle="By estimated market cap" />
-        {renderStockGrid()}
-      </section>
-
-      <section id="section-assets" className="surface global-assets-surface">
-        <SectionHeader title="Top 10 Assets" subtitle="By estimated market cap" />
-        {renderAssetGrid()}
-        <p className="disclaimer">* Approximate values. Network/API conditions may delay updates.</p>
       </section>
 
       <section id="section-night" className="surface midnight-surface">
