@@ -60,6 +60,7 @@ function localApiPlugin(): Plugin {
 }
 
 export default defineConfig({
+  base: process.env.GITHUB_PAGES ? "/cryptoprice/" : "/",
   plugins: [react(), localApiPlugin()],
   server: {
     host: "localhost",
