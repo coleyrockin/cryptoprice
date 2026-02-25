@@ -1,6 +1,13 @@
 import type { DashboardPayload } from "./types/dashboard";
 
-const DASHBOARD_ENDPOINT = import.meta.env.DEV ? "/__local_api/dashboard" : "/api/dashboard";
+declare const __GITHUB_PAGES__: boolean;
+
+const DASHBOARD_ENDPOINT = import.meta.env.DEV
+  ? "/__local_api/dashboard"
+  : __GITHUB_PAGES__
+    ? import.meta.env.BASE_URL + "data/dashboard.json"
+    : "/api/dashboard";
+
 const CLIENT_ERROR_ENDPOINT = import.meta.env.DEV ? "/__local_api/client-error" : "/api/client-error";
 
 async function getJson<T>(url: string): Promise<T> {

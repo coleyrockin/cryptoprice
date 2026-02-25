@@ -1,4 +1,6 @@
+import { copyFileSync, mkdirSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { resolve } from "node:path";
 
 import react from "@vitejs/plugin-react-swc";
 import { defineConfig } from "vite";
@@ -59,9 +61,32 @@ function localApiPlugin(): Plugin {
   };
 }
 
+const isGitHubPages = Boolean(process.env.GITHUB_PAGES);
+
+/**
+ * Copies dashboard-fallback.json into the build output so GitHub Pages
+ * (a static host with no serverless backend) can serve it as the data source.
+ */
+function githubPagesFallbackPlugin(): Plugin {
+  return {
+    name: "github-pages-fallback",
+    apply: "build",
+    closeBundle() {
+      if (!isGitHubPages) return;
+      const src = resolve(__dirname, "server/fallback/dashboard-fallback.json");
+      const destDir = resolve(__dirname, "dist/data");
+      mkdirSync(destDir, { recursive: true });
+      copyFileSync(src, resolve(destDir, "dashboard.json"));
+    },
+  };
+}
+
 export default defineConfig({
-  base: process.env.GITHUB_PAGES ? "/cryptoprice/" : "/",
-  plugins: [react(), localApiPlugin()],
+  base: isGitHubPages ? "/cryptoprice/" : "/",
+  define: {
+    __GITHUB_PAGES__: JSON.stringify(isGitHubPages),
+  },
+  plugins: [react(), localApiPlugin(), githubPagesFallbackPlugin()],
   server: {
     host: "localhost",
     port: 5188,
