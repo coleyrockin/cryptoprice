@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Node >= 20](https://img.shields.io/badge/node-%3E%3D20-3c873a)
 
-World Asset Prices is a full-stack React + Vercel dashboard for live crypto and global-asset market monitoring with resilient fallback behavior, ticker pills, logo support, and a dedicated Midnight Token (`NIGHT`) panel.
+World Asset Prices is a full-stack React + Vercel dashboard that tracks the **top 10 cryptos**, **top 10 stocks**, and **top 10 global assets** by market cap — with resilient fallback behavior, ticker pills, logo support, and a dedicated Midnight Token (`NIGHT`) panel.
 
 ## Preview
 
