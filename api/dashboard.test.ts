@@ -24,7 +24,7 @@ function samplePayload(): DashboardPayload {
   return {
     generatedAt: "2026-02-24T00:00:00.000Z",
     stale: false,
-    refreshInSec: 60,
+    refreshInSec: 30,
     source: {
       equities: "fmp",
       crypto: "coinpaprika",

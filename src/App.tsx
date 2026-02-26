@@ -8,7 +8,7 @@ import { SectionHeader } from "./components/SectionHeader";
 import { formatCompactCurrency, formatCurrency, formatPercent, trendClass } from "./lib/formatters";
 import type { DashboardAsset, DashboardCrypto, DashboardStock } from "./types/dashboard";
 
-const DEFAULT_REFRESH_SEC = 60;
+const DEFAULT_REFRESH_SEC = 30;
 const WATCHLIST_STORAGE_KEY = "wap.watchlist.v1";
 const LEGACY_WATCHLIST_KEY = "cryptoprice.watchlist.v1";
 const EMPTY_CRYPTOS: DashboardCrypto[] = [];

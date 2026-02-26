@@ -15,7 +15,7 @@ const mockedFetchDashboard = vi.mocked(fetchDashboard);
 const payload: DashboardPayload = {
   generatedAt: "2026-02-16T00:00:00.000Z",
   stale: false,
-  refreshInSec: 60,
+  refreshInSec: 30,
   source: {
     equities: "fmp",
     crypto: "coinpaprika",

@@ -28,7 +28,7 @@ Frontend (Vite + React + React Query)
      -> Server aggregation layer
         -> FinancialModelingPrep (stocks/equities)
         -> CoinPaprika (top cryptos + NIGHT)
-        -> In-memory TTL cache (60s default)
+        -> In-memory TTL cache (30s default)
         -> Stale-if-error fallback window (600s default)
         -> Local last-known-good JSON fallback
         -> Optional durable cache (Upstash/Vercel KV REST)
@@ -53,7 +53,7 @@ Frontend (Vite + React + React Query)
 {
   "generatedAt": "2026-02-23T00:00:00.000Z",
   "stale": false,
-  "refreshInSec": 60,
+  "refreshInSec": 30,
   "source": {
     "equities": "fmp",
     "crypto": "coinpaprika",
@@ -75,7 +75,7 @@ Frontend (Vite + React + React Query)
 
 ## Reliability Model
 
-- Fresh window (`CACHE_TTL_SEC`, default `60`):
+- Fresh window (`CACHE_TTL_SEC`, default `30`):
   - Serve in-memory cached segment.
 - Provider failure path:
   - Attempt stale in-memory cache (`FALLBACK_TTL_SEC`, default `600`).

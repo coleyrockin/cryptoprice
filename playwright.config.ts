@@ -22,7 +22,7 @@ export default defineConfig({
       FMP_BASE_URL: "http://127.0.0.1:9",
       COINPAPRIKA_BASE_URL: "http://127.0.0.1:9",
       FMP_API_KEY: "local-test",
-      CACHE_TTL_SEC: "60",
+      CACHE_TTL_SEC: "30",
       FALLBACK_TTL_SEC: "600",
     },
   },

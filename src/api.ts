@@ -31,7 +31,7 @@ function normalizeDashboardPayload(payload: DashboardPayload): DashboardPayload 
 
   return {
     ...payload,
-    refreshInSec: Number.isFinite(payload.refreshInSec) ? payload.refreshInSec : 60,
+    refreshInSec: Number.isFinite(payload.refreshInSec) ? payload.refreshInSec : 30,
     degradedSegments: Array.isArray(payload.degradedSegments) ? payload.degradedSegments : [],
     segmentMeta: payload.segmentMeta ?? {
       topCryptos: {

@@ -247,7 +247,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
   const nowMs = options.now ? options.now() : Date.now();
   const logger = options.logger ?? console;
 
-  const cacheTtlSec = options.cacheTtlSec ?? envInt("CACHE_TTL_SEC", 60, 15, 300);
+  const cacheTtlSec = options.cacheTtlSec ?? envInt("CACHE_TTL_SEC", 30, 15, 300);
   const fallbackTtlSec = options.fallbackTtlSec ?? envInt("FALLBACK_TTL_SEC", 600, 60, 3_600);
   const staleAlertSec = envInt("STALE_ALERT_SEC", 300, 60, 86_400);
   const timeoutMs = options.timeoutMs ?? 4_500;
