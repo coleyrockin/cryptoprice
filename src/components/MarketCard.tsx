@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { motion } from "framer-motion";
-import type { CSSProperties, ReactNode } from "react";
+import { useMemo, type CSSProperties, type ReactNode } from "react";
 
 import { LogoMark } from "./LogoMark";
 
@@ -28,6 +28,7 @@ type MarketCardProps = {
 };
 
 function renderSparkline(points: number[]): ReactNode {
+  // Early return for insufficient data
   if (points.length < 2) {
     return null;
   }
@@ -77,6 +78,11 @@ export function MarketCard({
   const cardStyle = {
     "--card-index": index,
   } as CSSProperties;
+
+  // Memoize sparkline rendering to avoid recalculation on every render
+  const sparklineElement = useMemo(() => {
+    return Array.isArray(sparkline) && sparkline.length > 1 ? renderSparkline(sparkline) : null;
+  }, [sparkline]);
 
   const actionButtons = (
     <div className="card-actions">
@@ -132,7 +138,7 @@ export function MarketCard({
 
       <div className="coin-foot">
         {actionButtons}
-        {Array.isArray(sparkline) && sparkline.length > 1 ? renderSparkline(sparkline) : null}
+        {sparklineElement}
       </div>
     </>
   );
