@@ -73,6 +73,11 @@ function envInt(name: string, fallback: number, min: number, max: number): numbe
 }
 
 function normalizeStocks(stocks: DashboardStock[]): DashboardStock[] {
+  // Early return for empty arrays
+  if (stocks.length === 0) {
+    return stocks;
+  }
+
   return stocks.map((stock, index) => ({
     ...stock,
     rank: index + 1,
@@ -83,6 +88,11 @@ function normalizeStocks(stocks: DashboardStock[]): DashboardStock[] {
 }
 
 function normalizeCryptos(cryptos: DashboardCrypto[]): DashboardCrypto[] {
+  // Early return for empty arrays
+  if (cryptos.length === 0) {
+    return cryptos;
+  }
+
   return cryptos.map((crypto, index) => ({
     ...crypto,
     rank: index + 1,
@@ -142,31 +152,43 @@ function getCommodityAssets(): DashboardAsset[] {
 }
 
 function buildTopAssets(topStocks: DashboardStock[], topCryptos: DashboardCrypto[]): DashboardAsset[] {
-  const stockAssets: DashboardAsset[] = topStocks.map((stock) => ({
-    id: stock.id,
-    rank: stock.rank,
-    name: stock.name,
-    symbol: stock.symbol,
-    category: "Stock",
-    marketCapUsd: stock.marketCapUsd,
-    logoUrl: stock.logoUrl,
-    fallbackLogoUrls: stock.fallbackLogoUrls,
-  }));
-
-  const cryptoAssets: DashboardAsset[] = topCryptos.slice(0, 5).map((crypto) => ({
-    id: crypto.id,
-    rank: crypto.rank,
-    name: crypto.name,
-    symbol: crypto.symbol,
-    category: "Crypto",
-    marketCapUsd: crypto.marketCapUsd,
-    logoUrl: crypto.logoUrl,
-    fallbackLogoUrls: crypto.fallbackLogoUrls,
-  }));
-
+  // Pre-allocate Map for deduplication
+  const commodityAssets = getCommodityAssets();
   const deduped = new Map<string, DashboardAsset>();
-  for (const asset of [...getCommodityAssets(), ...stockAssets, ...cryptoAssets]) {
+
+  // Add commodities first
+  for (const asset of commodityAssets) {
     deduped.set(asset.id, asset);
+  }
+
+  // Add stocks (converting format inline)
+  for (const stock of topStocks) {
+    deduped.set(stock.id, {
+      id: stock.id,
+      rank: stock.rank,
+      name: stock.name,
+      symbol: stock.symbol,
+      category: "Stock",
+      marketCapUsd: stock.marketCapUsd,
+      logoUrl: stock.logoUrl,
+      fallbackLogoUrls: stock.fallbackLogoUrls,
+    });
+  }
+
+  // Add top 5 cryptos only
+  const cryptoLimit = Math.min(5, topCryptos.length);
+  for (let i = 0; i < cryptoLimit; i++) {
+    const crypto = topCryptos[i];
+    deduped.set(crypto.id, {
+      id: crypto.id,
+      rank: crypto.rank,
+      name: crypto.name,
+      symbol: crypto.symbol,
+      category: "Crypto",
+      marketCapUsd: crypto.marketCapUsd,
+      logoUrl: crypto.logoUrl,
+      fallbackLogoUrls: crypto.fallbackLogoUrls,
+    });
   }
 
   return normalizeAssets(Array.from(deduped.values()));

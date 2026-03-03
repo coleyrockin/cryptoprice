@@ -82,7 +82,12 @@ function sortEntries<T extends SortableEntry>(
   getMarketCap: (entry: T) => number | null,
   getChange: (entry: T) => number | null,
 ): T[] {
-  return [...entries].sort((left, right) => {
+  // Avoid creating array copy if no sorting needed
+  if (entries.length <= 1) {
+    return entries;
+  }
+
+  return entries.slice().sort((left, right) => {
     const leftPinned = watchlistIds.has(left.id) ? 1 : 0;
     const rightPinned = watchlistIds.has(right.id) ? 1 : 0;
     if (rightPinned !== leftPinned) {
@@ -242,8 +247,14 @@ function App() {
   }, [topAssets, categoryFilter, searchKey, watchlistOnly, watchlistIds, sortMode]);
 
   const compareCandidates = useMemo(() => {
-    const byId = new Map(topCryptos.map((entry) => [entry.id, entry]));
-    return compareIds.map((id) => byId.get(id)).filter((entry): entry is DashboardCrypto => Boolean(entry));
+    // Early return for empty compareIds
+    if (compareIds.length === 0) {
+      return [];
+    }
+
+    // Convert to Set for O(1) lookup instead of Map creation
+    const compareSet = new Set(compareIds);
+    return topCryptos.filter((entry) => compareSet.has(entry.id));
   }, [compareIds, topCryptos]);
 
   useEffect(() => {
