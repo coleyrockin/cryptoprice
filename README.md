@@ -3,51 +3,99 @@
 [![CI](https://github.com/coleyrockin/cryptoprice/actions/workflows/ci.yml/badge.svg)](https://github.com/coleyrockin/cryptoprice/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Node >= 20](https://img.shields.io/badge/node-%3E%3D20-3c873a)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6?logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-7.x-646cff?logo=vite&logoColor=white)
+![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-black?logo=vercel)
 
-**Live Site:** [https://coleyrockin.github.io/cryptoprice/](https://coleyrockin.github.io/cryptoprice/)
+**[🚀 Live Demo →](https://coleyrockin.github.io/cryptoprice/)**
 
-World Asset Prices is a full-stack React + Vercel dashboard that tracks the **top 10 cryptos**, **top 10 stocks**, and **top 10 global assets** by market cap — with resilient fallback behavior, ticker pills, logo support, and a dedicated Midnight Token (`NIGHT`) panel.
+A full-stack market dashboard tracking the **top 10 cryptocurrencies**, **top 10 stocks**, and **top 10 global assets** by market cap — built with React, TypeScript, and Vercel serverless functions, with a multi-layer reliability architecture and a glassmorphism UI.
+
+---
 
 ## Preview
 
-![World Asset Prices dashboard preview](./docs/site-preview.png)
+<table>
+  <tr>
+    <td><img src="./docs/final-preview.png" alt="World Asset Prices dashboard" /></td>
+    <td><img src="./docs/final-preview-hover.png" alt="Card hover effect" /></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Dashboard overview</em></td>
+    <td align="center"><em>Glass hover treatment</em></td>
+  </tr>
+  <tr>
+    <td><img src="./docs/site-preview-coin-hover.png" alt="Crypto card hover" /></td>
+    <td><img src="./docs/site-preview-asset-hover.png" alt="Asset card hover" /></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Crypto card detail</em></td>
+    <td align="center"><em>Global asset card</em></td>
+  </tr>
+</table>
 
-## Why This Project
+---
 
-- Single dashboard payload: one client query to `GET /api/dashboard`.
-- Reliability first: provider cache, stale-if-error fallback, and optional durable cache.
-- Complete card design system: all assets render a ticker pill and logo or monogram fallback.
-- Powerful UX controls: search, category filter, sort modes, watchlist pinning, and compare mode.
-- Production quality gates: lint, typecheck, unit/integration tests, smoke E2E, and build verification.
+## What It Does
+
+World Asset Prices gives you a single, fast-loading dashboard for the most important markets at a glance:
+
+| Section | Content |
+|---|---|
+| **Top Cryptos** | Top 10 by market cap (CoinPaprika), with 7-day sparklines and 24h change |
+| **Top Stocks** | Top 10 equities by market cap (FinancialModelingPrep) |
+| **Top Global Assets** | Combined ranking of the world's largest crypto and equity assets |
+| **NIGHT Panel** | Dedicated panel for Midnight Token (`NIGHT`) with ATH distance and 24h volume |
+
+Key UX features include live price polling, search, category filtering, multi-mode sorting, watchlist pinning, and side-by-side compare mode.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | React 19, TypeScript, Vite, Framer Motion |
+| **Data Fetching** | TanStack React Query (polling + stale-while-revalidate) |
+| **Backend** | Vercel Serverless Functions (Node.js 20) |
+| **Data Providers** | FinancialModelingPrep (stocks), CoinPaprika (crypto) |
+| **Caching** | In-memory TTL cache + stale-if-error fallback + optional Upstash/Vercel KV |
+| **Testing** | Vitest (unit/integration), Playwright (E2E smoke) |
+| **Linting / Types** | ESLint, TypeScript strict mode |
+| **Deployment** | Vercel (full-stack), GitHub Pages (frontend demo) |
+
+---
 
 ## Architecture
 
-```text
-Frontend (Vite + React + React Query)
-  -> /api/dashboard
-     -> Server aggregation layer
-        -> FinancialModelingPrep (stocks/equities)
-        -> CoinPaprika (top cryptos + NIGHT)
-        -> In-memory TTL cache (30s default)
-        -> Stale-if-error fallback window (600s default)
-        -> Local last-known-good JSON fallback
-        -> Optional durable cache (Upstash/Vercel KV REST)
 ```
+Frontend (React + React Query)
+  └─▶  GET /api/dashboard
+         └─▶  Server aggregation layer
+                ├─▶  FinancialModelingPrep  (stocks / equities)
+                ├─▶  CoinPaprika            (top cryptos + NIGHT token)
+                ├──  In-memory TTL cache    (30 s default)
+                ├──  Stale-if-error window  (600 s default)
+                ├──  Local JSON fallback    (last-known-good payload)
+                └──  Optional durable KV   (Upstash / Vercel KV REST)
+```
+
+A single `GET /api/dashboard` call returns all segments, keeping the client simple and fast. Each segment tracks its own source (`live`, `fresh-cache`, `stale-cache`, `fallback`, or `durable-cache`) and age, so degradation is always visible in the response metadata.
+
+---
 
 ## API Endpoints
 
-- `GET /api/dashboard`
-  - Returns normalized dashboard payload for cryptos, stocks, assets, and NIGHT.
-  - Adds `degradedSegments`, `segmentMeta`, and `requestId` for operational clarity.
-  - Sets `X-Wap-Stale`, `X-Wap-Fallback`, and `X-Wap-Request-Id` headers.
-- `GET /api/health`
-  - Returns readiness (`ready`/`degraded`/`down`), checks, provider status, and runtime metrics.
-- `GET /api/logo?url=<https-logo-url>`
-  - Proxies remote logos with strict host allowlist, payload-size limits, and rate limiting.
-- `POST /api/client-error`
-  - Accepts schema-validated client-side error events with body-size guard and rate limiting.
+| Endpoint | Description |
+|---|---|
+| `GET /api/dashboard` | Normalized market payload with degradation metadata and request ID |
+| `GET /api/health` | Readiness status (`ready` / `degraded` / `down`), provider checks, and runtime metrics |
+| `GET /api/logo?url=…` | Secure logo proxy with host allowlist, size limits, and rate limiting |
+| `POST /api/client-error` | Schema-validated client error ingestion with body-size guard and rate limiting |
 
-### Dashboard Response Shape
+<details>
+<summary>Dashboard response shape</summary>
 
 ```json
 {
@@ -62,8 +110,8 @@ Frontend (Vite + React + React Query)
   "degradedSegments": [],
   "segmentMeta": {
     "topCryptos": { "source": "live", "ageSec": 0 },
-    "topStocks": { "source": "live", "ageSec": 0 },
-    "night": { "source": "live", "ageSec": 0 }
+    "topStocks":  { "source": "live", "ageSec": 0 },
+    "night":      { "source": "live", "ageSec": 0 }
   },
   "requestId": "f83a90f9-7b34-4cae-b6f6-0fbcb84f8bb3",
   "topCryptos": [],
@@ -73,81 +121,86 @@ Frontend (Vite + React + React Query)
 }
 ```
 
+</details>
+
+---
+
 ## Reliability Model
 
-- Fresh window (`CACHE_TTL_SEC`, default `30`):
-  - Serve in-memory cached segment.
-- Provider failure path:
-  - Attempt stale in-memory cache (`FALLBACK_TTL_SEC`, default `600`).
-  - If unavailable, serve validated local fallback payload.
-- Durable fallback (optional):
-  - Read and write dashboard payload from KV REST cache.
-  - Used to recover from broad provider/network outages.
-- Numeric safety:
-  - All provider numbers are normalized before response output to avoid `NaN` and `Infinity`.
+The server never returns a blank page to the user, even during provider outages:
 
-## UI/UX Features
+1. **Fresh cache** (`CACHE_TTL_SEC`, default `30 s`) — serve in-memory cached segment.
+2. **Stale cache** (`FALLBACK_TTL_SEC`, default `600 s`) — serve stale in-memory data on provider failure.
+3. **Local JSON fallback** — serve a validated last-known-good payload bundled with the app.
+4. **Durable KV cache** *(optional)* — read/write from Upstash or Vercel KV for recovery from broad outages.
 
-- Black + glass visual system with motion-based card entrance and hover shine.
-- Gradient glass hover treatment for cards (blue/green/pink family).
-- Ticker pill and logo/fallback mark across crypto, stock, and asset cards.
-- Keyboard-accessible interactive cards with visible focus states.
-- `prefers-reduced-motion` fallback for motion-sensitive users.
+All provider numbers are sanitized before output to prevent `NaN` or `Infinity` from reaching the client.
+
+---
 
 ## Quick Start
 
-Prerequisites:
+**Prerequisites:** Node.js `20.x` or newer, npm `10.x` or newer.
 
-- Node.js `20.x` or newer
-- npm `10.x` or newer
-
-Install and run:
+You will need a free [FinancialModelingPrep](https://financialmodelingprep.com/) API key for stock data. Crypto data from CoinPaprika requires no key.
 
 ```bash
 npm install
-cp .env.example .env
+cp .env.example .env   # add your FMP_API_KEY
 npm run dev
 ```
 
-Local URL: `http://localhost:5188`
+Open [http://localhost:5188](http://localhost:5188).
 
-## Environment Variables
+### Environment Variables
 
-From `.env.example`:
+| Variable | Required | Description |
+|---|---|---|
+| `FMP_API_KEY` | ✅ | FinancialModelingPrep API key |
+| `FMP_BASE_URL` | ✅ | FMP base URL (set in `.env.example`) |
+| `COINPAPRIKA_BASE_URL` | ✅ | CoinPaprika base URL (set in `.env.example`) |
+| `CACHE_TTL_SEC` | — | In-memory cache TTL (default `30`) |
+| `FALLBACK_TTL_SEC` | — | Stale-cache window (default `600`) |
+| `KV_REST_API_URL` | — | Upstash / Vercel KV URL for durable cache |
+| `KV_REST_API_TOKEN` | — | KV auth token |
+| `DURABLE_CACHE_KEY` | — | KV key (default `wap:dashboard:payload`) |
+| `STALE_ALERT_SEC` | — | Age threshold for stale alerts |
+| `LOGO_ALLOWED_HOSTS` | — | Comma-separated logo proxy allowlist |
+| `LOGO_PROXY_TIMEOUT_MS` | — | Logo proxy request timeout |
+| `LOGO_PROXY_MAX_BYTES` | — | Max logo response size |
+| `LOGO_PROXY_RATE_LIMIT_PER_MIN` | — | Logo proxy rate limit |
+| `CLIENT_ERROR_MAX_BYTES` | — | Max client-error payload size |
+| `CLIENT_ERROR_RATE_LIMIT_PER_MIN` | — | Client-error endpoint rate limit |
 
-- `FMP_API_KEY`
-- `FMP_BASE_URL`
-- `COINPAPRIKA_BASE_URL`
-- `CACHE_TTL_SEC`
-- `FALLBACK_TTL_SEC`
-- `KV_REST_API_URL` (optional)
-- `KV_REST_API_TOKEN` (optional)
-- `DURABLE_CACHE_KEY` (optional)
-- `STALE_ALERT_SEC`
-- `LOGO_ALLOWED_HOSTS`
-- `LOGO_PROXY_TIMEOUT_MS`
-- `LOGO_PROXY_MAX_BYTES`
-- `LOGO_PROXY_RATE_LIMIT_PER_MIN`
-- `CLIENT_ERROR_MAX_BYTES`
-- `CLIENT_ERROR_RATE_LIMIT_PER_MIN`
+---
 
 ## Scripts
 
-- `npm run dev` - local development server + local API plugin.
-- `npm run lint` - ESLint checks.
-- `npm run lint:fix` - autofix lintable issues.
-- `npm run typecheck` - TypeScript checks for app, node, and server projects.
-- `npm run test` - Vitest unit/integration suite.
-- `npm run test:routes` - API route test suite.
-- `npm run test:e2e` - Playwright smoke test.
-- `npm run build` - typecheck + production build.
-- `npm run check:bundle` - fail if main bundle exceeds configured size budget.
-- `npm run preview` - serve production build locally.
-- `npm run check` - local full-gate validation (lint, typecheck, tests, routes, build, bundle budget).
+| Command | Description |
+|---|---|
+| `npm run dev` | Start local dev server with API plugin |
+| `npm run build` | Typecheck + production build |
+| `npm run preview` | Serve production build locally |
+| `npm run lint` | Run ESLint |
+| `npm run lint:fix` | Auto-fix lintable issues |
+| `npm run typecheck` | TypeScript checks across all projects |
+| `npm run test` | Vitest unit/integration suite |
+| `npm run test:routes` | API route test suite |
+| `npm run test:e2e` | Playwright smoke test |
+| `npm run check:bundle` | Fail if main bundle exceeds size budget |
+| `npm run check` | Full local gate: lint + typecheck + tests + build + bundle |
+
+---
 
 ## Testing and Quality Gates
 
-Local parity with CI:
+CI enforces the full gate on every push and pull request. To replicate locally:
+
+```bash
+npm run check   # runs all gates in sequence
+```
+
+Individual checks:
 
 ```bash
 npm run lint
@@ -156,43 +209,59 @@ npm run test
 npm run test:routes
 npm run build
 npm run check:bundle
-npm run test:e2e
+npm run test:e2e   # requires Playwright browsers: npx playwright install chromium
 ```
 
 Coverage focus:
 
-- Formatter correctness and invalid number handling.
-- Provider normalization and schema mapping.
-- Fallback/cache behavior in dashboard assembly.
-- UI smoke flow (sections, logos/fallback marks, ticker pills, hoverable cards, status updates).
+- Formatter correctness and invalid number handling
+- Provider normalization and schema mapping
+- Fallback/cache behavior in dashboard assembly
+- UI smoke flow — sections, logos, ticker pills, hover cards, status updates
+
+---
 
 ## Project Structure
 
-```text
-api/        # Vercel serverless routes
-server/     # provider adapters, aggregation, cache, metrics, sanitization
-src/        # React app, components, styles, client API wrappers
-tests/e2e/  # Playwright smoke tests
 ```
+api/                  Vercel serverless route handlers
+server/               Provider adapters, aggregation, cache, metrics, sanitization
+  providers/          CoinPaprika and FMP adapter modules
+  fallback/           Bundled last-known-good JSON payload
+src/                  React app — components, styles, client API wrappers
+  components/         MarketCard, LogoMark, SectionHeader, ErrorBoundary
+  lib/                Formatters and utilities
+  types/              Shared TypeScript type definitions
+tests/e2e/            Playwright smoke tests
+docs/                 Screenshot assets for README
+scripts/              Build tooling (bundle budget check)
+```
+
+---
 
 ## Deployment
 
-- Target: Vercel full-stack deployment.
-- Config: `vercel.json` (`framework: "vite"`, output `dist`, API runtime `nodejs20.x`).
-- Recommended runtime envs:
-  - `FMP_API_KEY`
-  - `COINPAPRIKA_BASE_URL`
-  - `CACHE_TTL_SEC`
-  - `FALLBACK_TTL_SEC`
-  - Optional KV REST vars for durable cache.
+The app is designed for **Vercel full-stack deployment**:
+
+1. Import the repository into Vercel.
+2. Set the required environment variables (`FMP_API_KEY`, `COINPAPRIKA_BASE_URL`, and optionally the KV cache vars).
+3. Vercel auto-detects the Vite framework and deploys the `api/` directory as serverless functions.
+
+Config reference: [`vercel.json`](./vercel.json) — framework `vite`, output `dist`, API runtime `nodejs20.x`.
+
+A **GitHub Pages build** of the static frontend is also deployed on every push to `main` via the [`pages.yml`](./.github/workflows/pages.yml) workflow. This build runs without API keys, so it uses the bundled fallback payload and is suitable as a live portfolio demo.
+
+---
 
 ## Contributing and Policies
 
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
+- [CONTRIBUTING.md](./CONTRIBUTING.md) — setup, branching, PR, and code standards
+- [ROADMAP.md](./ROADMAP.md) — planned features and improvements
+- [CHANGELOG.md](./CHANGELOG.md) — version history
 - [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
-- [SECURITY.md](./SECURITY.md)
-- [CHANGELOG.md](./CHANGELOG.md)
-- [ROADMAP.md](./ROADMAP.md)
+- [SECURITY.md](./SECURITY.md) — vulnerability reporting
+
+---
 
 ## License
 
