@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] — 2026-03-10
+
 ### Added
 
 - Full-stack reliability architecture with unified `GET /api/dashboard` API contract.
@@ -22,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional unit tests for security and rate-limiting helpers.
 - Expanded smoke E2E coverage for stale/degraded states and logo fallback behavior.
 - Bundle-budget guard script (`npm run check:bundle`).
+- ROADMAP.md listing planned features and improvements.
 
 ### Changed
 
@@ -30,3 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `npm run check` now runs the complete local validation gate sequence.
 - README and contributing docs updated to reflect current architecture, contracts, and quality standards.
 - Package metadata and keywords updated for clearer professional positioning.
+- Preview images moved from repository root to `docs/` for a cleaner project structure.
+
+[0.1.0]: https://github.com/coleyrockin/cryptoprice/releases/tag/v0.1.0

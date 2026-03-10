@@ -10,7 +10,7 @@ World Asset Prices is a full-stack React + Vercel dashboard that tracks the **to
 
 ## Preview
 
-![World Asset Prices dashboard preview](./site-preview.png)
+![World Asset Prices dashboard preview](./docs/site-preview.png)
 
 ## Why This Project
 
@@ -192,6 +192,7 @@ tests/e2e/  # Playwright smoke tests
 - [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
 - [SECURITY.md](./SECURITY.md)
 - [CHANGELOG.md](./CHANGELOG.md)
+- [ROADMAP.md](./ROADMAP.md)
 
 ## License
 
