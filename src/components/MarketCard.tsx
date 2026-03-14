@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { motion } from "framer-motion";
 import { useMemo, type CSSProperties, type ReactNode } from "react";
 
+import { useTilt } from "../hooks/useTilt";
 import { LogoMark } from "./LogoMark";
 
 type MarketCardProps = {
@@ -38,17 +39,27 @@ function renderSparkline(points: number[]): ReactNode {
   const max = Math.max(...safePoints);
   const range = Math.max(1, max - min);
 
-  const polyline = safePoints
-    .map((point, index) => {
-      const x = (index / (safePoints.length - 1)) * 100;
-      const y = 24 - ((point - min) / range) * 20;
-      return `${x.toFixed(2)},${y.toFixed(2)}`;
-    })
-    .join(" ");
+  const coords = safePoints.map((point, index) => {
+    const x = (index / (safePoints.length - 1)) * 100;
+    const y = 26 - ((point - min) / range) * 22;
+    return { x: Number(x.toFixed(2)), y: Number(y.toFixed(2)) };
+  });
+
+  const polyline = coords.map((c) => `${c.x},${c.y}`).join(" ");
+
+  // Build a closed polygon for the fill area (line + bottom edge)
+  const fillPath = coords.map((c) => `${c.x},${c.y}`).join(" ") + ` 100,26 0,26`;
 
   return (
-    <svg className="card-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
-      <polyline points={polyline} />
+    <svg className="card-sparkline" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="sparkline-gradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(100, 210, 255, 0.5)" />
+          <stop offset="100%" stopColor="rgba(100, 210, 255, 0)" />
+        </linearGradient>
+      </defs>
+      <polygon points={fillPath} className="sparkline-fill" />
+      <polyline points={polyline} pathLength={1} />
     </svg>
   );
 }
@@ -75,6 +86,8 @@ export function MarketCard({
   onToggleCompare,
   sparkline,
 }: MarketCardProps) {
+  const tilt = useTilt();
+
   const cardStyle = {
     "--card-index": index,
   } as CSSProperties;
@@ -153,13 +166,16 @@ export function MarketCard({
 
   return (
     <motion.article
+      ref={tilt.ref as React.RefObject<HTMLElement>}
       key={id}
       className={clsx("coin-card", "interactive-card", active && "active", assetStyle && "asset-card")}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.22 }}
-      style={cardStyle}
+      style={{ ...cardStyle, ...tilt.style }}
       onClick={onClick}
+      onMouseMove={tilt.onMouseMove}
+      onMouseLeave={tilt.onMouseLeave}
       role="button"
       tabIndex={0}
       onKeyDown={(event) => {
