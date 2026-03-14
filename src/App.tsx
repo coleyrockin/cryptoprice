@@ -1,12 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { fetchDashboard } from "./api";
+import { AnimatedValue } from "./components/AnimatedValue";
+import { LogoMark } from "./components/LogoMark";
 import { MarketCard } from "./components/MarketCard";
 import { SectionHeader } from "./components/SectionHeader";
 import { formatCompactCurrency, formatCurrency, formatPercent, trendClass } from "./lib/formatters";
 import type { DashboardAsset, DashboardCrypto, DashboardStock } from "./types/dashboard";
+
+const SECTION_IDS = ["section-assets", "section-stocks", "section-cryptos", "section-compare", "section-night"] as const;
+
+const SECTION_REVEAL = {
+  initial: { opacity: 0, y: 28 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, amount: 0.12 as const },
+  transition: { duration: 0.5, ease: "easeOut" as const },
+};
 
 const DEFAULT_REFRESH_SEC = 30;
 const WATCHLIST_STORAGE_KEY = "wap.watchlist.v1";
@@ -139,6 +151,32 @@ function App() {
   const [watchlistOnly, setWatchlistOnly] = useState(false);
   const [watchlistIds, setWatchlistIds] = useState<Set<string>>(new Set<string>());
   const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [activeSection, setActiveSection] = useState<string>("");
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  const setupSectionObserver = useCallback(() => {
+    observerRef.current?.disconnect();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        }
+      },
+      { rootMargin: "-15% 0px -50% 0px" },
+    );
+    for (const id of SECTION_IDS) {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    }
+    observerRef.current = observer;
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    return setupSectionObserver();
+  }, [setupSectionObserver]);
 
   const dashboardQuery = useQuery({
     queryKey: ["dashboard"],
@@ -463,6 +501,12 @@ function App() {
   };
 
   return (
+    <>
+    <div className="bg-orbs" aria-hidden="true">
+      <div className="bg-orb bg-orb-1" />
+      <div className="bg-orb bg-orb-2" />
+      <div className="bg-orb bg-orb-3" />
+    </div>
     <main className="shell">
       <header className="hero">
         <p className="eyebrow">World Asset Prices</p>
@@ -480,11 +524,11 @@ function App() {
       </header>
 
       <nav className="section-nav" aria-label="Dashboard sections">
-        <a href="#section-assets">Global Assets</a>
-        <a href="#section-stocks">Stocks</a>
-        <a href="#section-cryptos">Cryptos</a>
-        <a href="#section-compare">Compare</a>
-        <a href="#section-night">NIGHT</a>
+        <a href="#section-assets" className={clsx(activeSection === "section-assets" && "nav-active")}>Global Assets</a>
+        <a href="#section-stocks" className={clsx(activeSection === "section-stocks" && "nav-active")}>Stocks</a>
+        <a href="#section-cryptos" className={clsx(activeSection === "section-cryptos" && "nav-active")}>Cryptos</a>
+        <a href="#section-compare" className={clsx(activeSection === "section-compare" && "nav-active")}>Compare</a>
+        <a href="#section-night" className={clsx(activeSection === "section-night" && "nav-active")}>NIGHT</a>
       </nav>
 
       <section className="surface controls-surface" aria-label="Dashboard controls">
@@ -549,23 +593,23 @@ function App() {
         </div>
       </section>
 
-      <section id="section-assets" className="surface global-assets-surface">
+      <motion.section id="section-assets" className="surface global-assets-surface" {...SECTION_REVEAL}>
         <SectionHeader title="Top 10 Global Assets" subtitle="By estimated market cap" />
         {renderAssetGrid()}
         <p className="disclaimer">* Approximate values. Network/API conditions may delay updates.</p>
-      </section>
+      </motion.section>
 
-      <section id="section-stocks" className="surface global-assets-surface">
+      <motion.section id="section-stocks" className="surface global-assets-surface" {...SECTION_REVEAL}>
         <SectionHeader title="Top 10 Stocks" subtitle="By estimated market cap" />
         {renderStockGrid()}
-      </section>
+      </motion.section>
 
-      <section id="section-cryptos" className="surface">
+      <motion.section id="section-cryptos" className="surface" {...SECTION_REVEAL}>
         <SectionHeader title="Top 10 Cryptocurrencies" subtitle="Live market feed" />
         {renderCryptoGrid()}
-      </section>
+      </motion.section>
 
-      <section id="section-compare" className="surface compare-surface">
+      <motion.section id="section-compare" className="surface compare-surface" {...SECTION_REVEAL}>
         <SectionHeader title="Compare" subtitle="Select up to three cryptos using the Compare button on cards" />
 
         {compareCandidates.length ? (
@@ -573,21 +617,25 @@ function App() {
             {compareCandidates.map((coin) => (
               <article className="compare-card" key={`compare-${coin.id}`}>
                 <header>
-                  <h3>{coin.name}</h3>
+                  <div className="compare-title-group">
+                    <LogoMark name={coin.name} symbol={coin.symbol} logoUrl={coin.logoUrl} fallbackLogoUrls={coin.fallbackLogoUrls} />
+                    <h3>{coin.name}</h3>
+                  </div>
                   <span className="symbol-pill">{coin.symbol}</span>
                 </header>
-                <p>{formatCurrency(coin.priceUsd)}</p>
+                <p className="coin-price">{formatCurrency(coin.priceUsd)}</p>
                 <p className={clsx("coin-change", trendClass(coin.change24h))}>{formatPercent(coin.change24h)} (24h)</p>
-                <p className="asset-note">MCap {formatCompactCurrency(coin.marketCapUsd)}</p>
+                <p className="compare-stat-label">Market Cap</p>
+                <p className="asset-note" style={{ marginTop: "0.12rem" }}>{formatCompactCurrency(coin.marketCapUsd)}</p>
               </article>
             ))}
           </div>
         ) : (
           <p className="muted">No compare selection yet. Use Compare on crypto cards to add up to 3 entries.</p>
         )}
-      </section>
+      </motion.section>
 
-      <section id="section-night" className="surface midnight-surface">
+      <motion.section id="section-night" className="surface midnight-surface" {...SECTION_REVEAL}>
         <SectionHeader
           title="NIGHT Price"
           subtitle="Live Midnight token telemetry"
@@ -600,7 +648,9 @@ function App() {
           <div className="midnight-layout">
             <div className="night-main">
               <p className="eyebrow">Spot Price</p>
-              <h3 className="night-price">{formatCurrency(night.priceUsd)}</h3>
+              <h3 className="night-price">
+                <AnimatedValue value={night.priceUsd ?? 0} formatter={formatCurrency} />
+              </h3>
               <p className={clsx("night-change", trendClass(night.change24h))}>{formatPercent(night.change24h)} (24h)</p>
 
               <div className="night-stats">
@@ -626,8 +676,9 @@ function App() {
         ) : (
           <p className="muted">Waiting for NIGHT feed...</p>
         )}
-      </section>
+      </motion.section>
     </main>
+    </>
   );
 }
 
