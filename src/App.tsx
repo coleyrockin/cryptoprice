@@ -472,6 +472,7 @@ function App() {
         <p className="tagline">Top 10 global assets, top 10 stocks, top 10 cryptocurrencies, and NIGHT price.</p>
 
         <div className={statusTone} role="status" aria-live="polite" aria-atomic="true" aria-label={statusAriaLabel}>
+          {!hasError && !isBooting && !isStale && <span className="status-dot" />}
           <span>{statusPrefix}</span>
           <span className="status-refresh" aria-hidden="true">
             {` - refresh in ${secondsToRefresh}s`}
@@ -555,12 +556,12 @@ function App() {
         <p className="disclaimer">* Approximate values. Network/API conditions may delay updates.</p>
       </section>
 
-      <section id="section-stocks" className="surface global-assets-surface">
+      <section id="section-stocks" className="surface global-assets-surface stocks-surface">
         <SectionHeader title="Top 10 Stocks" subtitle="By estimated market cap" />
         {renderStockGrid()}
       </section>
 
-      <section id="section-cryptos" className="surface">
+      <section id="section-cryptos" className="surface cryptos-surface">
         <SectionHeader title="Top 10 Cryptocurrencies" subtitle="Live market feed" />
         {renderCryptoGrid()}
       </section>

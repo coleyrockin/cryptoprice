@@ -38,16 +38,24 @@ function renderSparkline(points: number[]): ReactNode {
   const max = Math.max(...safePoints);
   const range = Math.max(1, max - min);
 
-  const polyline = safePoints
-    .map((point, index) => {
-      const x = (index / (safePoints.length - 1)) * 100;
-      const y = 24 - ((point - min) / range) * 20;
-      return `${x.toFixed(2)},${y.toFixed(2)}`;
-    })
-    .join(" ");
+  const coords = safePoints.map((point, index) => {
+    const x = (index / (safePoints.length - 1)) * 100;
+    const y = 30 - ((point - min) / range) * 26;
+    return `${x.toFixed(2)},${y.toFixed(2)}`;
+  });
+
+  const polyline = coords.join(" ");
+  const polygon = `0,32 ${polyline} 100,32`;
 
   return (
-    <svg className="card-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
+    <svg className="card-sparkline" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id={`spark-fill-${points.length}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(160, 222, 255, 0.15)" />
+          <stop offset="100%" stopColor="rgba(160, 222, 255, 0)" />
+        </linearGradient>
+      </defs>
+      <polygon points={polygon} fill={`url(#spark-fill-${points.length})`} />
       <polyline points={polyline} />
     </svg>
   );
@@ -145,7 +153,7 @@ export function MarketCard({
 
   if (!interactive) {
     return (
-      <article key={id} className={clsx("coin-card", assetStyle && "asset-card")} style={cardStyle}>
+      <article key={id} className={clsx("coin-card", assetStyle && "asset-card")} style={cardStyle} data-rank={rank}>
         {content}
       </article>
     );
@@ -159,6 +167,7 @@ export function MarketCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.22 }}
       style={cardStyle}
+      data-rank={rank}
       onClick={onClick}
       role="button"
       tabIndex={0}
