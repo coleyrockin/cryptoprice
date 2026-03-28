@@ -19,6 +19,16 @@ export function toFiniteNumber(value: unknown): number | null {
       return null;
     }
 
+    // Guard against extreme scientific notation that silently underflows to 0
+    // or overflows to Infinity (e.g. "1e-9999" or "1e9999").
+    const eIdx = normalized.search(/[eE]/);
+    if (eIdx !== -1) {
+      const exponent = Number.parseInt(normalized.slice(eIdx + 1), 10);
+      if (!Number.isFinite(exponent) || Math.abs(exponent) > 300) {
+        return null;
+      }
+    }
+
     const parsed = Number(normalized);
     return Number.isFinite(parsed) ? parsed : null;
   }

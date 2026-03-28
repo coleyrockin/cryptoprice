@@ -1,3 +1,4 @@
+import { envInt } from "../server/env";
 import { createRequestId, logEvent } from "../server/log";
 import { recordClientError } from "../server/metrics";
 import { rateLimit } from "../server/rate-limit";
@@ -26,20 +27,6 @@ type NormalizedClientError = {
   timestamp: string;
 };
 
-function envInt(name: string, fallback: number, min: number, max: number): number {
-  const raw = process.env[name];
-  if (!raw) {
-    return fallback;
-  }
-
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed)) {
-    return fallback;
-  }
-
-  return Math.min(max, Math.max(min, parsed));
-}
-
 function getHeader(request: ApiRequest, key: string): string | null {
   const value = request.headers?.[key.toLowerCase()] ?? request.headers?.[key];
   if (typeof value === "string") {
@@ -53,11 +40,13 @@ function getHeader(request: ApiRequest, key: string): string | null {
   return null;
 }
 
+const IP_PATTERN = /^(?:\d{1,3}\.){3}\d{1,3}$|^[0-9a-fA-F:]{2,39}$/;
+
 function getClientKey(request: ApiRequest): string {
   const forwarded = getHeader(request, "x-forwarded-for");
   if (forwarded) {
     const first = forwarded.split(",")[0]?.trim();
-    if (first) {
+    if (first && IP_PATTERN.test(first)) {
       return first;
     }
   }

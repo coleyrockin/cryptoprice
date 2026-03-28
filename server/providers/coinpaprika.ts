@@ -147,7 +147,8 @@ export async function fetchTopCryptosFromCoinpaprika(options: FetchCoinpaprikaOp
 
   const normalized = normalizeCoinpaprikaCryptos(payload, limit);
   if (normalized.length === 0) {
-    throw new Error("CoinPaprika returned no cryptos");
+    const shape = Array.isArray(payload) ? `array(${payload.length})` : typeof payload;
+    throw new Error(`CoinPaprika returned no cryptos (response was ${shape})`);
   }
 
   return normalized;

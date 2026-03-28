@@ -112,7 +112,8 @@ export async function fetchTopStocksFromFmp(options: FetchFmpStocksOptions = {})
   const normalized = normalizeFmpStocks(payload, limit);
 
   if (normalized.length === 0) {
-    throw new Error("FMP returned no stocks");
+    const shape = Array.isArray(payload) ? `array(${payload.length})` : typeof payload;
+    throw new Error(`FMP returned no stocks (response was ${shape})`);
   }
 
   return normalized;
