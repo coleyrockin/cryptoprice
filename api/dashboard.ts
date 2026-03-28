@@ -1,5 +1,6 @@
 import { buildDashboardPayload } from "../server/dashboard";
 import { readDurableDashboard, writeDurableDashboard } from "../server/durable-cache";
+import { envInt } from "../server/env";
 import { createRequestId, createStructuredLogger, logError, logEvent } from "../server/log";
 import {
   recordDashboardError,
@@ -20,20 +21,6 @@ type ApiResponse = {
   status: (code: number) => ApiResponse;
   json: (value: unknown) => void;
 };
-
-function envInt(name: string, fallback: number, min: number, max: number): number {
-  const raw = process.env[name];
-  if (!raw) {
-    return fallback;
-  }
-
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed)) {
-    return fallback;
-  }
-
-  return Math.min(max, Math.max(min, parsed));
-}
 
 function durableSegmentMeta(payload: DashboardPayload, nowMs: number): DashboardPayload["segmentMeta"] {
   const ageSec = Math.max(0, Math.floor((nowMs - Date.parse(payload.generatedAt)) / 1_000));

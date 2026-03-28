@@ -1,3 +1,4 @@
+import { logError } from "./log";
 import type { DashboardPayload } from "./types";
 
 type DurableRecord = {
@@ -82,7 +83,8 @@ export async function readDurableDashboard(maxAgeSec: number): Promise<Dashboard
     }
 
     return parsed.payload;
-  } catch {
+  } catch (error) {
+    logError("durable-cache.read.failed", error);
     return null;
   }
 }
@@ -103,7 +105,8 @@ export async function writeDurableDashboard(payload: DashboardPayload, ttlSec: n
   try {
     await callRedisCommand(["SET", config.key, JSON.stringify(record), "EX", safeTtlSec]);
     return true;
-  } catch {
+  } catch (error) {
+    logError("durable-cache.write.failed", error);
     return false;
   }
 }

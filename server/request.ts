@@ -36,7 +36,9 @@ export async function requestJsonWithRetry<T>(url: string, options: RequestJsonO
     } catch (error) {
       lastError = error;
       if (attempt < retries) {
-        await wait(180 * (attempt + 1));
+        const baseMs = 180 * (attempt + 1);
+        const jitterMs = Math.floor(Math.random() * baseMs * 0.5);
+        await wait(baseMs + jitterMs);
       }
     } finally {
       clearTimeout(timeout);

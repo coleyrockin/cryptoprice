@@ -1,4 +1,5 @@
 import { runtimeCache, type MemoryCache } from "./cache";
+import { envInt } from "./env";
 import fallbackPayloadJson from "./fallback/dashboard-fallback.json";
 import { recordProviderFailure, recordProviderFallback, recordProviderSuccess, type ProviderMetricKey } from "./metrics";
 import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./providers/coinpaprika";
@@ -56,20 +57,6 @@ function shouldEmitStaleAlert(segment: DashboardSegmentKey, thresholdSec: number
 
   staleAlerts.set(segment, nowMs);
   return true;
-}
-
-function envInt(name: string, fallback: number, min: number, max: number): number {
-  const raw = process.env[name];
-  if (!raw) {
-    return fallback;
-  }
-
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed)) {
-    return fallback;
-  }
-
-  return Math.min(max, Math.max(min, parsed));
 }
 
 function normalizeStocks(stocks: DashboardStock[]): DashboardStock[] {
@@ -364,9 +351,15 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
   });
 
   logger.info(`[dashboard] assembled stale=${stale} fallbackUsed=${fallbackUsed}`);
-  for (const segment of degradedSegments) {
-    if (segmentMeta[segment].ageSec >= staleAlertSec && shouldEmitStaleAlert(segment, staleAlertSec, nowMs)) {
-      logger.warn(`[dashboard] stale-threshold segment=${segment} ageSec=${segmentMeta[segment].ageSec} thresholdSec=${staleAlertSec}`);
+  for (const segment of SEGMENT_KEYS) {
+    const isDegraded = degradedSegments.includes(segment);
+    if (isDegraded) {
+      if (segmentMeta[segment].ageSec >= staleAlertSec && shouldEmitStaleAlert(segment, staleAlertSec, nowMs)) {
+        logger.warn(`[dashboard] stale-threshold segment=${segment} ageSec=${segmentMeta[segment].ageSec} thresholdSec=${staleAlertSec}`);
+      }
+    } else if (staleAlerts.has(segment)) {
+      staleAlerts.delete(segment);
+      logger.info(`[dashboard] stale-recovered segment=${segment}`);
     }
   }
 
