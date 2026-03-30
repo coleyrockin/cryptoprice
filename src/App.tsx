@@ -9,6 +9,7 @@ import { LogoMark } from "./components/LogoMark";
 import { MarketCard } from "./components/MarketCard";
 import { SectionHeader } from "./components/SectionHeader";
 import { formatCompactCurrency, formatCurrency, formatPercent, trendClass } from "./lib/formatters";
+import { useTheme } from "./hooks/useTheme";
 import type { DashboardAsset, DashboardCrypto, DashboardStock } from "./types/dashboard";
 
 const SECTION_IDS = ["section-assets", "section-stocks", "section-cryptos", "section-compare", "section-night"] as const;
@@ -142,6 +143,7 @@ function SkeletonGrid({ count = 10 }: { count?: number }) {
 }
 
 function App() {
+  const { theme, toggleTheme } = useTheme();
   const [activeCryptoIndex, setActiveCryptoIndex] = useState(0);
   const [secondsToRefresh, setSecondsToRefresh] = useState(DEFAULT_REFRESH_SEC);
 
@@ -373,6 +375,13 @@ function App() {
   const isStale = Boolean(dashboard?.stale);
   const degradedSegments = dashboard?.degradedSegments ?? [];
 
+  const formattedUpdatedAt = (() => {
+    if (!dashboard?.generatedAt) return null;
+    const ms = Date.parse(dashboard.generatedAt);
+    if (!Number.isFinite(ms)) return null;
+    return new Intl.DateTimeFormat(undefined, { timeStyle: "medium" }).format(new Date(ms));
+  })();
+
   const statusTone = hasError ? "status error" : isBooting ? "status loading" : isStale ? "status stale" : "status live";
 
   const degradedDetail =
@@ -509,7 +518,26 @@ function App() {
     </div>
     <main className="shell">
       <header className="hero">
-        <p className="eyebrow">World Asset Prices</p>
+        <div className="hero-top-row">
+          <p className="eyebrow">World Asset Prices</p>
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            )}
+          </button>
+        </div>
         <h1>
           Global Assets <span>Dashboard</span>
         </h1>
@@ -517,8 +545,13 @@ function App() {
 
         <div className={statusTone} role="status" aria-live="polite" aria-atomic="true" aria-label={statusAriaLabel}>
           <span>{statusPrefix}</span>
+          {formattedUpdatedAt ? (
+            <span className="status-updated" aria-hidden="true">
+              {` · Updated ${formattedUpdatedAt}`}
+            </span>
+          ) : null}
           <span className="status-refresh" aria-hidden="true">
-            {` - refresh in ${secondsToRefresh}s`}
+            {` · refresh in ${secondsToRefresh}s`}
           </span>
         </div>
       </header>
