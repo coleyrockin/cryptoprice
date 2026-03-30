@@ -3,6 +3,7 @@ const DEFAULT_ALLOWED_LOGO_HOSTS = [
   "cryptoicons.org",
   "cryptoicon-api.pages.dev",
   "financialmodelingprep.com",
+  "images.financialmodelingprep.com",
   "cdnjs.cloudflare.com",
 ];
 
@@ -74,7 +75,7 @@ export function isAllowedLogoHost(hostname: string): boolean {
     return false;
   }
 
-  return getAllowedLogoHosts().some((host) => normalized === host || normalized.endsWith(`.${host}`));
+  return getAllowedLogoHosts().some((host) => normalized === host);
 }
 
 export function parseAndValidateLogoUrl(value: string | null): { url: URL | null; reason: string | null } {
@@ -89,7 +90,7 @@ export function parseAndValidateLogoUrl(value: string | null): { url: URL | null
     return { url: null, reason: "invalid_url" };
   }
 
-  if (!/^https?:$/i.test(parsed.protocol)) {
+  if (parsed.protocol !== "https:") {
     return { url: null, reason: "invalid_protocol" };
   }
 
