@@ -599,12 +599,12 @@ function App() {
         <p className="disclaimer">* Approximate values. Network/API conditions may delay updates.</p>
       </motion.section>
 
-      <motion.section id="section-stocks" className="surface global-assets-surface" {...SECTION_REVEAL}>
+      <motion.section id="section-stocks" className="surface stocks-surface" {...SECTION_REVEAL}>
         <SectionHeader title="Top 10 Stocks" subtitle="By estimated market cap" />
         {renderStockGrid()}
       </motion.section>
 
-      <motion.section id="section-cryptos" className="surface" {...SECTION_REVEAL}>
+      <motion.section id="section-cryptos" className="surface cryptos-surface" {...SECTION_REVEAL}>
         <SectionHeader title="Top 10 Cryptocurrencies" subtitle="Live market feed" />
         {renderCryptoGrid()}
       </motion.section>

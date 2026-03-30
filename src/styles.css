@@ -8,7 +8,7 @@
   --surface-border-strong: rgba(255, 255, 255, 0.28);
   --text: #f3f3f3;
   --text-dim: #c2c2c7;
-  --text-muted: #9797a1;
+  --text-muted: #ababaf;
   --green: #50ffb0;
   --red: #ff6b8a;
   --flat: #c8c8cf;
@@ -118,7 +118,7 @@ h3 {
   width: min(1200px, 95vw);
   margin: 1.8rem auto 3.6rem;
   display: grid;
-  gap: 1.1rem;
+  gap: 1.4rem;
 }
 
 /* ── Section Nav ── */
@@ -805,11 +805,14 @@ button.coin-card {
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-muted);
   font: inherit;
-  font-size: 0.67rem;
+  font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 0.2rem 0.5rem;
+  padding: 0.38rem 0.72rem;
+  min-height: 2.1rem;
+  display: inline-flex;
+  align-items: center;
   cursor: pointer;
   transition: all 200ms ease;
 }
@@ -969,7 +972,36 @@ button.coin-card {
 /* ── Global Assets ── */
 
 .global-assets-surface {
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 210, 120, 0.28);
+  background:
+    linear-gradient(160deg, rgba(255, 200, 100, 0.04), rgba(3, 3, 4, 0.98) 60%),
+    linear-gradient(160deg, rgba(8, 8, 10, 0.98), rgba(3, 3, 4, 0.98));
+}
+
+.global-assets-surface .surface-head h2 {
+  color: #ffe4b5;
+}
+
+.stocks-surface {
+  border-color: rgba(120, 180, 255, 0.28);
+  background:
+    linear-gradient(160deg, rgba(100, 170, 255, 0.05), rgba(3, 3, 4, 0.98) 60%),
+    linear-gradient(160deg, rgba(8, 8, 10, 0.98), rgba(3, 3, 4, 0.98));
+}
+
+.stocks-surface .surface-head h2 {
+  color: #b8d8ff;
+}
+
+.cryptos-surface {
+  border-color: rgba(100, 240, 210, 0.25);
+  background:
+    linear-gradient(160deg, rgba(80, 230, 200, 0.05), rgba(3, 3, 4, 0.98) 60%),
+    linear-gradient(160deg, rgba(8, 8, 10, 0.98), rgba(3, 3, 4, 0.98));
+}
+
+.cryptos-surface .surface-head h2 {
+  color: #a8f0dc;
 }
 
 /* ── NIGHT / Midnight Section ── */
@@ -977,11 +1009,19 @@ button.coin-card {
 .midnight-surface {
   border: 1px solid transparent;
   background:
-    linear-gradient(160deg, rgba(10, 10, 14, 0.95), rgba(4, 4, 6, 0.98)) padding-box,
+    linear-gradient(160deg, rgba(12, 8, 24, 0.95), rgba(4, 3, 8, 0.98)) padding-box,
     linear-gradient(135deg, rgba(184, 156, 255, 0.6), rgba(100, 210, 255, 0.4), rgba(255, 120, 220, 0.5)) border-box;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 40px rgba(184, 156, 255, 0.08), 0 0 80px rgba(100, 180, 255, 0.05);
+  box-shadow: 0 0 40px rgba(184, 156, 255, 0.08), 0 0 80px rgba(120, 80, 255, 0.06);
+}
+
+.midnight-surface .surface-head h2 {
+  color: #d4b8ff;
+}
+
+.midnight-surface .eyebrow {
+  color: #c0a0ff;
 }
 
 .midnight-surface::before {
@@ -1027,10 +1067,12 @@ button.coin-card {
 }
 
 .night-main {
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(160, 120, 255, 0.25);
   border-radius: 16px;
   padding: 1rem;
-  background: linear-gradient(148deg, rgba(14, 14, 20, 0.9), rgba(6, 6, 10, 0.95));
+  background:
+    radial-gradient(ellipse at 30% 10%, rgba(140, 100, 255, 0.1), transparent 55%),
+    linear-gradient(148deg, rgba(18, 12, 32, 0.95), rgba(6, 4, 12, 0.98));
   position: relative;
   overflow: hidden;
 }
@@ -1075,17 +1117,17 @@ button.coin-card {
 }
 
 .night-stats article {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(140, 110, 255, 0.2);
   border-radius: 12px;
   padding: 0.68rem;
-  background: linear-gradient(148deg, rgba(14, 14, 20, 0.88), rgba(8, 8, 12, 0.94));
+  background: linear-gradient(148deg, rgba(20, 14, 36, 0.92), rgba(8, 6, 16, 0.96));
   transition: all 250ms ease;
 }
 
 .night-stats article:hover {
-  border-color: rgba(140, 190, 255, 0.25);
-  background: linear-gradient(148deg, rgba(18, 18, 25, 0.92), rgba(10, 10, 14, 0.96));
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border-color: rgba(160, 130, 255, 0.35);
+  background: linear-gradient(148deg, rgba(24, 16, 42, 0.94), rgba(12, 8, 22, 0.97));
+  box-shadow: 0 4px 16px rgba(120, 80, 255, 0.1);
 }
 
 .night-stats p {
