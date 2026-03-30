@@ -1,4 +1,3 @@
-/* eslint-disable import/order */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryCache } from "./cache";
 

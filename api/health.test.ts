@@ -1,4 +1,3 @@
-/* eslint-disable import/order */
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../server/health", () => ({

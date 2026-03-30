@@ -1,4 +1,3 @@
-/* eslint-disable import/order */
 /* @vitest-environment node */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
