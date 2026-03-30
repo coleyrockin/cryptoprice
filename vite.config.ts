@@ -83,7 +83,7 @@ function githubPagesFallbackPlugin(): Plugin {
 }
 
 export default defineConfig({
-  base: isGitHubPages ? "/cryptoprice/" : "/",
+  base: isGitHubPages ? "/world-asset-prices/" : "/",
   define: {
     __GITHUB_PAGES__: JSON.stringify(isGitHubPages),
   },

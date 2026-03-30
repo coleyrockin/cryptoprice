@@ -9,7 +9,7 @@
 ![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?style=flat&logo=playwright&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=flat)
 
-**Live Site:** [coleyrockin.github.io/cryptoprice](https://coleyrockin.github.io/cryptoprice/)
+**Live Site:** [coleyrockin.github.io/world-asset-prices](https://coleyrockin.github.io/world-asset-prices/)
 
 ---
 
@@ -43,7 +43,7 @@ World Asset Prices is a full-stack React + Vercel dashboard that tracks the top 
 
 ```bash
 # Clone the repository
-git clone https://github.com/coleyrockin/cryptoprice.git
+git clone https://github.com/coleyrockin/world-asset-prices.git
 
 # Navigate to the project
 cd cryptoprice
