@@ -12,6 +12,7 @@ type MarketCardProps = {
   symbol: string;
   meta: string;
   value: string;
+  valueLabel?: string;
   secondary?: string;
   secondaryClassName?: string;
   index: number;
@@ -28,7 +29,7 @@ type MarketCardProps = {
   sparkline?: number[];
 };
 
-function renderSparkline(points: number[]): ReactNode {
+function renderSparkline(points: number[], cardId: string): ReactNode {
   // Early return for insufficient data
   if (points.length < 2) {
     return null;
@@ -38,6 +39,11 @@ function renderSparkline(points: number[]): ReactNode {
   const min = Math.min(...safePoints);
   const max = Math.max(...safePoints);
   const range = Math.max(1, max - min);
+  const trendUp = safePoints[safePoints.length - 1] >= safePoints[0];
+
+  const strokeColor = trendUp ? "rgba(80, 215, 155, 0.9)" : "rgba(255, 90, 120, 0.9)";
+  const fillColorTop = trendUp ? "rgba(80, 215, 155, 0.35)" : "rgba(255, 90, 120, 0.3)";
+  const gradientId = `sg-${cardId}`;
 
   const coords = safePoints.map((point, index) => {
     const x = (index / (safePoints.length - 1)) * 100;
@@ -53,13 +59,13 @@ function renderSparkline(points: number[]): ReactNode {
   return (
     <svg className="card-sparkline" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true">
       <defs>
-        <linearGradient id="sparkline-gradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="rgba(100, 210, 255, 0.5)" />
-          <stop offset="100%" stopColor="rgba(100, 210, 255, 0)" />
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={fillColorTop} />
+          <stop offset="100%" stopColor="rgba(0,0,0,0)" />
         </linearGradient>
       </defs>
-      <polygon points={fillPath} className="sparkline-fill" />
-      <polyline points={polyline} pathLength={1} />
+      <polygon points={fillPath} fill={`url(#${gradientId})`} stroke="none" />
+      <polyline points={polyline} fill="none" stroke={strokeColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }
@@ -71,6 +77,7 @@ export function MarketCard({
   symbol,
   meta,
   value,
+  valueLabel,
   secondary,
   secondaryClassName,
   index,
@@ -94,8 +101,8 @@ export function MarketCard({
 
   // Memoize sparkline rendering to avoid recalculation on every render
   const sparklineElement = useMemo(() => {
-    return Array.isArray(sparkline) && sparkline.length > 1 ? renderSparkline(sparkline) : null;
-  }, [sparkline]);
+    return Array.isArray(sparkline) && sparkline.length > 1 ? renderSparkline(sparkline, id) : null;
+  }, [sparkline, id]);
 
   const actionButtons = (
     <div className="card-actions">
@@ -135,7 +142,7 @@ export function MarketCard({
     <>
       <div className="coin-head">
         <span>#{rank}</span>
-        <span className="asset-category">{meta}</span>
+        <span className="asset-category" data-category={meta.toLowerCase()}>{meta}</span>
       </div>
 
       <div className="coin-title-row">
@@ -146,6 +153,7 @@ export function MarketCard({
         <span className="symbol-pill">{symbol}</span>
       </div>
 
+      {valueLabel ? <p className="coin-value-label">{valueLabel}</p> : null}
       <p className="coin-price">{value}</p>
       {secondary ? <p className={secondaryClassName}>{secondary}</p> : null}
 

@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { fetchDashboard } from "./api";
-import { AnimatedValue } from "./components/AnimatedValue";
 import { LogoMark } from "./components/LogoMark";
 import { MarketCard } from "./components/MarketCard";
 import { SectionHeader } from "./components/SectionHeader";
@@ -459,6 +458,7 @@ function App() {
               name={stock.name}
               symbol={stock.symbol}
               meta={stock.category}
+              valueLabel="Market Cap"
               value={formatCompactCurrency(stock.marketCapUsd)}
               secondary={hasChange ? changeText : "Market cap ranking"}
               secondaryClassName={hasChange ? clsx("coin-change", trendClass(stock.changePercent)) : "asset-note"}
@@ -494,6 +494,7 @@ function App() {
             name={asset.name}
             symbol={asset.symbol}
             meta={asset.category}
+            valueLabel="Est. Market Cap"
             value={formatCompactCurrency(asset.marketCapUsd)}
             secondary="Estimated market cap"
             secondaryClassName="asset-note"
@@ -668,46 +669,21 @@ function App() {
         )}
       </motion.section>
 
-      <motion.section id="section-night" className="surface midnight-surface" {...SECTION_REVEAL}>
-        <SectionHeader
-          title="NIGHT Price"
-          subtitle="Live Midnight token telemetry"
-          accentSymbol={night?.symbol ?? "NIGHT"}
-          accentLogoUrl={night?.logoUrl}
-          accentFallbackLogoUrls={night?.fallbackLogoUrls}
-        />
-
+      <motion.section id="section-night" className="surface midnight-surface night-ticker" {...SECTION_REVEAL}>
         {night ? (
-          <div className="midnight-layout">
-            <div className="night-main">
-              <p className="eyebrow">Spot Price</p>
-              <h3 className="night-price">
-                <AnimatedValue value={night.priceUsd ?? 0} formatter={formatCurrency} />
-              </h3>
-              <p className={clsx("night-change", trendClass(night.change24h))}>{formatPercent(night.change24h)} (24h)</p>
-
-              <div className="night-stats">
-                <article>
-                  <p>Market Cap</p>
-                  <strong>{formatCompactCurrency(night.marketCapUsd)}</strong>
-                </article>
-                <article>
-                  <p>Volume (24h)</p>
-                  <strong>{formatCompactCurrency(night.volume24hUsd)}</strong>
-                </article>
-                <article>
-                  <p>All-Time High</p>
-                  <strong>{formatCurrency(night.athPriceUsd)}</strong>
-                </article>
-                <article>
-                  <p>From ATH</p>
-                  <strong className={trendClass(night.percentFromAth)}>{formatPercent(night.percentFromAth)}</strong>
-                </article>
-              </div>
-            </div>
+          <div className="night-ticker-row">
+            <LogoMark name="NIGHT" symbol={night.symbol} logoUrl={night.logoUrl} fallbackLogoUrls={night.fallbackLogoUrls} />
+            <span className="night-ticker-name">NIGHT</span>
+            <span className="night-ticker-price">{formatCurrency(night.priceUsd)}</span>
+            <span className={clsx("night-ticker-change", trendClass(night.change24h))}>{formatPercent(night.change24h)}</span>
+            <span className="night-ticker-divider" aria-hidden="true" />
+            <span className="night-ticker-stat"><span>MCap</span> {formatCompactCurrency(night.marketCapUsd)}</span>
+            <span className="night-ticker-stat"><span>Vol</span> {formatCompactCurrency(night.volume24hUsd)}</span>
+            <span className="night-ticker-stat"><span>ATH</span> {formatCurrency(night.athPriceUsd)}</span>
+            <span className={clsx("night-ticker-stat", trendClass(night.percentFromAth))}><span>From ATH</span> {formatPercent(night.percentFromAth)}</span>
           </div>
         ) : (
-          <p className="muted">Waiting for NIGHT feed...</p>
+          <p className="muted" style={{ margin: 0, fontSize: "0.72rem" }}>Waiting for NIGHT feed...</p>
         )}
       </motion.section>
     </main>

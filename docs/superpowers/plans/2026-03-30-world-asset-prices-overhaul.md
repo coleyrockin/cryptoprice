@@ -37,7 +37,7 @@
 - [ ] **Step 1.1: Install packages**
 
 ```bash
-cd /Users/boydroberts/Documents/projects/Cryptoprice
+cd /Users/boydroberts/Documents/projects/world-asset-prices
 npm install tailwindcss @tailwindcss/vite
 ```
 
@@ -1299,7 +1299,7 @@ import "./globals.css";
 - [ ] **Step 3.2: Delete styles.css**
 
 ```bash
-rm /Users/boydroberts/Documents/projects/Cryptoprice/src/styles.css
+rm /Users/boydroberts/Documents/projects/world-asset-prices/src/styles.css
 ```
 
 - [ ] **Step 3.3: Verify dev server starts without errors**
