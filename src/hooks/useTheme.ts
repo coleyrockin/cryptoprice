@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 type Theme = "dark" | "light";
 const STORAGE_KEY = "wap.theme.v1";
@@ -23,13 +23,11 @@ function applyTheme(theme: Theme) {
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>("dark");
-
-  useEffect(() => {
+  const [theme, setTheme] = useState<Theme>(() => {
     const initial = getInitialTheme();
-    setTheme(initial);
     applyTheme(initial);
-  }, []);
+    return initial;
+  });
 
   const toggleTheme = useCallback(() => {
     setTheme((current) => {
