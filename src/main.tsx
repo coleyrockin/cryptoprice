@@ -5,7 +5,7 @@ import { createRoot } from "react-dom/client";
 import { reportClientError } from "./api";
 import App from "./App";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import "./styles.css";
+import "./globals.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {
