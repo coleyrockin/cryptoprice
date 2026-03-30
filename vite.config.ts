@@ -2,6 +2,7 @@ import { copyFileSync, mkdirSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { resolve } from "node:path";
 
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react-swc";
 import { defineConfig } from "vite";
 import type { Plugin } from "vite";
@@ -86,7 +87,7 @@ export default defineConfig({
   define: {
     __GITHUB_PAGES__: JSON.stringify(isGitHubPages),
   },
-  plugins: [react(), localApiPlugin(), githubPagesFallbackPlugin()],
+  plugins: [tailwindcss(), react(), localApiPlugin(), githubPagesFallbackPlugin()],
   server: {
     host: "localhost",
     port: 5188,
