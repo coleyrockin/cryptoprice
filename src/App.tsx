@@ -144,7 +144,6 @@ function SkeletonGrid({ count = 10 }: { count?: number }) {
 function App() {
   const { theme, toggleTheme } = useTheme();
   const [activeCryptoIndex, setActiveCryptoIndex] = useState(0);
-  const [secondsToRefresh, setSecondsToRefresh] = useState(DEFAULT_REFRESH_SEC);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
@@ -203,7 +202,6 @@ function App() {
   const topStocks = dashboard?.topStocks ?? EMPTY_STOCKS;
   const topAssets = dashboard?.topAssets ?? EMPTY_ASSETS;
   const night = dashboard?.night ?? null;
-  const refreshInSec = dashboard?.refreshInSec ?? DEFAULT_REFRESH_SEC;
 
   const searchKey = searchQuery.trim().toLowerCase();
 
@@ -319,30 +317,6 @@ function App() {
     });
   }, [topCryptos]);
 
-  useEffect(() => {
-    if (!dashboard) {
-      setSecondsToRefresh(refreshInSec);
-      return;
-    }
-
-    const generatedAtMs = Date.parse(dashboard.generatedAt);
-    const originMs = Number.isFinite(generatedAtMs) ? generatedAtMs : Date.now();
-    const targetMs = originMs + refreshInSec * 1_000;
-
-    const tick = () => {
-      const remainingMs = targetMs - Date.now();
-      const remainingSec = Math.max(0, Math.ceil(remainingMs / 1_000));
-      setSecondsToRefresh(remainingSec);
-    };
-
-    tick();
-    const timer = window.setInterval(tick, 1_000);
-
-    return () => {
-      window.clearInterval(timer);
-    };
-  }, [dashboard, refreshInSec]);
-
   const togglePin = (id: string) => {
     setWatchlistIds((current) => {
       const next = new Set(current);
@@ -370,31 +344,6 @@ function App() {
   };
 
   const isBooting = dashboardQuery.isPending && !dashboard;
-  const hasError = dashboardQuery.isError && !dashboard;
-  const isStale = Boolean(dashboard?.stale);
-  const degradedSegments = dashboard?.degradedSegments ?? [];
-
-  const formattedUpdatedAt = (() => {
-    if (!dashboard?.generatedAt) return null;
-    const ms = Date.parse(dashboard.generatedAt);
-    if (!Number.isFinite(ms)) return null;
-    return new Intl.DateTimeFormat(undefined, { timeStyle: "medium" }).format(new Date(ms));
-  })();
-
-  const statusTone = hasError ? "status error" : isBooting ? "status loading" : isStale ? "status stale" : "status live";
-
-  const degradedDetail =
-    degradedSegments.length > 0 ? ` (${degradedSegments.map((segment) => segment.replace("top", "")).join(", ").toLowerCase()})` : "";
-
-  const statusPrefix = hasError
-    ? "Feed unavailable - retrying"
-    : isBooting
-      ? "Connecting market feeds"
-      : isStale
-        ? `Stale cache in use${degradedDetail}`
-        : "Live market data";
-
-  const statusAriaLabel = `${statusPrefix}. Dashboard refreshes every ${refreshInSec} seconds.`;
 
   const renderCryptoGrid = () => {
     if (isBooting) {
@@ -543,18 +492,6 @@ function App() {
           Global Assets <span>Dashboard</span>
         </h1>
         <p className="tagline">Top 10 global assets, top 10 stocks, top 10 cryptocurrencies, and NIGHT price.</p>
-
-        <div className={statusTone} role="status" aria-live="polite" aria-atomic="true" aria-label={statusAriaLabel}>
-          <span>{statusPrefix}</span>
-          {formattedUpdatedAt ? (
-            <span className="status-updated" aria-hidden="true">
-              {` · Updated ${formattedUpdatedAt}`}
-            </span>
-          ) : null}
-          <span className="status-refresh" aria-hidden="true">
-            {` · refresh in ${secondsToRefresh}s`}
-          </span>
-        </div>
       </header>
 
       <nav className="section-nav" aria-label="Dashboard sections">
