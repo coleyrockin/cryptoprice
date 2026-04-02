@@ -25,7 +25,7 @@
   "bugs": {
     "url": "https://github.com/coleyrockin/world-asset-prices/issues"
   },
-  "homepage": "https://world-asset-prices-coleyrockins-projects.vercel.app",
+  "homepage": "https://world-asset-prices.vercel.app",
   "engines": {
     "node": ">=20.0.0"
   },
