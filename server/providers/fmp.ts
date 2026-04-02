@@ -1,6 +1,6 @@
-import { requestJsonWithRetry } from "../request";
-import { toFiniteNumber, toLogoCandidates, toSafeString } from "../sanitize";
-import type { DashboardStock } from "../types";
+import { requestJsonWithRetry } from "../request.js";
+import { toFiniteNumber, toLogoCandidates, toSafeString } from "../sanitize.js";
+import type { DashboardStock } from "../types.js";
 
 const FMP_BASE_URL = "https://financialmodelingprep.com/api/v3";
 

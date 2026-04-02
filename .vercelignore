@@ -1,0 +1,3 @@
+api/**/*.test.ts
+server/**/*.test.ts
+tests/

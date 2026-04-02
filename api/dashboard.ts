@@ -1,15 +1,15 @@
-import { buildDashboardPayload } from "../server/dashboard";
-import { readDurableDashboard, writeDurableDashboard } from "../server/durable-cache";
-import { envInt } from "../server/env";
-import { createRequestId, createStructuredLogger, logError, logEvent } from "../server/log";
+import { buildDashboardPayload } from "../server/dashboard.js";
+import { readDurableDashboard, writeDurableDashboard } from "../server/durable-cache.js";
+import { envInt } from "../server/env.js";
+import { createRequestId, createStructuredLogger, logError, logEvent } from "../server/log.js";
 import {
   recordDashboardError,
   recordDashboardRequest,
   recordDurableCacheHit,
   recordDurableCacheWrite,
   recordFallbackServe,
-} from "../server/metrics";
-import type { DashboardPayload, DashboardSegmentKey } from "../server/types";
+} from "../server/metrics.js";
+import type { DashboardPayload, DashboardSegmentKey } from "../server/types.js";
 
 type ApiRequest = {
   method?: string;

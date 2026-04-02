@@ -1,5 +1,5 @@
-import { buildHealthPayload } from "../server/health";
-import { createRequestId, logEvent } from "../server/log";
+import { buildHealthPayload } from "../server/health.js";
+import { createRequestId, logEvent } from "../server/log.js";
 
 type ApiRequest = {
   method?: string;

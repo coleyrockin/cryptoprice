@@ -1,6 +1,6 @@
-import { requestJsonWithRetry } from "../request";
-import { toFiniteNumber, toLogoCandidates, toSafeString } from "../sanitize";
-import type { DashboardCrypto, DashboardNight } from "../types";
+import { requestJsonWithRetry } from "../request.js";
+import { toFiniteNumber, toLogoCandidates, toSafeString } from "../sanitize.js";
+import type { DashboardCrypto, DashboardNight } from "../types.js";
 
 const COINPAPRIKA_BASE_URL = "https://api.coinpaprika.com";
 const NIGHT_ID = "night-midnight2";

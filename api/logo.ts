@@ -1,8 +1,8 @@
-import { envInt } from "../server/env";
-import { createRequestId, logError, logEvent } from "../server/log";
-import { recordLogoProxyError, recordLogoProxyRequest } from "../server/metrics";
-import { rateLimit } from "../server/rate-limit";
-import { parseAndValidateLogoUrl } from "../server/security";
+import { envInt } from "../server/env.js";
+import { createRequestId, logError, logEvent } from "../server/log.js";
+import { recordLogoProxyError, recordLogoProxyRequest } from "../server/metrics.js";
+import { rateLimit } from "../server/rate-limit.js";
+import { parseAndValidateLogoUrl } from "../server/security.js";
 
 type ApiRequest = {
   method?: string;

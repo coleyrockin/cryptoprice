@@ -1,10 +1,10 @@
-import { runtimeCache, type MemoryCache } from "./cache";
-import { envInt } from "./env";
-import fallbackPayloadJson from "./fallback/dashboard-fallback.json";
-import { recordProviderFailure, recordProviderFallback, recordProviderSuccess, type ProviderMetricKey } from "./metrics";
-import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./providers/coinpaprika";
-import { fetchTopStocksFromFmp } from "./providers/fmp";
-import { toFiniteNumber } from "./sanitize";
+import { runtimeCache, type MemoryCache } from "./cache.js";
+import { envInt } from "./env.js";
+import fallbackPayloadJson from "./fallback/dashboard-fallback.json" with { type: "json" };
+import { recordProviderFailure, recordProviderFallback, recordProviderSuccess, type ProviderMetricKey } from "./metrics.js";
+import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./providers/coinpaprika.js";
+import { fetchTopStocksFromFmp } from "./providers/fmp.js";
+import { toFiniteNumber } from "./sanitize.js";
 import type {
   DashboardAsset,
   DashboardCrypto,
@@ -13,7 +13,7 @@ import type {
   DashboardSegmentKey,
   DashboardSegmentSource,
   DashboardStock,
-} from "./types";
+} from "./types.js";
 
 type Logger = Pick<Console, "info" | "warn" | "error">;
 

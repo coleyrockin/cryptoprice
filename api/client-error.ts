@@ -1,7 +1,7 @@
-import { envInt } from "../server/env";
-import { createRequestId, logEvent } from "../server/log";
-import { recordClientError } from "../server/metrics";
-import { rateLimit } from "../server/rate-limit";
+import { envInt } from "../server/env.js";
+import { createRequestId, logEvent } from "../server/log.js";
+import { recordClientError } from "../server/metrics.js";
+import { rateLimit } from "../server/rate-limit.js";
 
 type ApiRequest = {
   method?: string;

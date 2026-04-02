@@ -1,5 +1,5 @@
-import { logError } from "./log";
-import type { DashboardPayload } from "./types";
+import { logError } from "./log.js";
+import type { DashboardPayload } from "./types.js";
 
 type DurableRecord = {
   updatedAt: string;

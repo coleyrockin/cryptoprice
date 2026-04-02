@@ -1,6 +1,6 @@
-import { dashboardFallbackPayload } from "./dashboard";
-import { isDurableCacheConfigured } from "./durable-cache";
-import { getMetricsSnapshot } from "./metrics";
+import { dashboardFallbackPayload } from "./dashboard.js";
+import { isDurableCacheConfigured } from "./durable-cache.js";
+import { getMetricsSnapshot } from "./metrics.js";
 
 export type Readiness = "ready" | "degraded" | "down";
 

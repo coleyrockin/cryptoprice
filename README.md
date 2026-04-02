@@ -10,7 +10,7 @@
 ![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?style=flat&logo=playwright&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=flat)
 
-**Live Site:** [coleyrockin.github.io/world-asset-prices](https://coleyrockin.github.io/world-asset-prices/)
+**Live Site:** [world-asset-prices-coleyrockins-projects.vercel.app](https://world-asset-prices-coleyrockins-projects.vercel.app)
 
 ---
 
