@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/coleyrockin/world-asset-prices",
   "engines": {
-    "node": ">=20.0.0"
+    "node": "22.x"
   },
   "packageManager": "npm@10.8.2",
   "type": "module",
