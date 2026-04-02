@@ -25,9 +25,9 @@
   "bugs": {
     "url": "https://github.com/coleyrockin/world-asset-prices/issues"
   },
-  "homepage": "https://github.com/coleyrockin/world-asset-prices",
+  "homepage": "https://world-asset-prices-coleyrockins-projects.vercel.app",
   "engines": {
-    "node": "22.x"
+    "node": ">=20.0.0"
   },
   "packageManager": "npm@10.8.2",
   "type": "module",
@@ -53,7 +53,7 @@
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/vite": "^4.2.2",
     "@testing-library/dom": "^10.4.1",
@@ -63,7 +63,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react-swc": "^4.3.0",
-    "eslint": "^10.0.2",
+    "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "jsdom": "^26.1.0",
