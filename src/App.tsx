@@ -686,6 +686,34 @@ function App() {
           <p className="muted" style={{ margin: 0, fontSize: "0.72rem" }}>Waiting for NIGHT feed...</p>
         )}
       </motion.section>
+
+      <footer className="site-footer">
+        <div className="footer-glow" aria-hidden="true" />
+        <div className="footer-content">
+          <div className="footer-brand">
+            <span className="footer-logo">World Asset Prices</span>
+            <span className="footer-tagline">Real-time global market intelligence</span>
+          </div>
+          <div className="footer-links">
+            <div className="footer-col">
+              <span className="footer-col-title">Data</span>
+              <span>CoinPaprika</span>
+              <span>Financial Modeling Prep</span>
+            </div>
+            <div className="footer-col">
+              <span className="footer-col-title">Built With</span>
+              <span>React + TypeScript</span>
+              <span>Vite + Tailwind</span>
+              <span>Vercel Edge</span>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <span>&copy; {new Date().getFullYear()} World Asset Prices</span>
+          <span className="footer-dot" aria-hidden="true" />
+          <span>Not financial advice</span>
+        </div>
+      </footer>
     </main>
     </>
   );
