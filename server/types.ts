@@ -4,7 +4,7 @@ export type DashboardSource = {
   fallbackUsed: boolean;
 };
 
-export type DashboardSegmentKey = "topCryptos" | "topStocks" | "night";
+export type DashboardSegmentKey = "topCryptos" | "topStocks" | "night" | "topCurrencies";
 
 export type DashboardSegmentSource = "live" | "fresh-cache" | "stale-cache" | "fallback" | "durable-cache";
 
@@ -56,6 +56,12 @@ export type DashboardNight = {
   percentFromAth: number | null;
 };
 
+export type DashboardCurrency = DashboardEntryBase & {
+  category: "Currency";
+  rateVsUsd: number | null;
+  changePercent: number | null;
+};
+
 export type DashboardPayload = {
   generatedAt: string;
   stale: boolean;
@@ -66,6 +72,7 @@ export type DashboardPayload = {
   topCryptos: DashboardCrypto[];
   topStocks: DashboardStock[];
   topAssets: DashboardAsset[];
+  topCurrencies: DashboardCurrency[];
   night: DashboardNight | null;
   requestId?: string;
 };
