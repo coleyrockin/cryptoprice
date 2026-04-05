@@ -7,6 +7,118 @@
     "crypto": "coinpaprika",
     "fallbackUsed": true
   },
+  "topCurrencies": [
+    {
+      "id": "currency-usd",
+      "rank": 1,
+      "name": "US Dollar",
+      "symbol": "USD",
+      "category": "Currency",
+      "rateVsUsd": 1.0,
+      "changePercent": 0,
+      "logoUrl": "https://flagcdn.com/w40/us.png",
+      "fallbackLogoUrls": ["https://flagcdn.com/w80/us.png"]
+    },
+    {
+      "id": "currency-eur",
+      "rank": 2,
+      "name": "Euro",
+      "symbol": "EUR",
+      "category": "Currency",
+      "rateVsUsd": 1.085,
+      "changePercent": -0.12,
+      "logoUrl": "https://flagcdn.com/w40/eu.png",
+      "fallbackLogoUrls": ["https://flagcdn.com/w80/eu.png"]
+    },
+    {
+      "id": "currency-jpy",
+      "rank": 3,
+      "name": "Japanese Yen",
+      "symbol": "JPY",
+      "category": "Currency",
+      "rateVsUsd": 0.006515,
+      "changePercent": -0.08,
+      "logoUrl": "https://flagcdn.com/w40/jp.png",
+      "fallbackLogoUrls": ["https://flagcdn.com/w80/jp.png"]
+    },
+    {
+      "id": "currency-gbp",
+      "rank": 4,
+      "name": "British Pound",
+      "symbol": "GBP",
+      "category": "Currency",
+      "rateVsUsd": 1.265,
+      "changePercent": 0.08,
+      "logoUrl": "https://flagcdn.com/w40/gb.png",
+      "fallbackLogoUrls": ["https://flagcdn.com/w80/gb.png"]
+    },
+    {
+      "id": "currency-aud",
+      "rank": 5,
+      "name": "Australian Dollar",
+      "symbol": "AUD",
+      "category": "Currency",
+      "rateVsUsd": 0.645,
+      "changePercent": -0.05,
+      "logoUrl": "https://flagcdn.com/w40/au.png",
+      "fallbackLogoUrls": ["https://flagcdn.com/w80/au.png"]
+    },
+    {
+      "id": "currency-cad",
+      "rank": 6,
+      "name": "Canadian Dollar",
+      "symbol": "CAD",
+      "category": "Currency",
+      "rateVsUsd": 0.7326,
+      "changePercent": -0.1,
+      "logoUrl": "https://flagcdn.com/w40/ca.png",
+      "fallbackLogoUrls": ["https://flagcdn.com/w80/ca.png"]
+    },
+    {
+      "id": "currency-chf",
+      "rank": 7,
+      "name": "Swiss Franc",
+      "symbol": "CHF",
+      "category": "Currency",
+      "rateVsUsd": 1.1173,
+      "changePercent": 0.07,
+      "logoUrl": "https://flagcdn.com/w40/ch.png",
+      "fallbackLogoUrls": ["https://flagcdn.com/w80/ch.png"]
+    },
+    {
+      "id": "currency-cny",
+      "rank": 8,
+      "name": "Chinese Yuan",
+      "symbol": "CNY",
+      "category": "Currency",
+      "rateVsUsd": 0.13812,
+      "changePercent": -0.03,
+      "logoUrl": "https://flagcdn.com/w40/cn.png",
+      "fallbackLogoUrls": ["https://flagcdn.com/w80/cn.png"]
+    },
+    {
+      "id": "currency-hkd",
+      "rank": 9,
+      "name": "Hong Kong Dollar",
+      "symbol": "HKD",
+      "category": "Currency",
+      "rateVsUsd": 0.12788,
+      "changePercent": -0.01,
+      "logoUrl": "https://flagcdn.com/w40/hk.png",
+      "fallbackLogoUrls": ["https://flagcdn.com/w80/hk.png"]
+    },
+    {
+      "id": "currency-nzd",
+      "rank": 10,
+      "name": "New Zealand Dollar",
+      "symbol": "NZD",
+      "category": "Currency",
+      "rateVsUsd": 0.595,
+      "changePercent": -0.09,
+      "logoUrl": "https://flagcdn.com/w40/nz.png",
+      "fallbackLogoUrls": ["https://flagcdn.com/w80/nz.png"]
+    }
+  ],
   "topCryptos": [
     {
       "id": "btc-bitcoin",
