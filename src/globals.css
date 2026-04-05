@@ -74,6 +74,10 @@ html:not(.dark) {
 /* ── Base reset ── */
 * { box-sizing: border-box; }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html, body, #root {
   margin: 0;
   min-height: 100%;
@@ -218,10 +222,16 @@ html:not(.dark) .section-nav a {
 }
 
 html:not(.dark) .section-nav a.nav-active {
-  color: #3b0764;
+  color: #1e1b4b;
   border-color: rgba(124, 58, 237, 0.6);
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.15), rgba(219, 39, 119, 0.1));
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.18), rgba(219, 39, 119, 0.12));
   box-shadow: 0 0 20px rgba(124, 58, 237, 0.25), 0 0 10px rgba(99, 102, 241, 0.15), inset 0 0 10px rgba(124, 58, 237, 0.06);
+  font-weight: 600;
+}
+
+/* ── Scroll offset for sticky nav ── */
+[id^="section-"] {
+  scroll-margin-top: 3.5rem;
 }
 
 /* ── Surfaces ── */
@@ -347,14 +357,23 @@ html:not(.dark) h1 span {
   z-index: 1;
 }
 
-.theme-toggle:hover {
+.theme-toggle:hover, .theme-toggle:focus-visible {
   color: var(--text);
   border-color: var(--accent-blue);
   background: rgba(100, 180, 255, 0.1);
+  outline: none;
 }
 
-html:not(.dark) .theme-toggle:hover {
+.theme-toggle:focus-visible {
+  box-shadow: 0 0 0 3px rgba(92, 170, 255, 0.3);
+}
+
+html:not(.dark) .theme-toggle:hover, html:not(.dark) .theme-toggle:focus-visible {
   background: rgba(37, 99, 235, 0.08);
+}
+
+html:not(.dark) .theme-toggle:focus-visible {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
 .theme-toggle svg {
@@ -1396,12 +1415,42 @@ html:not(.dark) .footer-glow {
 @media (max-width: 768px) {
   .shell { width: 95vw; margin: 1rem auto 2.4rem; }
   .coin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .section-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .section-nav::-webkit-scrollbar { display: none; }
+  .section-nav a { white-space: nowrap; flex-shrink: 0; }
 }
 
 @media (max-width: 480px) {
-  .coin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .coin-grid { grid-template-columns: 1fr; }
   .controls-grid { grid-template-columns: 1fr; }
+
+  .surface-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .night-ticker-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .night-ticker-divider { display: none; }
+
+  .night-ticker-stat {
+    display: inline-flex;
+    gap: 0.3rem;
+  }
+
   h1 { font-size: clamp(1.4rem, 7vw, 2rem); }
   .hero { padding: 1.2rem 1rem 1rem; }
   .surface { padding: 0.9rem; }
 }
+
