@@ -850,6 +850,17 @@ html:not(.dark) .asset-category[data-category="commodity"] {
   border-color: rgba(180, 83, 9, 0.22);
 }
 
+.asset-category[data-category="currency"] {
+  color: rgba(77, 240, 224, 0.95);
+  background: rgba(77, 240, 224, 0.1);
+  border-color: rgba(77, 240, 224, 0.24);
+}
+html:not(.dark) .asset-category[data-category="currency"] {
+  color: rgb(8, 145, 178);
+  background: rgba(8, 145, 178, 0.07);
+  border-color: rgba(8, 145, 178, 0.22);
+}
+
 .coin-title-row {
   margin-top: 0.42rem;
   display: flex;
