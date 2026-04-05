@@ -224,5 +224,10 @@ export async function fetchTopCurrenciesFromFmp(options: FetchFmpCurrenciesOptio
     throw new Error(`FMP forex returned no usable pairs (response was ${shape})`);
   }
 
+  // Warn if most pairs are missing (partial data — won't throw but worth logging)
+  if (externalResolved < 5) {
+    console.warn(`[fmp] forex: only ${externalResolved} of 9 expected pairs resolved`);
+  }
+
   return normalized;
 }

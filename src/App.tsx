@@ -554,7 +554,7 @@ function App() {
         <h1>
           Global Assets <span>Dashboard</span>
         </h1>
-        <p className="tagline">Top 10 global assets, top 10 stocks, top 10 cryptocurrencies, and NIGHT price.</p>
+        <p className="tagline">Top 10 global assets, top 10 stocks, top 10 currencies, top 10 cryptocurrencies, and NIGHT price.</p>
       </header>
 
       <nav className="section-nav" aria-label="Dashboard sections">
