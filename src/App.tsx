@@ -9,9 +9,9 @@ import { MarketCard } from "./components/MarketCard";
 import { SectionHeader } from "./components/SectionHeader";
 import { formatCompactCurrency, formatCurrency, formatPercent, trendClass } from "./lib/formatters";
 import { useTheme } from "./hooks/useTheme";
-import type { DashboardAsset, DashboardCrypto, DashboardStock } from "./types/dashboard";
+import type { DashboardAsset, DashboardCrypto, DashboardCurrency, DashboardStock } from "./types/dashboard";
 
-const SECTION_IDS = ["section-assets", "section-stocks", "section-cryptos", "section-compare", "section-night"] as const;
+const SECTION_IDS = ["section-assets", "section-stocks", "section-currencies", "section-cryptos", "section-compare", "section-night"] as const;
 
 const SECTION_REVEAL = {
   initial: { opacity: 0, y: 28 },
@@ -41,8 +41,9 @@ const EMPTY_CRYPTOS: DashboardCrypto[] = [];
 })();
 const EMPTY_STOCKS: DashboardStock[] = [];
 const EMPTY_ASSETS: DashboardAsset[] = [];
+const EMPTY_CURRENCIES: DashboardCurrency[] = [];
 
-type CategoryFilter = "all" | "crypto" | "stock" | "commodity";
+type CategoryFilter = "all" | "crypto" | "stock" | "commodity" | "currency";
 type SortMode = "rank" | "marketCapDesc" | "changeDesc" | "changeAsc" | "nameAsc";
 
 type SortableEntry = {
@@ -201,6 +202,7 @@ function App() {
   const topCryptos = dashboard?.topCryptos ?? EMPTY_CRYPTOS;
   const topStocks = dashboard?.topStocks ?? EMPTY_STOCKS;
   const topAssets = dashboard?.topAssets ?? EMPTY_ASSETS;
+  const topCurrencies = dashboard?.topCurrencies ?? EMPTY_CURRENCIES;
   const night = dashboard?.night ?? null;
 
   const searchKey = searchQuery.trim().toLowerCase();
@@ -256,6 +258,32 @@ function App() {
       (entry) => entry.changePercent,
     );
   }, [topStocks, categoryFilter, searchKey, watchlistOnly, watchlistIds, sortMode]);
+
+  const filteredCurrencies = useMemo(() => {
+    const visible = topCurrencies.filter((entry) => {
+      if (!matchesCategory(entry.category, categoryFilter)) {
+        return false;
+      }
+
+      if (!matchesSearch(entry, searchKey)) {
+        return false;
+      }
+
+      if (watchlistOnly && !watchlistIds.has(entry.id)) {
+        return false;
+      }
+
+      return true;
+    });
+
+    return sortEntries(
+      visible,
+      sortMode,
+      watchlistIds,
+      () => null,
+      (entry) => entry.changePercent,
+    );
+  }, [topCurrencies, categoryFilter, searchKey, watchlistOnly, watchlistIds, sortMode]);
 
   const filteredAssets = useMemo(() => {
     const visible = topAssets.filter((entry) => {
@@ -344,6 +372,41 @@ function App() {
   };
 
   const isBooting = dashboardQuery.isPending && !dashboard;
+
+  const renderCurrencyGrid = () => {
+    if (isBooting) {
+      return <SkeletonGrid />;
+    }
+
+    if (!filteredCurrencies.length) {
+      return <p className="muted">No currencies match your filters.</p>;
+    }
+
+    return (
+      <div className="coin-grid">
+        {filteredCurrencies.map((currency, index) => (
+          <MarketCard
+            key={currency.id}
+            id={currency.id}
+            rank={currency.rank}
+            name={currency.name}
+            symbol={currency.symbol}
+            meta={currency.category}
+            valueLabel="Rate vs USD"
+            value={formatCurrency(currency.rateVsUsd)}
+            secondary={formatPercent(currency.changePercent)}
+            secondaryClassName={clsx("coin-change", trendClass(currency.changePercent))}
+            index={index}
+            logoUrl={currency.logoUrl}
+            fallbackLogoUrls={currency.fallbackLogoUrls}
+            assetStyle
+            pinned={watchlistIds.has(currency.id)}
+            onTogglePin={() => togglePin(currency.id)}
+          />
+        ))}
+      </div>
+    );
+  };
 
   const renderCryptoGrid = () => {
     if (isBooting) {
@@ -497,6 +560,7 @@ function App() {
       <nav className="section-nav" aria-label="Dashboard sections">
         <a href="#section-assets" className={clsx(activeSection === "section-assets" && "nav-active")}>Global Assets</a>
         <a href="#section-stocks" className={clsx(activeSection === "section-stocks" && "nav-active")}>Stocks</a>
+        <a href="#section-currencies" className={clsx(activeSection === "section-currencies" && "nav-active")}>Currencies</a>
         <a href="#section-cryptos" className={clsx(activeSection === "section-cryptos" && "nav-active")}>Cryptos</a>
         <a href="#section-compare" className={clsx(activeSection === "section-compare" && "nav-active")}>Compare</a>
         <a href="#section-night" className={clsx(activeSection === "section-night" && "nav-active")}>NIGHT</a>
@@ -522,6 +586,7 @@ function App() {
               <option value="crypto">Crypto</option>
               <option value="stock">Stock</option>
               <option value="commodity">Commodity</option>
+              <option value="currency">Currency</option>
             </select>
           </label>
 
@@ -573,6 +638,11 @@ function App() {
       <motion.section id="section-stocks" className="surface stocks-surface" {...SECTION_REVEAL}>
         <SectionHeader title="Top 10 Stocks" subtitle="By estimated market cap" />
         {renderStockGrid()}
+      </motion.section>
+
+      <motion.section id="section-currencies" className="surface currencies-surface" {...SECTION_REVEAL}>
+        <SectionHeader title="Top 10 Currencies" subtitle="Exchange rates vs USD" />
+        {renderCurrencyGrid()}
       </motion.section>
 
       <motion.section id="section-cryptos" className="surface cryptos-surface" {...SECTION_REVEAL}>
