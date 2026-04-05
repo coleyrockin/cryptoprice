@@ -3,10 +3,11 @@ import { envInt } from "./env.js";
 import fallbackPayloadJson from "./fallback/dashboard-fallback.json" with { type: "json" };
 import { recordProviderFailure, recordProviderFallback, recordProviderSuccess, type ProviderMetricKey } from "./metrics.js";
 import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./providers/coinpaprika.js";
-import { fetchTopStocksFromFmp } from "./providers/fmp.js";
+import { fetchTopCurrenciesFromFmp, fetchTopStocksFromFmp } from "./providers/fmp.js";
 import { toFiniteNumber } from "./sanitize.js";
 import type {
   DashboardAsset,
+  DashboardCurrency,
   DashboardCrypto,
   DashboardNight,
   DashboardPayload,
@@ -40,7 +41,7 @@ export type DashboardBuildOptions = {
 const FALLBACK_PAYLOAD = fallbackPayloadJson as DashboardPayload;
 const FALLBACK_GENERATED_AT_MS = Date.parse(FALLBACK_PAYLOAD.generatedAt);
 
-const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "night"];
+const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "night", "topCurrencies"];
 
 type StaleAlertGlobal = typeof globalThis & {
   __WAP_STALE_ALERTS__?: Map<DashboardSegmentKey, number>;
@@ -109,6 +110,19 @@ function normalizeNight(night: DashboardNight | null): DashboardNight | null {
     change24h: toFiniteNumber(night.change24h),
     percentFromAth: toFiniteNumber(night.percentFromAth),
   };
+}
+
+function normalizeCurrencies(currencies: DashboardCurrency[]): DashboardCurrency[] {
+  if (!Array.isArray(currencies) || currencies.length === 0) {
+    return currencies ?? [];
+  }
+
+  return currencies.map((currency, index) => ({
+    ...currency,
+    rank: index + 1,
+    rateVsUsd: toFiniteNumber(currency.rateVsUsd),
+    changePercent: toFiniteNumber(currency.changePercent),
+  }));
 }
 
 function normalizeAssets(assets: DashboardAsset[]): DashboardAsset[] {
@@ -263,7 +277,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
   const retries = options.retries ?? 1;
   const fallbackUpdatedAtMs = Number.isFinite(FALLBACK_GENERATED_AT_MS) ? FALLBACK_GENERATED_AT_MS : nowMs;
 
-  const [cryptosResult, stocksResult, nightResult] = await Promise.all([
+  const [cryptosResult, stocksResult, nightResult, currenciesResult] = await Promise.all([
     resolveSegment<DashboardCrypto[]>({
       key: "coinpaprika:top-cryptos",
       metricKey: "topCryptos",
@@ -320,15 +334,34 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
           retries,
         }),
     }),
+    resolveSegment<DashboardCurrency[]>({
+      key: "fmp:top-currencies",
+      metricKey: "topCurrencies",
+      label: "topCurrencies",
+      fallbackValue: FALLBACK_PAYLOAD.topCurrencies,
+      fallbackUpdatedAtMs,
+      cache,
+      nowMs,
+      cacheTtlSec,
+      fallbackTtlSec,
+      logger,
+      fetcher: () =>
+        fetchTopCurrenciesFromFmp({
+          apiKey: options.fmpApiKey,
+          timeoutMs,
+          retries,
+        }),
+    }),
   ]);
 
   const topCryptos = normalizeCryptos(cryptosResult.data);
   const topStocks = normalizeStocks(stocksResult.data);
   const topAssets = buildTopAssets(topStocks, topCryptos);
   const night = normalizeNight(nightResult.data);
+  const topCurrencies = normalizeCurrencies(currenciesResult.data);
 
-  const stale = cryptosResult.stale || stocksResult.stale || nightResult.stale;
-  const fallbackUsed = cryptosResult.fallbackUsed || stocksResult.fallbackUsed || nightResult.fallbackUsed;
+  const stale = cryptosResult.stale || stocksResult.stale || nightResult.stale || currenciesResult.stale;
+  const fallbackUsed = cryptosResult.fallbackUsed || stocksResult.fallbackUsed || nightResult.fallbackUsed || currenciesResult.fallbackUsed;
 
   const segmentMeta = {
     topCryptos: {
@@ -342,6 +375,10 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
     night: {
       source: nightResult.source,
       ageSec: Math.max(0, Math.floor((nowMs - nightResult.updatedAtMs) / 1_000)),
+    },
+    topCurrencies: {
+      source: currenciesResult.source,
+      ageSec: Math.max(0, Math.floor((nowMs - currenciesResult.updatedAtMs) / 1_000)),
     },
   } satisfies DashboardPayload["segmentMeta"];
 
@@ -377,6 +414,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
     topCryptos,
     topStocks,
     topAssets,
+    topCurrencies,
     night,
   };
 }
