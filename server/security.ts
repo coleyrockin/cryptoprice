@@ -5,6 +5,7 @@ const DEFAULT_ALLOWED_LOGO_HOSTS = [
   "financialmodelingprep.com",
   "images.financialmodelingprep.com",
   "cdnjs.cloudflare.com",
+  "flagcdn.com",
 ];
 
 function isIpv4Private(hostname: string): boolean {
