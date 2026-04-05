@@ -43,10 +43,15 @@ function samplePayload(): DashboardPayload {
         source: "live",
         ageSec: 0,
       },
+      topCurrencies: {
+        source: "live",
+        ageSec: 0,
+      },
     },
     topCryptos: [],
     topStocks: [],
     topAssets: [],
+    topCurrencies: [],
     night: null,
   };
 }
@@ -104,7 +109,7 @@ describe("GET /api/dashboard", () => {
     const body = state.jsonBody as DashboardPayload;
     expect(body.stale).toBe(true);
     expect(body.source.fallbackUsed).toBe(true);
-    expect(body.degradedSegments).toEqual(["topCryptos", "topStocks", "night"]);
+    expect(body.degradedSegments).toEqual(["topCryptos", "topStocks", "night", "topCurrencies"]);
     expect(body.segmentMeta.topStocks.source).toBe("durable-cache");
   });
 });

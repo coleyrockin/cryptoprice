@@ -35,6 +35,10 @@ const payload: DashboardPayload = {
       source: "live",
       ageSec: 0,
     },
+    topCurrencies: {
+      source: "live",
+      ageSec: 0,
+    },
   },
   topCryptos: [
     {
@@ -77,6 +81,7 @@ const payload: DashboardPayload = {
       fallbackLogoUrls: [],
     },
   ],
+  topCurrencies: [],
   night: {
     id: "night-midnight2",
     name: "Midnight",

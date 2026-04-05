@@ -24,23 +24,19 @@ type ApiResponse = {
 
 function durableSegmentMeta(payload: DashboardPayload, nowMs: number): DashboardPayload["segmentMeta"] {
   const ageSec = Math.max(0, Math.floor((nowMs - Date.parse(payload.generatedAt)) / 1_000));
+  const meta = {
+    source: "durable-cache" as const,
+    ageSec: Number.isFinite(ageSec) ? ageSec : 0,
+  };
   return {
-    topCryptos: {
-      source: "durable-cache",
-      ageSec: Number.isFinite(ageSec) ? ageSec : 0,
-    },
-    topStocks: {
-      source: "durable-cache",
-      ageSec: Number.isFinite(ageSec) ? ageSec : 0,
-    },
-    night: {
-      source: "durable-cache",
-      ageSec: Number.isFinite(ageSec) ? ageSec : 0,
-    },
+    topCryptos: meta,
+    topStocks: meta,
+    night: meta,
+    topCurrencies: meta,
   };
 }
 
-const ALL_SEGMENTS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "night"];
+const ALL_SEGMENTS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "night", "topCurrencies"];
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   const requestId = createRequestId();
