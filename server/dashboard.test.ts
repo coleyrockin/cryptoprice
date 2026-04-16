@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryCache } from "./cache";
 
-vi.mock("./providers/yahoo", () => ({
-  fetchTopStocksFromYahoo: vi.fn(),
-  fetchTopEtfsFromYahoo: vi.fn(),
+vi.mock("./providers/stooq", () => ({
+  fetchTopStocksFromStooq: vi.fn(),
+  fetchTopEtfsFromStooq: vi.fn(),
 }));
 
 vi.mock("./providers/frankfurter", () => ({
@@ -18,13 +18,13 @@ vi.mock("./providers/coinpaprika", () => ({
 import { buildDashboardPayload, dashboardFallbackPayload } from "./dashboard";
 import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./providers/coinpaprika";
 import { fetchTopCurrenciesFromFrankfurter } from "./providers/frankfurter";
-import { fetchTopEtfsFromYahoo, fetchTopStocksFromYahoo } from "./providers/yahoo";
+import { fetchTopEtfsFromStooq, fetchTopStocksFromStooq } from "./providers/stooq";
 import type { DashboardCrypto, DashboardCurrency, DashboardEtf, DashboardNight, DashboardStock } from "./types";
 
-const mockedFetchTopStocksFromYahoo = vi.mocked(fetchTopStocksFromYahoo);
+const mockedFetchTopStocksFromStooq = vi.mocked(fetchTopStocksFromStooq);
 const mockedFetchTopCryptosFromCoinpaprika = vi.mocked(fetchTopCryptosFromCoinpaprika);
 const mockedFetchNightFromCoinpaprika = vi.mocked(fetchNightFromCoinpaprika);
-const mockedFetchTopEtfsFromYahoo = vi.mocked(fetchTopEtfsFromYahoo);
+const mockedFetchTopEtfsFromStooq = vi.mocked(fetchTopEtfsFromStooq);
 const mockedFetchTopCurrenciesFromFrankfurter = vi.mocked(fetchTopCurrenciesFromFrankfurter);
 
 const logger = {
@@ -132,10 +132,10 @@ const sampleNight: DashboardNight = {
 
 describe("buildDashboardPayload", () => {
   beforeEach(() => {
-    mockedFetchTopStocksFromYahoo.mockReset();
+    mockedFetchTopStocksFromStooq.mockReset();
     mockedFetchTopCryptosFromCoinpaprika.mockReset();
     mockedFetchNightFromCoinpaprika.mockReset();
-    mockedFetchTopEtfsFromYahoo.mockReset();
+    mockedFetchTopEtfsFromStooq.mockReset();
     mockedFetchTopCurrenciesFromFrankfurter.mockReset();
   });
 
@@ -143,10 +143,10 @@ describe("buildDashboardPayload", () => {
     const cache = new MemoryCache();
     let now = 1_000_000;
 
-    mockedFetchTopStocksFromYahoo.mockResolvedValue(sampleStocks);
+    mockedFetchTopStocksFromStooq.mockResolvedValue(sampleStocks);
     mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
     mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
-    mockedFetchTopEtfsFromYahoo.mockResolvedValue(sampleEtfs);
+    mockedFetchTopEtfsFromStooq.mockResolvedValue(sampleEtfs);
     mockedFetchTopCurrenciesFromFrankfurter.mockResolvedValue(sampleCurrencies);
 
     await buildDashboardPayload({ cache, now: () => now, cacheTtlSec: 60, fallbackTtlSec: 600, logger });
@@ -155,10 +155,10 @@ describe("buildDashboardPayload", () => {
 
     await buildDashboardPayload({ cache, now: () => now, cacheTtlSec: 60, fallbackTtlSec: 600, logger });
 
-    expect(mockedFetchTopStocksFromYahoo).toHaveBeenCalledTimes(1);
+    expect(mockedFetchTopStocksFromStooq).toHaveBeenCalledTimes(1);
     expect(mockedFetchTopCryptosFromCoinpaprika).toHaveBeenCalledTimes(1);
     expect(mockedFetchNightFromCoinpaprika).toHaveBeenCalledTimes(1);
-    expect(mockedFetchTopEtfsFromYahoo).toHaveBeenCalledTimes(1);
+    expect(mockedFetchTopEtfsFromStooq).toHaveBeenCalledTimes(1);
     expect(mockedFetchTopCurrenciesFromFrankfurter).toHaveBeenCalledTimes(1);
   });
 
@@ -166,18 +166,18 @@ describe("buildDashboardPayload", () => {
     const cache = new MemoryCache();
     let now = 2_000_000;
 
-    mockedFetchTopStocksFromYahoo.mockResolvedValue(sampleStocks);
+    mockedFetchTopStocksFromStooq.mockResolvedValue(sampleStocks);
     mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
     mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
-    mockedFetchTopEtfsFromYahoo.mockResolvedValue(sampleEtfs);
+    mockedFetchTopEtfsFromStooq.mockResolvedValue(sampleEtfs);
     mockedFetchTopCurrenciesFromFrankfurter.mockResolvedValue(sampleCurrencies);
 
     await buildDashboardPayload({ cache, now: () => now, cacheTtlSec: 60, fallbackTtlSec: 600, logger });
 
-    mockedFetchTopStocksFromYahoo.mockRejectedValue(new Error("yahoo down"));
+    mockedFetchTopStocksFromStooq.mockRejectedValue(new Error("stooq down"));
     mockedFetchTopCryptosFromCoinpaprika.mockRejectedValue(new Error("coinpaprika down"));
     mockedFetchNightFromCoinpaprika.mockRejectedValue(new Error("night down"));
-    mockedFetchTopEtfsFromYahoo.mockRejectedValue(new Error("etfs down"));
+    mockedFetchTopEtfsFromStooq.mockRejectedValue(new Error("etfs down"));
     mockedFetchTopCurrenciesFromFrankfurter.mockRejectedValue(new Error("frankfurter down"));
 
     now += 70_000;
@@ -192,10 +192,10 @@ describe("buildDashboardPayload", () => {
   });
 
   it("uses fallback JSON when providers fail and no cache is available", async () => {
-    mockedFetchTopStocksFromYahoo.mockRejectedValue(new Error("yahoo down"));
+    mockedFetchTopStocksFromStooq.mockRejectedValue(new Error("stooq down"));
     mockedFetchTopCryptosFromCoinpaprika.mockRejectedValue(new Error("coinpaprika down"));
     mockedFetchNightFromCoinpaprika.mockRejectedValue(new Error("night down"));
-    mockedFetchTopEtfsFromYahoo.mockRejectedValue(new Error("etfs down"));
+    mockedFetchTopEtfsFromStooq.mockRejectedValue(new Error("etfs down"));
     mockedFetchTopCurrenciesFromFrankfurter.mockRejectedValue(new Error("frankfurter down"));
 
     const payload = await buildDashboardPayload({
@@ -217,10 +217,10 @@ describe("buildDashboardPayload", () => {
     const cache = new MemoryCache();
     const now = 4_000_000;
 
-    mockedFetchTopStocksFromYahoo.mockRejectedValue(new Error("yahoo down"));
+    mockedFetchTopStocksFromStooq.mockRejectedValue(new Error("stooq down"));
     mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
     mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
-    mockedFetchTopEtfsFromYahoo.mockResolvedValue(sampleEtfs);
+    mockedFetchTopEtfsFromStooq.mockResolvedValue(sampleEtfs);
     mockedFetchTopCurrenciesFromFrankfurter.mockResolvedValue(sampleCurrencies);
 
     const payload = await buildDashboardPayload({ cache, now: () => now, cacheTtlSec: 60, fallbackTtlSec: 600, logger });
@@ -233,10 +233,10 @@ describe("buildDashboardPayload", () => {
   });
 
   it("includes topEtfs in the assembled payload", async () => {
-    mockedFetchTopStocksFromYahoo.mockResolvedValue(sampleStocks);
+    mockedFetchTopStocksFromStooq.mockResolvedValue(sampleStocks);
     mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
     mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
-    mockedFetchTopEtfsFromYahoo.mockResolvedValue(sampleEtfs);
+    mockedFetchTopEtfsFromStooq.mockResolvedValue(sampleEtfs);
     mockedFetchTopCurrenciesFromFrankfurter.mockResolvedValue(sampleCurrencies);
 
     const payload = await buildDashboardPayload({
@@ -253,10 +253,10 @@ describe("buildDashboardPayload", () => {
   });
 
   it("marks topEtfs as degraded and uses fallback when ETF provider fails", async () => {
-    mockedFetchTopStocksFromYahoo.mockResolvedValue(sampleStocks);
+    mockedFetchTopStocksFromStooq.mockResolvedValue(sampleStocks);
     mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
     mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
-    mockedFetchTopEtfsFromYahoo.mockRejectedValue(new Error("etf provider down"));
+    mockedFetchTopEtfsFromStooq.mockRejectedValue(new Error("etf provider down"));
     mockedFetchTopCurrenciesFromFrankfurter.mockResolvedValue(sampleCurrencies);
 
     const payload = await buildDashboardPayload({
@@ -274,10 +274,10 @@ describe("buildDashboardPayload", () => {
   });
 
   it("includes topCurrencies in the assembled payload", async () => {
-    mockedFetchTopStocksFromYahoo.mockResolvedValue(sampleStocks);
+    mockedFetchTopStocksFromStooq.mockResolvedValue(sampleStocks);
     mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
     mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
-    mockedFetchTopEtfsFromYahoo.mockResolvedValue(sampleEtfs);
+    mockedFetchTopEtfsFromStooq.mockResolvedValue(sampleEtfs);
     mockedFetchTopCurrenciesFromFrankfurter.mockResolvedValue(sampleCurrencies);
 
     const payload = await buildDashboardPayload({

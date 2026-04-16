@@ -4,7 +4,7 @@ import fallbackPayloadJson from "./fallback/dashboard-fallback.json" with { type
 import { recordProviderFailure, recordProviderFallback, recordProviderSuccess, type ProviderMetricKey } from "./metrics.js";
 import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./providers/coinpaprika.js";
 import { fetchTopCurrenciesFromFrankfurter } from "./providers/frankfurter.js";
-import { fetchTopEtfsFromYahoo, fetchTopStocksFromYahoo } from "./providers/yahoo.js";
+import { fetchTopEtfsFromStooq, fetchTopStocksFromStooq } from "./providers/stooq.js";
 import { toFiniteNumber } from "./sanitize.js";
 import type {
   DashboardAsset,
@@ -314,7 +314,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
         }),
     }),
     resolveSegment<DashboardStock[]>({
-      key: "yahoo:top-stocks",
+      key: "stooq:top-stocks",
       metricKey: "topStocks",
       label: "topStocks",
       fallbackValue: FALLBACK_PAYLOAD.topStocks,
@@ -325,13 +325,12 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       fallbackTtlSec,
       logger,
       fetcher: () =>
-        fetchTopStocksFromYahoo({
+        fetchTopStocksFromStooq({
           timeoutMs,
-          retries,
         }),
     }),
     resolveSegment<DashboardEtf[]>({
-      key: "yahoo:top-etfs",
+      key: "stooq:top-etfs",
       metricKey: "topEtfs",
       label: "topEtfs",
       fallbackValue: FALLBACK_PAYLOAD.topEtfs,
@@ -342,9 +341,8 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       fallbackTtlSec,
       logger,
       fetcher: () =>
-        fetchTopEtfsFromYahoo({
+        fetchTopEtfsFromStooq({
           timeoutMs,
-          retries,
         }),
     }),
     resolveSegment<DashboardCurrency[]>({
