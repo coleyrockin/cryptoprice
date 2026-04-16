@@ -1,5 +1,5 @@
 export type DashboardSource = {
-  equities: "fmp";
+  equities: string;
   crypto: "coinpaprika";
   fallbackUsed: boolean;
 };

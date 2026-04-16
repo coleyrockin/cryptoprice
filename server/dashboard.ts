@@ -3,7 +3,8 @@ import { envInt } from "./env.js";
 import fallbackPayloadJson from "./fallback/dashboard-fallback.json" with { type: "json" };
 import { recordProviderFailure, recordProviderFallback, recordProviderSuccess, type ProviderMetricKey } from "./metrics.js";
 import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./providers/coinpaprika.js";
-import { fetchTopCurrenciesFromFmp, fetchTopEtfsFromFmp, fetchTopStocksFromFmp } from "./providers/fmp.js";
+import { fetchTopCurrenciesFromFrankfurter } from "./providers/frankfurter.js";
+import { fetchTopEtfsFromYahoo, fetchTopStocksFromYahoo } from "./providers/yahoo.js";
 import { toFiniteNumber } from "./sanitize.js";
 import type {
   DashboardAsset,
@@ -313,7 +314,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
         }),
     }),
     resolveSegment<DashboardStock[]>({
-      key: "fmp:top-stocks",
+      key: "yahoo:top-stocks",
       metricKey: "topStocks",
       label: "topStocks",
       fallbackValue: FALLBACK_PAYLOAD.topStocks,
@@ -324,15 +325,13 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       fallbackTtlSec,
       logger,
       fetcher: () =>
-        fetchTopStocksFromFmp({
-          apiKey: options.fmpApiKey,
-          limit: 10,
+        fetchTopStocksFromYahoo({
           timeoutMs,
           retries,
         }),
     }),
     resolveSegment<DashboardEtf[]>({
-      key: "fmp:top-etfs",
+      key: "yahoo:top-etfs",
       metricKey: "topEtfs",
       label: "topEtfs",
       fallbackValue: FALLBACK_PAYLOAD.topEtfs,
@@ -343,15 +342,13 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       fallbackTtlSec,
       logger,
       fetcher: () =>
-        fetchTopEtfsFromFmp({
-          apiKey: options.fmpApiKey,
-          limit: 10,
+        fetchTopEtfsFromYahoo({
           timeoutMs,
           retries,
         }),
     }),
     resolveSegment<DashboardCurrency[]>({
-      key: "fmp:top-currencies",
+      key: "frankfurter:top-currencies",
       metricKey: "topCurrencies",
       label: "topCurrencies",
       fallbackValue: FALLBACK_PAYLOAD.topCurrencies,
@@ -362,8 +359,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       fallbackTtlSec,
       logger,
       fetcher: () =>
-        fetchTopCurrenciesFromFmp({
-          apiKey: options.fmpApiKey,
+        fetchTopCurrenciesFromFrankfurter({
           timeoutMs,
           retries,
         }),
