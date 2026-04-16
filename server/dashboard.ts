@@ -114,7 +114,7 @@ function normalizeNight(night: DashboardNight | null): DashboardNight | null {
 }
 
 function normalizeCurrencies(currencies: DashboardCurrency[]): DashboardCurrency[] {
-  if (currencies.length === 0) {
+  if (!Array.isArray(currencies) || currencies.length === 0) {
     return currencies;
   }
 
