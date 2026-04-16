@@ -1,4 +1,4 @@
-export type ProviderMetricKey = "topCryptos" | "topStocks" | "night" | "topCurrencies";
+export type ProviderMetricKey = "topCryptos" | "topStocks" | "topEtfs" | "night";
 
 type ProviderMetric = {
   requests: number;
@@ -51,8 +51,8 @@ function createMetricsState(): MetricsState {
     provider: {
       topCryptos: createProviderMetric(),
       topStocks: createProviderMetric(),
+      topEtfs: createProviderMetric(),
       night: createProviderMetric(),
-      topCurrencies: createProviderMetric(),
     },
   };
 }

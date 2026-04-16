@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
 import { motion } from "framer-motion";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { fetchDashboard } from "./api";
 import { LogoMark } from "./components/LogoMark";
@@ -9,9 +9,9 @@ import { MarketCard } from "./components/MarketCard";
 import { SectionHeader } from "./components/SectionHeader";
 import { formatCompactCurrency, formatCurrency, formatPercent, trendClass } from "./lib/formatters";
 import { useTheme } from "./hooks/useTheme";
-import type { DashboardAsset, DashboardCrypto, DashboardCurrency, DashboardStock } from "./types/dashboard";
+import type { DashboardAsset, DashboardCrypto, DashboardEtf, DashboardStock } from "./types/dashboard";
 
-const SECTION_IDS = ["section-assets", "section-stocks", "section-currencies", "section-cryptos", "section-compare", "section-night"] as const;
+const SECTION_IDS = ["section-assets", "section-stocks", "section-etfs", "section-cryptos", "section-night"] as const;
 
 const SECTION_REVEAL = {
   initial: { opacity: 0, y: 28 },
@@ -21,111 +21,10 @@ const SECTION_REVEAL = {
 };
 
 const DEFAULT_REFRESH_SEC = 30;
-const WATCHLIST_STORAGE_KEY = "wap.watchlist.v1";
-const LEGACY_WATCHLIST_KEY = "cryptoprice.watchlist.v1";
 const EMPTY_CRYPTOS: DashboardCrypto[] = [];
-
-// One-time migration: copy old watchlist to new key and remove the old one
-(function migrateWatchlist() {
-  try {
-    const newVal = localStorage.getItem(WATCHLIST_STORAGE_KEY);
-    if (newVal) return; // already migrated or user has new data
-    const oldVal = localStorage.getItem(LEGACY_WATCHLIST_KEY);
-    if (oldVal) {
-      localStorage.setItem(WATCHLIST_STORAGE_KEY, oldVal);
-      localStorage.removeItem(LEGACY_WATCHLIST_KEY);
-    }
-  } catch {
-    // localStorage may be unavailable — ignore
-  }
-})();
 const EMPTY_STOCKS: DashboardStock[] = [];
+const EMPTY_ETFS: DashboardEtf[] = [];
 const EMPTY_ASSETS: DashboardAsset[] = [];
-const EMPTY_CURRENCIES: DashboardCurrency[] = [];
-
-type CategoryFilter = "all" | "crypto" | "stock" | "commodity" | "currency";
-type SortMode = "rank" | "marketCapDesc" | "changeDesc" | "changeAsc" | "nameAsc";
-
-type SortableEntry = {
-  id: string;
-  rank: number;
-  name: string;
-  symbol: string;
-  category: string;
-};
-
-function parseWatchlist(raw: string | null): Set<string> {
-  if (!raw) {
-    return new Set<string>();
-  }
-
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return new Set<string>();
-    }
-
-    return new Set(parsed.filter((value): value is string => typeof value === "string"));
-  } catch {
-    return new Set<string>();
-  }
-}
-
-function matchesCategory(category: string, filter: CategoryFilter): boolean {
-  if (filter === "all") {
-    return true;
-  }
-
-  return category.toLowerCase() === filter;
-}
-
-function matchesSearch(entry: Pick<SortableEntry, "name" | "symbol">, query: string): boolean {
-  if (!query) {
-    return true;
-  }
-
-  const haystack = `${entry.name} ${entry.symbol}`.toLowerCase();
-  return haystack.includes(query);
-}
-
-function sortEntries<T extends SortableEntry>(
-  entries: T[],
-  mode: SortMode,
-  watchlistIds: Set<string>,
-  getMarketCap: (entry: T) => number | null,
-  getChange: (entry: T) => number | null,
-): T[] {
-  // Avoid creating array copy if no sorting needed
-  if (entries.length <= 1) {
-    return entries;
-  }
-
-  return entries.slice().sort((left, right) => {
-    const leftPinned = watchlistIds.has(left.id) ? 1 : 0;
-    const rightPinned = watchlistIds.has(right.id) ? 1 : 0;
-    if (rightPinned !== leftPinned) {
-      return rightPinned - leftPinned;
-    }
-
-    if (mode === "nameAsc") {
-      return left.name.localeCompare(right.name);
-    }
-
-    if (mode === "marketCapDesc") {
-      const leftCap = getMarketCap(left) ?? Number.NEGATIVE_INFINITY;
-      const rightCap = getMarketCap(right) ?? Number.NEGATIVE_INFINITY;
-      return rightCap - leftCap;
-    }
-
-    if (mode === "changeDesc" || mode === "changeAsc") {
-      const leftChange = getChange(left) ?? Number.NEGATIVE_INFINITY;
-      const rightChange = getChange(right) ?? Number.NEGATIVE_INFINITY;
-      return mode === "changeDesc" ? rightChange - leftChange : leftChange - rightChange;
-    }
-
-    return left.rank - right.rank;
-  });
-}
 
 function SkeletonGrid({ count = 10 }: { count?: number }) {
   return (
@@ -145,13 +44,6 @@ function SkeletonGrid({ count = 10 }: { count?: number }) {
 function App() {
   const { theme, toggleTheme } = useTheme();
   const [activeCryptoIndex, setActiveCryptoIndex] = useState(0);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
-  const [sortMode, setSortMode] = useState<SortMode>("rank");
-  const [watchlistOnly, setWatchlistOnly] = useState(false);
-  const [watchlistIds, setWatchlistIds] = useState<Set<string>>(new Set<string>());
-  const [compareIds, setCompareIds] = useState<string[]>([]);
   const [activeSection, setActiveSection] = useState<string>("");
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -188,238 +80,38 @@ function App() {
     },
   });
 
-  useEffect(() => {
-    const stored = window.localStorage.getItem(WATCHLIST_STORAGE_KEY);
-    setWatchlistIds(parseWatchlist(stored));
-  }, []);
-
-  useEffect(() => {
-    const asList = Array.from(watchlistIds).sort();
-    window.localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(asList));
-  }, [watchlistIds]);
-
   const dashboard = dashboardQuery.data;
   const topCryptos = dashboard?.topCryptos ?? EMPTY_CRYPTOS;
   const topStocks = dashboard?.topStocks ?? EMPTY_STOCKS;
+  const topEtfs = dashboard?.topEtfs ?? EMPTY_ETFS;
   const topAssets = dashboard?.topAssets ?? EMPTY_ASSETS;
-  const topCurrencies = dashboard?.topCurrencies ?? EMPTY_CURRENCIES;
   const night = dashboard?.night ?? null;
 
-  const searchKey = searchQuery.trim().toLowerCase();
-
-  const filteredCryptos = useMemo(() => {
-    const visible = topCryptos.filter((entry) => {
-      if (!matchesCategory(entry.category, categoryFilter)) {
-        return false;
-      }
-
-      if (!matchesSearch(entry, searchKey)) {
-        return false;
-      }
-
-      if (watchlistOnly && !watchlistIds.has(entry.id)) {
-        return false;
-      }
-
-      return true;
-    });
-
-    return sortEntries(
-      visible,
-      sortMode,
-      watchlistIds,
-      (entry) => entry.marketCapUsd,
-      (entry) => entry.change24h,
-    );
-  }, [topCryptos, categoryFilter, searchKey, watchlistOnly, watchlistIds, sortMode]);
-
-  const filteredStocks = useMemo(() => {
-    const visible = topStocks.filter((entry) => {
-      if (!matchesCategory(entry.category, categoryFilter)) {
-        return false;
-      }
-
-      if (!matchesSearch(entry, searchKey)) {
-        return false;
-      }
-
-      if (watchlistOnly && !watchlistIds.has(entry.id)) {
-        return false;
-      }
-
-      return true;
-    });
-
-    return sortEntries(
-      visible,
-      sortMode,
-      watchlistIds,
-      (entry) => entry.marketCapUsd,
-      (entry) => entry.changePercent,
-    );
-  }, [topStocks, categoryFilter, searchKey, watchlistOnly, watchlistIds, sortMode]);
-
-  const filteredCurrencies = useMemo(() => {
-    const visible = topCurrencies.filter((entry) => {
-      if (!matchesCategory(entry.category, categoryFilter)) {
-        return false;
-      }
-
-      if (!matchesSearch(entry, searchKey)) {
-        return false;
-      }
-
-      if (watchlistOnly && !watchlistIds.has(entry.id)) {
-        return false;
-      }
-
-      return true;
-    });
-
-    return sortEntries(
-      visible,
-      sortMode,
-      watchlistIds,
-      () => null,
-      (entry) => entry.changePercent,
-    );
-  }, [topCurrencies, categoryFilter, searchKey, watchlistOnly, watchlistIds, sortMode]);
-
-  const filteredAssets = useMemo(() => {
-    const visible = topAssets.filter((entry) => {
-      if (!matchesCategory(entry.category, categoryFilter)) {
-        return false;
-      }
-
-      if (!matchesSearch(entry, searchKey)) {
-        return false;
-      }
-
-      if (watchlistOnly && !watchlistIds.has(entry.id)) {
-        return false;
-      }
-
-      return true;
-    });
-
-    return sortEntries(
-      visible,
-      sortMode,
-      watchlistIds,
-      (entry) => entry.marketCapUsd,
-      () => null,
-    );
-  }, [topAssets, categoryFilter, searchKey, watchlistOnly, watchlistIds, sortMode]);
-
-  const compareCandidates = useMemo(() => {
-    // Early return for empty compareIds
-    if (compareIds.length === 0) {
-      return [];
-    }
-
-    // Convert to Set for O(1) lookup instead of Map creation
-    const compareSet = new Set(compareIds);
-    return topCryptos.filter((entry) => compareSet.has(entry.id));
-  }, [compareIds, topCryptos]);
-
   useEffect(() => {
-    if (filteredCryptos.length === 0) {
+    if (topCryptos.length === 0) {
       setActiveCryptoIndex(0);
       return;
     }
 
-    if (activeCryptoIndex > filteredCryptos.length - 1) {
+    if (activeCryptoIndex > topCryptos.length - 1) {
       setActiveCryptoIndex(0);
     }
-  }, [activeCryptoIndex, filteredCryptos.length]);
-
-  useEffect(() => {
-    const cryptoIds = new Set(topCryptos.map((entry) => entry.id));
-    setCompareIds((current) => {
-      const next = current.filter((id) => cryptoIds.has(id)).slice(0, 3);
-      if (next.length === current.length && next.every((id, index) => id === current[index])) {
-        return current;
-      }
-
-      return next;
-    });
-  }, [topCryptos]);
-
-  const togglePin = (id: string) => {
-    setWatchlistIds((current) => {
-      const next = new Set(current);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  const toggleCompare = (id: string) => {
-    setCompareIds((current) => {
-      if (current.includes(id)) {
-        return current.filter((entry) => entry !== id);
-      }
-
-      if (current.length >= 3) {
-        return [...current.slice(1), id];
-      }
-
-      return [...current, id];
-    });
-  };
+  }, [activeCryptoIndex, topCryptos.length]);
 
   const isBooting = dashboardQuery.isPending && !dashboard;
-
-  const renderCurrencyGrid = () => {
-    if (isBooting) {
-      return <SkeletonGrid />;
-    }
-
-    if (!filteredCurrencies.length) {
-      return <p className="muted">No currencies match your filters.</p>;
-    }
-
-    return (
-      <div className="coin-grid">
-        {filteredCurrencies.map((currency, index) => (
-          <MarketCard
-            key={currency.id}
-            id={currency.id}
-            rank={currency.rank}
-            name={currency.name}
-            symbol={currency.symbol}
-            meta={currency.category}
-            valueLabel="Rate vs USD"
-            value={formatCurrency(currency.rateVsUsd)}
-            secondary={formatPercent(currency.changePercent)}
-            secondaryClassName={clsx("coin-change", trendClass(currency.changePercent))}
-            index={index}
-            logoUrl={currency.logoUrl}
-            fallbackLogoUrls={currency.fallbackLogoUrls}
-            assetStyle
-            pinned={watchlistIds.has(currency.id)}
-            onTogglePin={() => togglePin(currency.id)}
-          />
-        ))}
-      </div>
-    );
-  };
 
   const renderCryptoGrid = () => {
     if (isBooting) {
       return <SkeletonGrid />;
     }
 
-    if (!filteredCryptos.length) {
-      return <p className="muted">No cryptos match your filters.</p>;
+    if (!topCryptos.length) {
+      return <p className="muted">No crypto data available.</p>;
     }
 
     return (
       <div className="coin-grid">
-        {filteredCryptos.map((coin, index) => (
+        {topCryptos.map((coin, index) => (
           <MarketCard
             key={coin.id}
             id={coin.id}
@@ -436,10 +128,6 @@ function App() {
             interactive
             active={index === activeCryptoIndex}
             onClick={() => setActiveCryptoIndex(index)}
-            pinned={watchlistIds.has(coin.id)}
-            onTogglePin={() => togglePin(coin.id)}
-            compared={compareIds.includes(coin.id)}
-            onToggleCompare={() => toggleCompare(coin.id)}
             sparkline={coin.sparkline7d}
           />
         ))}
@@ -452,13 +140,13 @@ function App() {
       return <SkeletonGrid />;
     }
 
-    if (!filteredStocks.length) {
-      return <p className="muted">No stocks match your filters.</p>;
+    if (!topStocks.length) {
+      return <p className="muted">No stock data available.</p>;
     }
 
     return (
       <div className="coin-grid">
-        {filteredStocks.map((stock, index) => {
+        {topStocks.map((stock, index) => {
           const changeText = formatPercent(stock.changePercent);
           const hasChange = changeText !== "—";
 
@@ -478,8 +166,44 @@ function App() {
               logoUrl={stock.logoUrl}
               fallbackLogoUrls={stock.fallbackLogoUrls}
               assetStyle
-              pinned={watchlistIds.has(stock.id)}
-              onTogglePin={() => togglePin(stock.id)}
+            />
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderEtfGrid = () => {
+    if (isBooting) {
+      return <SkeletonGrid />;
+    }
+
+    if (!topEtfs.length) {
+      return <p className="muted">No ETF data available.</p>;
+    }
+
+    return (
+      <div className="coin-grid">
+        {topEtfs.map((etf, index) => {
+          const changeText = formatPercent(etf.changePercent);
+          const hasChange = changeText !== "—";
+
+          return (
+            <MarketCard
+              key={etf.id}
+              id={etf.id}
+              rank={etf.rank}
+              name={etf.name}
+              symbol={etf.symbol}
+              meta={etf.category}
+              valueLabel="AUM"
+              value={formatCompactCurrency(etf.aumUsd)}
+              secondary={hasChange ? changeText : "Fund ranking"}
+              secondaryClassName={hasChange ? clsx("coin-change", trendClass(etf.changePercent)) : "asset-note"}
+              index={index}
+              logoUrl={etf.logoUrl}
+              fallbackLogoUrls={etf.fallbackLogoUrls}
+              assetStyle
             />
           );
         })}
@@ -492,13 +216,13 @@ function App() {
       return <SkeletonGrid />;
     }
 
-    if (!filteredAssets.length) {
-      return <p className="muted">No assets match your filters.</p>;
+    if (!topAssets.length) {
+      return <p className="muted">No asset data available.</p>;
     }
 
     return (
       <div className="coin-grid">
-        {filteredAssets.map((asset, index) => (
+        {topAssets.map((asset, index) => (
           <MarketCard
             key={asset.id}
             id={asset.id}
@@ -514,8 +238,6 @@ function App() {
             logoUrl={asset.logoUrl}
             fallbackLogoUrls={asset.fallbackLogoUrls}
             assetStyle
-            pinned={watchlistIds.has(asset.id)}
-            onTogglePin={() => togglePin(asset.id)}
           />
         ))}
       </div>
@@ -554,80 +276,16 @@ function App() {
         <h1>
           Global Assets <span>Dashboard</span>
         </h1>
-        <p className="tagline">Top 10 global assets, top 10 stocks, top 10 currencies, top 10 cryptocurrencies, and NIGHT price.</p>
+        <p className="tagline">Top 10 global assets, top 10 stocks, top 10 ETFs, top 10 cryptocurrencies, and NIGHT price.</p>
       </header>
 
       <nav className="section-nav" aria-label="Dashboard sections">
         <a href="#section-assets" className={clsx(activeSection === "section-assets" && "nav-active")}>Global Assets</a>
         <a href="#section-stocks" className={clsx(activeSection === "section-stocks" && "nav-active")}>Stocks</a>
-        <a href="#section-currencies" className={clsx(activeSection === "section-currencies" && "nav-active")}>Currencies</a>
+        <a href="#section-etfs" className={clsx(activeSection === "section-etfs" && "nav-active")}>ETFs</a>
         <a href="#section-cryptos" className={clsx(activeSection === "section-cryptos" && "nav-active")}>Cryptos</a>
-        <a href="#section-compare" className={clsx(activeSection === "section-compare" && "nav-active")}>Compare</a>
         <a href="#section-night" className={clsx(activeSection === "section-night" && "nav-active")}>NIGHT</a>
       </nav>
-
-      <section className="surface controls-surface" aria-label="Dashboard controls">
-        <SectionHeader title="Controls" subtitle="Search, filter, sort, and watchlist tools" />
-        <div className="controls-grid">
-          <label className="control">
-            <span>Search</span>
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search symbol or name"
-            />
-          </label>
-
-          <label className="control">
-            <span>Category</span>
-            <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value as CategoryFilter)}>
-              <option value="all">All</option>
-              <option value="crypto">Crypto</option>
-              <option value="stock">Stock</option>
-              <option value="commodity">Commodity</option>
-              <option value="currency">Currency</option>
-            </select>
-          </label>
-
-          <label className="control">
-            <span>Sort</span>
-            <select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}>
-              <option value="rank">Rank</option>
-              <option value="marketCapDesc">Market Cap (desc)</option>
-              <option value="changeDesc">Change (highest)</option>
-              <option value="changeAsc">Change (lowest)</option>
-              <option value="nameAsc">Name (A-Z)</option>
-            </select>
-          </label>
-
-          <label className="control control-checkbox">
-            <input
-              type="checkbox"
-              checked={watchlistOnly}
-              onChange={(event) => setWatchlistOnly(event.target.checked)}
-            />
-            <span>Show watchlist only ({watchlistIds.size})</span>
-          </label>
-        </div>
-
-        <div className="controls-actions">
-          <button
-            type="button"
-            onClick={() => {
-              setSearchQuery("");
-              setCategoryFilter("all");
-              setSortMode("rank");
-              setWatchlistOnly(false);
-            }}
-          >
-            Reset Filters
-          </button>
-          <button type="button" onClick={() => setWatchlistIds(new Set())} disabled={watchlistIds.size === 0}>
-            Clear Watchlist
-          </button>
-        </div>
-      </section>
 
       <motion.section id="section-assets" className="surface global-assets-surface" {...SECTION_REVEAL}>
         <SectionHeader title="Top 10 Global Assets" subtitle="By estimated market cap" />
@@ -640,40 +298,14 @@ function App() {
         {renderStockGrid()}
       </motion.section>
 
-      <motion.section id="section-currencies" className="surface currencies-surface" {...SECTION_REVEAL}>
-        <SectionHeader title="Top 10 Currencies" subtitle="Exchange rates vs USD" />
-        {renderCurrencyGrid()}
+      <motion.section id="section-etfs" className="surface etfs-surface" {...SECTION_REVEAL}>
+        <SectionHeader title="Top 10 ETFs" subtitle="By assets under management" />
+        {renderEtfGrid()}
       </motion.section>
 
       <motion.section id="section-cryptos" className="surface cryptos-surface" {...SECTION_REVEAL}>
         <SectionHeader title="Top 10 Cryptocurrencies" subtitle="Live market feed" />
         {renderCryptoGrid()}
-      </motion.section>
-
-      <motion.section id="section-compare" className="surface compare-surface" {...SECTION_REVEAL}>
-        <SectionHeader title="Compare" subtitle="Select up to three cryptos using the Compare button on cards" />
-
-        {compareCandidates.length ? (
-          <div className="compare-grid">
-            {compareCandidates.map((coin) => (
-              <article className="compare-card" key={`compare-${coin.id}`}>
-                <header>
-                  <div className="compare-title-group">
-                    <LogoMark name={coin.name} symbol={coin.symbol} logoUrl={coin.logoUrl} fallbackLogoUrls={coin.fallbackLogoUrls} />
-                    <h3>{coin.name}</h3>
-                  </div>
-                  <span className="symbol-pill">{coin.symbol}</span>
-                </header>
-                <p className="coin-price">{formatCurrency(coin.priceUsd)}</p>
-                <p className={clsx("coin-change", trendClass(coin.change24h))}>{formatPercent(coin.change24h)} (24h)</p>
-                <p className="compare-stat-label">Market Cap</p>
-                <p className="asset-note" style={{ marginTop: "0.12rem" }}>{formatCompactCurrency(coin.marketCapUsd)}</p>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="muted">No compare selection yet. Use Compare on crypto cards to add up to 3 entries.</p>
-        )}
       </motion.section>
 
       <motion.section id="section-night" className="surface midnight-surface night-ticker" {...SECTION_REVEAL}>

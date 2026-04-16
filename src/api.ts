@@ -42,19 +42,19 @@ function normalizeDashboardPayload(payload: DashboardPayload): DashboardPayload 
         source: "fallback",
         ageSec,
       },
-      night: {
+      topEtfs: {
         source: "fallback",
         ageSec,
       },
-      topCurrencies: {
+      night: {
         source: "fallback",
         ageSec,
       },
     },
     topCryptos: Array.isArray(payload.topCryptos) ? payload.topCryptos : [],
     topStocks: Array.isArray(payload.topStocks) ? payload.topStocks : [],
+    topEtfs: Array.isArray(payload.topEtfs) ? payload.topEtfs : [],
     topAssets: Array.isArray(payload.topAssets) ? payload.topAssets : [],
-    topCurrencies: Array.isArray(payload.topCurrencies) ? payload.topCurrencies : [],
     night: payload.night ?? null,
   };
 }

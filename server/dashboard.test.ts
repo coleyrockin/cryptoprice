@@ -3,7 +3,7 @@ import { MemoryCache } from "./cache";
 
 vi.mock("./providers/fmp", () => ({
   fetchTopStocksFromFmp: vi.fn(),
-  fetchTopCurrenciesFromFmp: vi.fn(),
+  fetchTopEtfsFromFmp: vi.fn(),
 }));
 
 vi.mock("./providers/coinpaprika", () => ({
@@ -13,13 +13,13 @@ vi.mock("./providers/coinpaprika", () => ({
 
 import { buildDashboardPayload, dashboardFallbackPayload } from "./dashboard";
 import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./providers/coinpaprika";
-import { fetchTopCurrenciesFromFmp, fetchTopStocksFromFmp } from "./providers/fmp";
-import type { DashboardCurrency, DashboardCrypto, DashboardNight, DashboardStock } from "./types";
+import { fetchTopEtfsFromFmp, fetchTopStocksFromFmp } from "./providers/fmp";
+import type { DashboardCrypto, DashboardEtf, DashboardNight, DashboardStock } from "./types";
 
 const mockedFetchTopStocksFromFmp = vi.mocked(fetchTopStocksFromFmp);
 const mockedFetchTopCryptosFromCoinpaprika = vi.mocked(fetchTopCryptosFromCoinpaprika);
 const mockedFetchNightFromCoinpaprika = vi.mocked(fetchNightFromCoinpaprika);
-const mockedFetchTopCurrenciesFromFmp = vi.mocked(fetchTopCurrenciesFromFmp);
+const mockedFetchTopEtfsFromFmp = vi.mocked(fetchTopEtfsFromFmp);
 
 const logger = {
   info: () => undefined,
@@ -58,28 +58,30 @@ const sampleCryptos: DashboardCrypto[] = [
   },
 ];
 
-const sampleCurrencies: DashboardCurrency[] = [
+const sampleEtfs: DashboardEtf[] = [
   {
-    id: "currency-usd",
+    id: "etf-spy",
     rank: 1,
-    name: "US Dollar",
-    symbol: "USD",
-    category: "Currency",
-    rateVsUsd: 1,
-    changePercent: 0,
-    logoUrl: "https://flagcdn.com/w40/us.png",
-    fallbackLogoUrls: ["https://flagcdn.com/w80/us.png"],
+    name: "SPDR S&P 500 ETF Trust",
+    symbol: "SPY",
+    category: "ETF",
+    aumUsd: 585000000000,
+    priceUsd: 528.45,
+    changePercent: 0.21,
+    logoUrl: "https://financialmodelingprep.com/image-stock/SPY.png",
+    fallbackLogoUrls: [],
   },
   {
-    id: "currency-eur",
+    id: "etf-ivv",
     rank: 2,
-    name: "Euro",
-    symbol: "EUR",
-    category: "Currency",
-    rateVsUsd: 1.085,
-    changePercent: -0.12,
-    logoUrl: "https://flagcdn.com/w40/eu.png",
-    fallbackLogoUrls: ["https://flagcdn.com/w80/eu.png"],
+    name: "iShares Core S&P 500 ETF",
+    symbol: "IVV",
+    category: "ETF",
+    aumUsd: 510000000000,
+    priceUsd: 530.12,
+    changePercent: 0.18,
+    logoUrl: "https://financialmodelingprep.com/image-stock/IVV.png",
+    fallbackLogoUrls: [],
   },
 ];
 
@@ -102,7 +104,7 @@ describe("buildDashboardPayload", () => {
     mockedFetchTopStocksFromFmp.mockReset();
     mockedFetchTopCryptosFromCoinpaprika.mockReset();
     mockedFetchNightFromCoinpaprika.mockReset();
-    mockedFetchTopCurrenciesFromFmp.mockReset();
+    mockedFetchTopEtfsFromFmp.mockReset();
   });
 
   it("returns fresh cache entries within TTL without refetching providers", async () => {
@@ -112,7 +114,7 @@ describe("buildDashboardPayload", () => {
     mockedFetchTopStocksFromFmp.mockResolvedValue(sampleStocks);
     mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
     mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
-    mockedFetchTopCurrenciesFromFmp.mockResolvedValue(sampleCurrencies);
+    mockedFetchTopEtfsFromFmp.mockResolvedValue(sampleEtfs);
 
     await buildDashboardPayload({
       cache,
@@ -135,6 +137,7 @@ describe("buildDashboardPayload", () => {
     expect(mockedFetchTopStocksFromFmp).toHaveBeenCalledTimes(1);
     expect(mockedFetchTopCryptosFromCoinpaprika).toHaveBeenCalledTimes(1);
     expect(mockedFetchNightFromCoinpaprika).toHaveBeenCalledTimes(1);
+    expect(mockedFetchTopEtfsFromFmp).toHaveBeenCalledTimes(1);
   });
 
   it("serves stale cache when providers fail after cache TTL", async () => {
@@ -144,7 +147,7 @@ describe("buildDashboardPayload", () => {
     mockedFetchTopStocksFromFmp.mockResolvedValue(sampleStocks);
     mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
     mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
-    mockedFetchTopCurrenciesFromFmp.mockResolvedValue(sampleCurrencies);
+    mockedFetchTopEtfsFromFmp.mockResolvedValue(sampleEtfs);
 
     await buildDashboardPayload({
       cache,
@@ -157,7 +160,7 @@ describe("buildDashboardPayload", () => {
     mockedFetchTopStocksFromFmp.mockRejectedValue(new Error("fmp down"));
     mockedFetchTopCryptosFromCoinpaprika.mockRejectedValue(new Error("coinpaprika down"));
     mockedFetchNightFromCoinpaprika.mockRejectedValue(new Error("night down"));
-    mockedFetchTopCurrenciesFromFmp.mockRejectedValue(new Error("currencies down"));
+    mockedFetchTopEtfsFromFmp.mockRejectedValue(new Error("etfs down"));
 
     now += 70_000;
 
@@ -171,7 +174,7 @@ describe("buildDashboardPayload", () => {
 
     expect(payload.stale).toBe(true);
     expect(payload.source.fallbackUsed).toBe(false);
-    expect(payload.degradedSegments).toEqual(["topCryptos", "topStocks", "night", "topCurrencies"]);
+    expect(payload.degradedSegments).toEqual(["topCryptos", "topStocks", "topEtfs", "night"]);
     expect(payload.segmentMeta.topCryptos.source).toBe("stale-cache");
     expect(payload.topStocks[0]?.symbol).toBe("AAPL");
   });
@@ -180,7 +183,7 @@ describe("buildDashboardPayload", () => {
     mockedFetchTopStocksFromFmp.mockRejectedValue(new Error("fmp down"));
     mockedFetchTopCryptosFromCoinpaprika.mockRejectedValue(new Error("coinpaprika down"));
     mockedFetchNightFromCoinpaprika.mockRejectedValue(new Error("night down"));
-    mockedFetchTopCurrenciesFromFmp.mockRejectedValue(new Error("currencies down"));
+    mockedFetchTopEtfsFromFmp.mockRejectedValue(new Error("etfs down"));
 
     const payload = await buildDashboardPayload({
       cache: new MemoryCache(),
@@ -192,7 +195,7 @@ describe("buildDashboardPayload", () => {
 
     expect(payload.stale).toBe(true);
     expect(payload.source.fallbackUsed).toBe(true);
-    expect(payload.degradedSegments).toEqual(["topCryptos", "topStocks", "night", "topCurrencies"]);
+    expect(payload.degradedSegments).toEqual(["topCryptos", "topStocks", "topEtfs", "night"]);
     expect(payload.segmentMeta.topStocks.source).toBe("fallback");
     expect(payload.topCryptos[0]?.id).toBe(dashboardFallbackPayload.topCryptos[0]?.id);
   });
@@ -204,7 +207,7 @@ describe("buildDashboardPayload", () => {
     mockedFetchTopStocksFromFmp.mockRejectedValue(new Error("fmp down"));
     mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
     mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
-    mockedFetchTopCurrenciesFromFmp.mockResolvedValue(sampleCurrencies);
+    mockedFetchTopEtfsFromFmp.mockResolvedValue(sampleEtfs);
 
     const payload = await buildDashboardPayload({
       cache,
@@ -221,11 +224,11 @@ describe("buildDashboardPayload", () => {
     expect(payload.segmentMeta.topStocks.source).toBe("fallback");
   });
 
-  it("includes topCurrencies in the assembled payload", async () => {
+  it("includes topEtfs in the assembled payload", async () => {
     mockedFetchTopStocksFromFmp.mockResolvedValue(sampleStocks);
     mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
     mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
-    mockedFetchTopCurrenciesFromFmp.mockResolvedValue(sampleCurrencies);
+    mockedFetchTopEtfsFromFmp.mockResolvedValue(sampleEtfs);
 
     const payload = await buildDashboardPayload({
       cache: new MemoryCache(),
@@ -235,16 +238,16 @@ describe("buildDashboardPayload", () => {
       logger,
     });
 
-    expect(payload.topCurrencies).toHaveLength(2);
-    expect(payload.topCurrencies[0]?.symbol).toBe("USD");
-    expect(payload.segmentMeta.topCurrencies.source).toBe("live");
+    expect(payload.topEtfs).toHaveLength(2);
+    expect(payload.topEtfs[0]?.symbol).toBe("SPY");
+    expect(payload.segmentMeta.topEtfs.source).toBe("live");
   });
 
-  it("marks topCurrencies as degraded and uses fallback when currency provider fails", async () => {
+  it("marks topEtfs as degraded and uses fallback when ETF provider fails", async () => {
     mockedFetchTopStocksFromFmp.mockResolvedValue(sampleStocks);
     mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
     mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
-    mockedFetchTopCurrenciesFromFmp.mockRejectedValue(new Error("forex down"));
+    mockedFetchTopEtfsFromFmp.mockRejectedValue(new Error("etf provider down"));
 
     const payload = await buildDashboardPayload({
       cache: new MemoryCache(),
@@ -255,8 +258,8 @@ describe("buildDashboardPayload", () => {
     });
 
     expect(payload.stale).toBe(true);
-    expect(payload.degradedSegments).toContain("topCurrencies");
-    expect(payload.segmentMeta.topCurrencies.source).toBe("fallback");
-    expect(payload.topCurrencies.length).toBeGreaterThan(0);
+    expect(payload.degradedSegments).toContain("topEtfs");
+    expect(payload.segmentMeta.topEtfs.source).toBe("fallback");
+    expect(payload.topEtfs.length).toBeGreaterThan(0);
   });
 });

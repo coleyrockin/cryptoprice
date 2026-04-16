@@ -31,11 +31,11 @@ const payload: DashboardPayload = {
       source: "live",
       ageSec: 0,
     },
-    night: {
+    topEtfs: {
       source: "live",
       ageSec: 0,
     },
-    topCurrencies: {
+    night: {
       source: "live",
       ageSec: 0,
     },
@@ -69,6 +69,7 @@ const payload: DashboardPayload = {
       fallbackLogoUrls: [],
     },
   ],
+  topEtfs: [],
   topAssets: [
     {
       id: "commodity-gold",
@@ -81,7 +82,6 @@ const payload: DashboardPayload = {
       fallbackLogoUrls: [],
     },
   ],
-  topCurrencies: [],
   night: {
     id: "night-midnight2",
     name: "Midnight",

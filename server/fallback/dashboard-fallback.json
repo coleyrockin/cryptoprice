@@ -7,118 +7,6 @@
     "crypto": "coinpaprika",
     "fallbackUsed": true
   },
-  "topCurrencies": [
-    {
-      "id": "currency-usd",
-      "rank": 1,
-      "name": "US Dollar",
-      "symbol": "USD",
-      "category": "Currency",
-      "rateVsUsd": 1.0,
-      "changePercent": 0,
-      "logoUrl": "https://flagcdn.com/w40/us.png",
-      "fallbackLogoUrls": ["https://flagcdn.com/w80/us.png"]
-    },
-    {
-      "id": "currency-eur",
-      "rank": 2,
-      "name": "Euro",
-      "symbol": "EUR",
-      "category": "Currency",
-      "rateVsUsd": 1.085,
-      "changePercent": -0.12,
-      "logoUrl": "https://flagcdn.com/w40/eu.png",
-      "fallbackLogoUrls": ["https://flagcdn.com/w80/eu.png"]
-    },
-    {
-      "id": "currency-jpy",
-      "rank": 3,
-      "name": "Japanese Yen",
-      "symbol": "JPY",
-      "category": "Currency",
-      "rateVsUsd": 0.006515,
-      "changePercent": -0.08,
-      "logoUrl": "https://flagcdn.com/w40/jp.png",
-      "fallbackLogoUrls": ["https://flagcdn.com/w80/jp.png"]
-    },
-    {
-      "id": "currency-gbp",
-      "rank": 4,
-      "name": "British Pound",
-      "symbol": "GBP",
-      "category": "Currency",
-      "rateVsUsd": 1.265,
-      "changePercent": 0.08,
-      "logoUrl": "https://flagcdn.com/w40/gb.png",
-      "fallbackLogoUrls": ["https://flagcdn.com/w80/gb.png"]
-    },
-    {
-      "id": "currency-aud",
-      "rank": 5,
-      "name": "Australian Dollar",
-      "symbol": "AUD",
-      "category": "Currency",
-      "rateVsUsd": 0.645,
-      "changePercent": -0.05,
-      "logoUrl": "https://flagcdn.com/w40/au.png",
-      "fallbackLogoUrls": ["https://flagcdn.com/w80/au.png"]
-    },
-    {
-      "id": "currency-cad",
-      "rank": 6,
-      "name": "Canadian Dollar",
-      "symbol": "CAD",
-      "category": "Currency",
-      "rateVsUsd": 0.7326,
-      "changePercent": -0.1,
-      "logoUrl": "https://flagcdn.com/w40/ca.png",
-      "fallbackLogoUrls": ["https://flagcdn.com/w80/ca.png"]
-    },
-    {
-      "id": "currency-chf",
-      "rank": 7,
-      "name": "Swiss Franc",
-      "symbol": "CHF",
-      "category": "Currency",
-      "rateVsUsd": 1.1173,
-      "changePercent": 0.07,
-      "logoUrl": "https://flagcdn.com/w40/ch.png",
-      "fallbackLogoUrls": ["https://flagcdn.com/w80/ch.png"]
-    },
-    {
-      "id": "currency-cny",
-      "rank": 8,
-      "name": "Chinese Yuan",
-      "symbol": "CNY",
-      "category": "Currency",
-      "rateVsUsd": 0.13812,
-      "changePercent": -0.03,
-      "logoUrl": "https://flagcdn.com/w40/cn.png",
-      "fallbackLogoUrls": ["https://flagcdn.com/w80/cn.png"]
-    },
-    {
-      "id": "currency-hkd",
-      "rank": 9,
-      "name": "Hong Kong Dollar",
-      "symbol": "HKD",
-      "category": "Currency",
-      "rateVsUsd": 0.12788,
-      "changePercent": -0.01,
-      "logoUrl": "https://flagcdn.com/w40/hk.png",
-      "fallbackLogoUrls": ["https://flagcdn.com/w80/hk.png"]
-    },
-    {
-      "id": "currency-nzd",
-      "rank": 10,
-      "name": "New Zealand Dollar",
-      "symbol": "NZD",
-      "category": "Currency",
-      "rateVsUsd": 0.595,
-      "changePercent": -0.09,
-      "logoUrl": "https://flagcdn.com/w40/nz.png",
-      "fallbackLogoUrls": ["https://flagcdn.com/w80/nz.png"]
-    }
-  ],
   "topCryptos": [
     {
       "id": "btc-bitcoin",
@@ -307,7 +195,7 @@
       "symbol": "GOOGL",
       "category": "Stock",
       "marketCapUsd": 3760000000000,
-      "priceUsd": 310.90,
+      "priceUsd": 310.9,
       "changePercent": -0.19,
       "logoUrl": "https://financialmodelingprep.com/image-stock/GOOGL.png",
       "fallbackLogoUrls": [
@@ -321,7 +209,7 @@
       "symbol": "MSFT",
       "category": "Stock",
       "marketCapUsd": 2890000000000,
-      "priceUsd": 389.00,
+      "priceUsd": 389.0,
       "changePercent": 1.18,
       "logoUrl": "https://financialmodelingprep.com/image-stock/MSFT.png",
       "fallbackLogoUrls": [
@@ -336,7 +224,7 @@
       "category": "Stock",
       "marketCapUsd": 2240000000000,
       "priceUsd": 208.56,
-      "changePercent": 1.60,
+      "changePercent": 1.6,
       "logoUrl": "https://financialmodelingprep.com/image-stock/AMZN.png",
       "fallbackLogoUrls": [
         "https://images.financialmodelingprep.com/symbol/AMZN.png"
@@ -363,7 +251,7 @@
       "symbol": "META",
       "category": "Stock",
       "marketCapUsd": 1620000000000,
-      "priceUsd": 639.30,
+      "priceUsd": 639.3,
       "changePercent": 0.32,
       "logoUrl": "https://financialmodelingprep.com/image-stock/META.png",
       "fallbackLogoUrls": [
@@ -550,5 +438,168 @@
     "athPriceUsd": 0.1194,
     "change24h": -0.86,
     "percentFromAth": -52.18
-  }
+  },
+  "topEtfs": [
+    {
+      "id": "etf-spy",
+      "rank": 1,
+      "name": "SPDR S&P 500 ETF Trust",
+      "symbol": "SPY",
+      "category": "ETF",
+      "aumUsd": 585000000000,
+      "priceUsd": 528.45,
+      "changePercent": 0.21,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/SPY.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/SPY.png"
+      ]
+    },
+    {
+      "id": "etf-ivv",
+      "rank": 2,
+      "name": "iShares Core S&P 500 ETF",
+      "symbol": "IVV",
+      "category": "ETF",
+      "aumUsd": 510000000000,
+      "priceUsd": 530.12,
+      "changePercent": 0.18,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/IVV.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/IVV.png"
+      ]
+    },
+    {
+      "id": "etf-voo",
+      "rank": 3,
+      "name": "Vanguard S&P 500 ETF",
+      "symbol": "VOO",
+      "category": "ETF",
+      "aumUsd": 485000000000,
+      "priceUsd": 487.63,
+      "changePercent": 0.19,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/VOO.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/VOO.png"
+      ]
+    },
+    {
+      "id": "etf-vti",
+      "rank": 4,
+      "name": "Vanguard Total Stock Market ETF",
+      "symbol": "VTI",
+      "category": "ETF",
+      "aumUsd": 395000000000,
+      "priceUsd": 244.78,
+      "changePercent": 0.14,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/VTI.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/VTI.png"
+      ]
+    },
+    {
+      "id": "etf-qqq",
+      "rank": 5,
+      "name": "Invesco QQQ Trust",
+      "symbol": "QQQ",
+      "category": "ETF",
+      "aumUsd": 292000000000,
+      "priceUsd": 455.32,
+      "changePercent": 0.28,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/QQQ.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/QQQ.png"
+      ]
+    },
+    {
+      "id": "etf-vug",
+      "rank": 6,
+      "name": "Vanguard Growth ETF",
+      "symbol": "VUG",
+      "category": "ETF",
+      "aumUsd": 125000000000,
+      "priceUsd": 332.17,
+      "changePercent": 0.22,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/VUG.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/VUG.png"
+      ]
+    },
+    {
+      "id": "etf-bnd",
+      "rank": 7,
+      "name": "Vanguard Total Bond Market ETF",
+      "symbol": "BND",
+      "category": "ETF",
+      "aumUsd": 118000000000,
+      "priceUsd": 73.42,
+      "changePercent": -0.05,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/BND.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/BND.png"
+      ]
+    },
+    {
+      "id": "etf-agg",
+      "rank": 8,
+      "name": "iShares Core US Aggregate Bond ETF",
+      "symbol": "AGG",
+      "category": "ETF",
+      "aumUsd": 106000000000,
+      "priceUsd": 96.38,
+      "changePercent": -0.08,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/AGG.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/AGG.png"
+      ]
+    },
+    {
+      "id": "etf-vxus",
+      "rank": 9,
+      "name": "Vanguard Total Intl Stock ETF",
+      "symbol": "VXUS",
+      "category": "ETF",
+      "aumUsd": 72000000000,
+      "priceUsd": 60.84,
+      "changePercent": 0.32,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/VXUS.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/VXUS.png"
+      ]
+    },
+    {
+      "id": "etf-gld",
+      "rank": 10,
+      "name": "SPDR Gold Shares",
+      "symbol": "GLD",
+      "category": "ETF",
+      "aumUsd": 67000000000,
+      "priceUsd": 238.54,
+      "changePercent": 0.45,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/GLD.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/GLD.png"
+      ]
+    }
+  ],
+  "segmentMeta": {
+    "topCryptos": {
+      "source": "fallback",
+      "ageSec": 0
+    },
+    "topStocks": {
+      "source": "fallback",
+      "ageSec": 0
+    },
+    "topEtfs": {
+      "source": "fallback",
+      "ageSec": 0
+    },
+    "night": {
+      "source": "fallback",
+      "ageSec": 0
+    }
+  },
+  "degradedSegments": [
+    "topEtfs"
+  ]
 }

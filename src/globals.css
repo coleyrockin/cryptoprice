@@ -485,112 +485,6 @@ html:not(.dark) .status.stale {
   50% { opacity: 0.5; transform: scale(0.85); }
 }
 
-/* ── Controls ── */
-.controls-surface { border-color: rgba(168, 85, 247, 0.28); }
-
-html:not(.dark) .controls-surface { border-color: rgba(99, 102, 241, 0.28); }
-
-.controls-grid {
-  margin-top: 0.5rem;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.42rem;
-}
-
-.control {
-  display: grid;
-  gap: 0.24rem;
-  font-size: 0.7rem;
-  color: var(--text-muted);
-}
-
-.control > span {
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 500;
-  font-size: 0.62rem;
-}
-
-.control input[type="search"],
-.control select {
-  border: 1px solid var(--surface-border);
-  border-radius: 8px;
-  background: var(--input-bg);
-  color: var(--text);
-  font: inherit;
-  font-size: 0.7rem;
-  padding: 0.3rem 0.44rem;
-  transition: all 200ms ease;
-}
-
-.control input[type="search"]:focus-visible,
-.control select:focus-visible {
-  outline: none;
-  border-color: rgba(92, 170, 255, 0.55);
-  box-shadow: 0 0 0 3px rgba(92, 170, 255, 0.12), 0 0 16px rgba(92, 170, 255, 0.08);
-  background: var(--input-bg);
-}
-
-html:not(.dark) .control input[type="search"]:focus-visible,
-html:not(.dark) .control select:focus-visible {
-  border-color: rgba(37, 99, 235, 0.5);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 0 16px rgba(37, 99, 235, 0.06);
-}
-
-.control-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 0.38rem;
-  border: 1px solid var(--surface-border);
-  border-radius: 8px;
-  padding: 0.3rem 0.44rem;
-  align-self: end;
-  background: var(--input-bg);
-  transition: all 200ms ease;
-}
-
-.control-checkbox:hover { border-color: var(--surface-border-strong); }
-
-.control-checkbox input { accent-color: #6eb4ff; }
-
-html:not(.dark) .control-checkbox input { accent-color: #2563eb; }
-
-.controls-actions {
-  margin-top: 0.46rem;
-  display: flex;
-  gap: 0.36rem;
-}
-
-.controls-actions button {
-  border: 1px solid var(--surface-border);
-  border-radius: 999px;
-  background: var(--logo-fallback-bg);
-  color: var(--text-dim);
-  font: inherit;
-  font-size: 0.67rem;
-  font-weight: 500;
-  padding: 0.24rem 0.6rem;
-  cursor: pointer;
-  transition: all 200ms ease;
-}
-
-.controls-actions button:hover:not(:disabled),
-.controls-actions button:focus-visible:not(:disabled) {
-  color: var(--text);
-  border-color: rgba(140, 180, 255, 0.5);
-  background: rgba(92, 170, 255, 0.1);
-  box-shadow: 0 0 12px rgba(92, 170, 255, 0.08);
-  outline: none;
-}
-
-html:not(.dark) .controls-actions button:hover:not(:disabled),
-html:not(.dark) .controls-actions button:focus-visible:not(:disabled) {
-  border-color: rgba(37, 99, 235, 0.4);
-  background: rgba(37, 99, 235, 0.06);
-  box-shadow: 0 0 12px rgba(37, 99, 235, 0.06);
-}
-
-.controls-actions button:disabled { opacity: 0.35; cursor: not-allowed; }
 
 /* ── Section Headers ── */
 .surface-head {
@@ -861,6 +755,17 @@ html:not(.dark) .asset-category[data-category="currency"] {
   border-color: rgba(8, 145, 178, 0.22);
 }
 
+.asset-category[data-category="etf"] {
+  color: rgba(168, 85, 247, 0.95);
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.24);
+}
+html:not(.dark) .asset-category[data-category="etf"] {
+  color: rgb(109, 40, 217);
+  background: rgba(109, 40, 217, 0.07);
+  border-color: rgba(109, 40, 217, 0.22);
+}
+
 .coin-title-row {
   margin-top: 0.42rem;
   display: flex;
@@ -1095,79 +1000,6 @@ html:not(.dark) .skeleton-line {
   100% { background-position: -200% 0; }
 }
 
-/* ── Compare ── */
-.compare-grid {
-  margin-top: 0.9rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 0.8rem;
-}
-
-.compare-card {
-  border: 1px solid var(--surface-border);
-  border-radius: 14px;
-  background: var(--card-bg);
-  padding: 0.85rem;
-  box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 0 30px rgba(80, 255, 200, 0.03);
-  transition: transform 250ms ease, box-shadow 250ms ease;
-}
-
-.compare-card:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    0 12px 36px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 0 40px rgba(80, 255, 200, 0.06);
-}
-
-html:not(.dark) .compare-card {
-  box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 0 30px rgba(5, 150, 105, 0.02);
-}
-
-html:not(.dark) .compare-card:hover {
-  box-shadow:
-    0 12px 36px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 0 40px rgba(5, 150, 105, 0.04);
-}
-
-.compare-card header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
-  margin-bottom: 0.7rem;
-}
-
-.compare-title-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.compare-title-group h3 {
-  font-size: 0.9rem;
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.compare-stat-label {
-  margin: 0.6rem 0 0;
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 500;
-}
 
 /* ── NIGHT / Compact Ticker ── */
 .night-ticker {
@@ -1247,47 +1079,45 @@ html:not(.dark) .night-ticker {
 .global-assets-surface { border-color: rgba(255, 122, 16, 0.35); }
 .stocks-surface { border-color: rgba(168, 85, 247, 0.32); }
 .cryptos-surface { border-color: rgba(34, 192, 255, 0.32); }
-.compare-surface { border-color: rgba(255, 40, 204, 0.28); }
-.currencies-surface { border-color: rgba(77, 240, 224, 0.32); }
+.etfs-surface { border-color: rgba(168, 85, 247, 0.32); }
 
 html:not(.dark) .global-assets-surface { border-color: rgba(234, 88, 12, 0.3); }
 html:not(.dark) .stocks-surface { border-color: rgba(124, 58, 237, 0.28); }
 html:not(.dark) .cryptos-surface { border-color: rgba(99, 102, 241, 0.3); }
-html:not(.dark) .compare-surface { border-color: rgba(219, 39, 119, 0.25); }
-html:not(.dark) .currencies-surface { border-color: rgba(8, 145, 178, 0.28); }
+html:not(.dark) .etfs-surface { border-color: rgba(109, 40, 217, 0.25); }
 
-/* Currencies: teal hover glow */
-.currencies-surface .coin-card {
-  --hover-blue: 77, 240, 224;
-  --hover-green: 34, 211, 200;
-  --hover-pink: 120, 250, 240;
+/* ETFs: purple hover glow */
+.etfs-surface .coin-card {
+  --hover-blue: 168, 85, 247;
+  --hover-green: 139, 92, 246;
+  --hover-pink: 196, 130, 255;
   --hover-shadow:
     0 20px 50px rgba(0, 0, 0, 0.6),
-    0 0 50px rgba(34, 211, 200, 0.22),
-    0 0 100px rgba(77, 240, 224, 0.09);
+    0 0 50px rgba(168, 85, 247, 0.18),
+    0 0 100px rgba(139, 92, 246, 0.08);
 }
-.currencies-surface .coin-card:hover,
-.currencies-surface .coin-card:focus-visible {
+.etfs-surface .coin-card:hover,
+.etfs-surface .coin-card:focus-visible {
   background:
-    linear-gradient(138deg, rgba(77, 240, 224, 0.28), rgba(34, 211, 200, 0.22) 45%, rgba(120, 250, 240, 0.2)) padding-box,
-    linear-gradient(135deg, rgba(100, 245, 230, 0.65), rgba(50, 220, 210, 0.55), rgba(140, 255, 245, 0.45)) border-box;
+    linear-gradient(138deg, rgba(168, 85, 247, 0.22), rgba(139, 92, 246, 0.17) 45%, rgba(196, 130, 255, 0.15)) padding-box,
+    linear-gradient(135deg, rgba(180, 100, 255, 0.52), rgba(150, 100, 250, 0.42), rgba(210, 150, 255, 0.35)) border-box;
 }
 
 /* Global assets: gold/amber hover glow */
 .global-assets-surface .coin-card {
-  --hover-blue: 255, 190, 50;
-  --hover-green: 255, 155, 30;
-  --hover-pink: 255, 225, 100;
+  --hover-blue: 255, 195, 80;
+  --hover-green: 245, 170, 60;
+  --hover-pink: 255, 220, 130;
   --hover-shadow:
     0 20px 50px rgba(0, 0, 0, 0.6),
-    0 0 50px rgba(255, 185, 50, 0.22),
-    0 0 100px rgba(255, 155, 30, 0.09);
+    0 0 50px rgba(255, 195, 80, 0.14),
+    0 0 100px rgba(245, 170, 60, 0.06);
 }
 .global-assets-surface .coin-card:hover,
 .global-assets-surface .coin-card:focus-visible {
   background:
-    linear-gradient(138deg, rgba(255, 190, 50, 0.28), rgba(255, 155, 30, 0.22) 45%, rgba(255, 225, 100, 0.2)) padding-box,
-    linear-gradient(135deg, rgba(255, 210, 80, 0.65), rgba(255, 170, 40, 0.55), rgba(255, 225, 120, 0.45)) border-box;
+    linear-gradient(138deg, rgba(255, 200, 90, 0.16), rgba(245, 175, 70, 0.12) 45%, rgba(255, 220, 130, 0.1)) padding-box,
+    linear-gradient(135deg, rgba(255, 210, 100, 0.38), rgba(245, 180, 70, 0.30), rgba(255, 225, 140, 0.24)) border-box;
 }
 
 /* Stocks: emerald hover glow */
@@ -1439,7 +1269,6 @@ html:not(.dark) .footer-glow {
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .coin-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .controls-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 768px) {
@@ -1458,7 +1287,6 @@ html:not(.dark) .footer-glow {
 
 @media (max-width: 480px) {
   .coin-grid { grid-template-columns: 1fr; }
-  .controls-grid { grid-template-columns: 1fr; }
 
   .surface-head {
     flex-direction: column;

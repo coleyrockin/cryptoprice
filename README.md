@@ -20,22 +20,17 @@
 
 ## About
 
-World Asset Prices is a full-stack React + Vercel dashboard tracking the top 10 cryptocurrencies, top 10 stocks, and top 10 global assets by market cap — live. Built with a resilient data layer (provider cache → stale fallback → durable cache), smooth Framer Motion animations, and a polished dark/light UI that works across all screen sizes.
+World Asset Prices is a full-stack React + Vercel dashboard tracking the top 10 global assets, top 10 ETFs, top 10 stocks, and top 10 cryptocurrencies — live. Built with a resilient data layer (provider cache → stale fallback → durable cache), smooth Framer Motion animations, and a polished dark/light UI that works across all screen sizes.
 
 A single `GET /api/dashboard` call powers the entire payload. The frontend never talks to external APIs directly.
 
 ## Features
 
-- **Three asset categories** — cryptocurrencies, stocks, and global assets ranked by market cap
+- **Four asset categories** — global assets, ETFs, stocks, and cryptocurrencies
 - **Light / dark mode** — toggles instantly, respects `prefers-color-scheme` on first load, persists preference
-- **Search & filter** — find any asset by name or symbol across all categories simultaneously
-- **Sort modes** — by rank, market cap, 24h change (high/low), or name
 - **24h price change** — color-coded green/red on every card
 - **7-day sparklines** — mini SVG trend charts on every crypto card
-- **Watchlist** — pin assets to the top with localStorage persistence across sessions
-- **Compare mode** — side-by-side comparison panel for up to 3 cryptocurrencies
 - **Midnight Token (NIGHT) panel** — dedicated price display with ATH, market cap, and 24h volume
-- **Last updated timestamp** — displays exact time of the most recent data snapshot
 - **Auto-refresh** — refetches every 30 seconds via TanStack Query
 - **Resilient data layer** — live → fresh cache → stale-if-error fallback → durable cache (Upstash/Vercel KV)
 - **Production quality gates** — lint, typecheck, unit tests, E2E smoke tests, and bundle size check in CI
@@ -48,7 +43,7 @@ A single `GET /api/dashboard` call powers the entire payload. The frontend never
 | **Styling** | Tailwind CSS v4, clsx |
 | **Animation** | Framer Motion 12 |
 | **Backend** | Vercel Serverless Functions (Node 20) |
-| **Data sources** | CoinPaprika (crypto), Financial Modeling Prep (stocks) |
+| **Data sources** | CoinPaprika (crypto), Financial Modeling Prep (stocks + ETFs) |
 | **Testing** | Vitest 4, Testing Library, Playwright E2E |
 | **Linting** | ESLint 10, typescript-eslint |
 | **Deployment** | Vercel (primary), GitHub Pages (static fallback) |
@@ -79,7 +74,7 @@ Copy `.env.example` to `.env` and fill in:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `FMP_API_KEY` | **Yes** | Financial Modeling Prep API key for stock data |
+| `FMP_API_KEY` | **Yes** | Financial Modeling Prep API key for stock and ETF data |
 | `FMP_BASE_URL` | No | Override FMP base URL (default: `https://financialmodelingprep.com/api/v3`) |
 | `COINPAPRIKA_BASE_URL` | No | Override CoinPaprika base URL |
 | `CACHE_TTL_SEC` | No | How long to cache live data (default: `30`) |
