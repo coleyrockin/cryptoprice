@@ -20,13 +20,13 @@
 
 ## About
 
-World Asset Prices is a full-stack React + Vercel dashboard tracking the top 10 global assets, top 10 ETFs, top 10 stocks, and top 10 cryptocurrencies — live. Built with a resilient data layer (provider cache → stale fallback → durable cache), smooth Framer Motion animations, and a polished dark/light UI that works across all screen sizes.
+World Asset Prices is a full-stack React + Vercel dashboard tracking the top 10 global assets, top 10 ETFs, top 10 stocks, top 10 cryptocurrencies, and top 10 currencies — live. Built with a resilient data layer (provider cache → stale fallback → durable cache), smooth Framer Motion animations, and a polished dark/light UI that works across all screen sizes.
 
 A single `GET /api/dashboard` call powers the entire payload. The frontend never talks to external APIs directly.
 
 ## Features
 
-- **Four asset categories** — global assets, ETFs, stocks, and cryptocurrencies
+- **Five asset categories** — global assets, ETFs, stocks, cryptocurrencies, and currencies
 - **Light / dark mode** — toggles instantly, respects `prefers-color-scheme` on first load, persists preference
 - **24h price change** — color-coded green/red on every card
 - **7-day sparklines** — mini SVG trend charts on every crypto card
@@ -42,8 +42,8 @@ A single `GET /api/dashboard` call powers the entire payload. The frontend never
 | **Frontend** | React 19, TypeScript 5.9, Vite 7, TanStack React Query 5 |
 | **Styling** | Tailwind CSS v4, clsx |
 | **Animation** | Framer Motion 12 |
-| **Backend** | Vercel Serverless Functions (Node 20) |
-| **Data sources** | CoinPaprika (crypto), Financial Modeling Prep (stocks + ETFs) |
+| **Backend** | Vercel Serverless Functions (Node 24) |
+| **Data sources** | CoinPaprika (crypto), Financial Modeling Prep (stocks, ETFs + forex) |
 | **Testing** | Vitest 4, Testing Library, Playwright E2E |
 | **Linting** | ESLint 10, typescript-eslint |
 | **Deployment** | Vercel (primary), GitHub Pages (static fallback) |
