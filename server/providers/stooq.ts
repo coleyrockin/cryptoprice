@@ -88,26 +88,32 @@ async function fetchStooqQuote(
 }
 
 /**
- * Fetch all symbols in parallel, returning a map of symbol → quote data.
+ * Fetch symbols with a concurrency cap to avoid overwhelming Stooq.
  * Failures are silently dropped so partial results still render.
  */
 async function fetchAllQuotes(
   symbols: string[],
   options: FetchStooqOptions,
 ): Promise<Map<string, { open: number | null; close: number | null }>> {
-  const results = await Promise.allSettled(
-    symbols.map(async (sym) => {
-      const quote = await fetchStooqQuote(sym, options);
-      return { sym, quote };
-    }),
-  );
-
+  const MAX_CONCURRENT = 4;
   const map = new Map<string, { open: number | null; close: number | null }>();
-  for (const r of results) {
-    if (r.status === "fulfilled" && r.value.quote) {
-      map.set(r.value.sym, r.value.quote);
+
+  for (let i = 0; i < symbols.length; i += MAX_CONCURRENT) {
+    const batch = symbols.slice(i, i + MAX_CONCURRENT);
+    const results = await Promise.allSettled(
+      batch.map(async (sym) => {
+        const quote = await fetchStooqQuote(sym, options);
+        return { sym, quote };
+      }),
+    );
+
+    for (const r of results) {
+      if (r.status === "fulfilled" && r.value.quote) {
+        map.set(r.value.sym, r.value.quote);
+      }
     }
   }
+
   return map;
 }
 

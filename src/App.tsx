@@ -160,9 +160,9 @@ function App() {
               name={stock.name}
               symbol={stock.symbol}
               meta={stock.category}
-              valueLabel="Market Cap"
-              value={formatCompactCurrency(stock.marketCapUsd)}
-              secondary={hasChange ? changeText : "Market cap ranking"}
+              valueLabel="Price"
+              value={formatCurrency(stock.priceUsd)}
+              secondary={hasChange ? changeText : "—"}
               secondaryClassName={hasChange ? clsx("coin-change", trendClass(stock.changePercent)) : "asset-note"}
               index={index}
               logoUrl={stock.logoUrl}
@@ -198,9 +198,9 @@ function App() {
               name={etf.name}
               symbol={etf.symbol}
               meta={etf.category}
-              valueLabel="AUM"
-              value={formatCompactCurrency(etf.aumUsd)}
-              secondary={hasChange ? changeText : "Fund ranking"}
+              valueLabel="Price"
+              value={formatCurrency(etf.priceUsd)}
+              secondary={hasChange ? changeText : "—"}
               secondaryClassName={hasChange ? clsx("coin-change", trendClass(etf.changePercent)) : "asset-note"}
               index={index}
               logoUrl={etf.logoUrl}

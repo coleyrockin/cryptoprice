@@ -81,9 +81,15 @@ export function normalizeFrankfurterCurrencies(
   });
 }
 
-function yesterdayDateString(): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() - 1);
+/**
+ * Given a date string like "2026-04-15", return the previous business day.
+ * ECB (Frankfurter's source) only publishes Mon–Fri.
+ */
+function previousBusinessDay(dateStr: string): string {
+  const d = new Date(dateStr + "T12:00:00Z");
+  const dow = d.getUTCDay(); // 0=Sun … 6=Sat
+  const daysBack = dow === 1 ? 3 : dow === 0 ? 2 : 1; // Mon→Fri, Sun→Fri, else −1
+  d.setUTCDate(d.getUTCDate() - daysBack);
   return d.toISOString().slice(0, 10);
 }
 
@@ -93,16 +99,20 @@ export async function fetchTopCurrenciesFromFrankfurter(
   const baseUrl = options.baseUrl ?? FRANKFURTER_BASE_URL;
   const qs = `from=USD&to=${FOREIGN_SYMBOLS}`;
 
-  const [todayData, yesterdayData] = await Promise.all([
-    requestJsonWithRetry<FrankfurterResponse>(`${baseUrl}/latest?${qs}`, {
-      timeoutMs: options.timeoutMs,
-      retries: options.retries,
-    }),
-    requestJsonWithRetry<FrankfurterResponse>(
-      `${baseUrl}/${yesterdayDateString()}?${qs}`,
-      { timeoutMs: options.timeoutMs, retries: options.retries },
-    ),
-  ]);
+  // Step 1: fetch latest rates — response includes the date ECB published them.
+  const todayData = await requestJsonWithRetry<FrankfurterResponse>(
+    `${baseUrl}/latest?${qs}`,
+    { timeoutMs: options.timeoutMs, retries: options.retries },
+  );
+
+  const latestDate = todayData.date ?? new Date().toISOString().slice(0, 10);
+  const prevDate = previousBusinessDay(latestDate);
+
+  // Step 2: fetch the previous business day's rates for change%.
+  const yesterdayData = await requestJsonWithRetry<FrankfurterResponse>(
+    `${baseUrl}/${prevDate}?${qs}`,
+    { timeoutMs: options.timeoutMs, retries: options.retries },
+  );
 
   const todayRates = todayData.rates ?? {};
   const yesterdayRates = yesterdayData.rates ?? {};
