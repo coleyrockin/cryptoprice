@@ -20,20 +20,21 @@
 
 ## About
 
-World Asset Prices is a full-stack React + Vercel dashboard tracking the top 10 global assets, top 10 ETFs, top 10 stocks, top 10 cryptocurrencies, and top 10 currencies — live. Built with a resilient data layer (provider cache → stale fallback → durable cache), smooth Framer Motion animations, and a polished dark/light UI that works across all screen sizes.
+A live financial dashboard tracking the **top 10 stocks, ETFs, fiat currencies, and cryptocurrencies** side-by-side in one view, plus a dedicated Midnight Token (NIGHT) panel. Built as a full-stack React + Vercel app with a resilient serverless data layer.
 
-A single `GET /api/dashboard` call powers the entire payload. The frontend never talks to external APIs directly.
+A single `GET /api/dashboard` call powers the entire payload — the frontend never talks to external APIs directly. The server composes data from multiple free, no-key providers (Stooq, Frankfurter, CoinPaprika) behind a tiered cache: fresh in-memory → stale-if-error → durable KV fallback → bundled fallback JSON. The site never shows "no data," even if every upstream goes down.
+
+**Zero API keys required to run it locally or deploy it.**
 
 ## Features
 
-- **Five asset categories** — global assets, ETFs, stocks, cryptocurrencies, and currencies
-- **Light / dark mode** — toggles instantly, respects `prefers-color-scheme` on first load, persists preference
-- **24h price change** — color-coded green/red on every card
-- **7-day sparklines** — mini SVG trend charts on every crypto card
-- **Midnight Token (NIGHT) panel** — dedicated price display with ATH, market cap, and 24h volume
+- **Five live sections** — Stocks, ETFs, Currencies, Cryptos, and the Midnight Token panel
+- **Light / dark mode** — instant toggle, respects `prefers-color-scheme` on first load, persists preference
+- **Intraday change %** — color-coded green/red on every card (calculated from open → latest close)
+- **7-day sparklines** — inline SVG trend charts on crypto cards
 - **Auto-refresh** — refetches every 30 seconds via TanStack Query
-- **Resilient data layer** — live → fresh cache → stale-if-error fallback → durable cache (Upstash/Vercel KV)
-- **Production quality gates** — lint, typecheck, unit tests, E2E smoke tests, and bundle size check in CI
+- **Resilient fetch layer** — live provider → fresh cache → stale cache → durable KV → bundled fallback
+- **Production CI gates** — lint, typecheck, unit tests, route tests, E2E smoke tests, and bundle-size check
 
 ## Tech Stack
 
@@ -43,10 +44,11 @@ A single `GET /api/dashboard` call powers the entire payload. The frontend never
 | **Styling** | Tailwind CSS v4, clsx |
 | **Animation** | Framer Motion 12 |
 | **Backend** | Vercel Serverless Functions (Node 24) |
-| **Data sources** | CoinPaprika (crypto), Financial Modeling Prep (stocks, ETFs + forex) |
+| **Data sources** | [Stooq](https://stooq.com) (stocks + ETFs), [Frankfurter / ECB](https://frankfurter.dev) (FX), [CoinPaprika](https://coinpaprika.com/api/) (crypto) — all free, no keys |
+| **Durable cache** | Upstash / Vercel KV (optional; falls back to in-memory + bundled JSON) |
 | **Testing** | Vitest 4, Testing Library, Playwright E2E |
 | **Linting** | ESLint 10, typescript-eslint |
-| **Deployment** | Vercel (primary), GitHub Pages (static fallback) |
+| **Deployment** | Vercel |
 
 ## Getting Started
 
@@ -58,11 +60,7 @@ cd world-asset-prices
 # Install dependencies
 npm install
 
-# Copy environment variables
-cp .env.example .env
-# Add your FMP_API_KEY (see Environment Variables below)
-
-# Start the dev server
+# Start the dev server — no env vars required
 npm run dev
 ```
 
@@ -70,32 +68,30 @@ The app runs at `http://localhost:5188`.
 
 ## Environment Variables
 
-Copy `.env.example` to `.env` and fill in:
+All environment variables are **optional** — the app runs fully without any configuration. Copy `.env.example` to `.env` if you want to tune caching, enable a durable KV cache, or adjust rate limits.
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `FMP_API_KEY` | **Yes** | Financial Modeling Prep API key for stock and ETF data |
-| `FMP_BASE_URL` | No | Override FMP base URL (default: `https://financialmodelingprep.com/api/v3`) |
-| `COINPAPRIKA_BASE_URL` | No | Override CoinPaprika base URL |
-| `CACHE_TTL_SEC` | No | How long to cache live data (default: `30`) |
-| `FALLBACK_TTL_SEC` | No | How long stale cache is valid (default: `600`) |
-| `KV_REST_API_URL` | No | Upstash/Vercel KV URL for durable cache |
-| `KV_REST_API_TOKEN` | No | Upstash/Vercel KV token |
-
-Get a free FMP API key at [financialmodelingprep.com](https://financialmodelingprep.com/developer/docs/).
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `COINPAPRIKA_BASE_URL` | Override CoinPaprika base URL | `https://api.coinpaprika.com` |
+| `CACHE_TTL_SEC` | Live-data cache TTL (seconds) | `30` |
+| `FALLBACK_TTL_SEC` | Stale cache TTL before bundled fallback | `600` |
+| `STALE_ALERT_SEC` | Threshold for flagging stale-served responses | `300` |
+| `KV_REST_API_URL` / `KV_REST_API_TOKEN` | Upstash / Vercel KV REST credentials for durable cache | unset (falls back to in-memory) |
+| `LOGO_PROXY_*` | Logo proxy host allowlist, rate limits, and size caps | see `.env.example` |
 
 ## Available Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start Vite dev server on port 5188 |
+| `npm run dev` | Start Vite dev server on port 5188 (also runs the serverless handlers locally) |
 | `npm run build` | Typecheck + production build |
 | `npm run preview` | Preview production build |
-| `npm run test` | Run unit/integration tests |
-| `npm run test:e2e` | Run Playwright E2E tests |
+| `npm run test` | Run unit / integration tests |
+| `npm run test:routes` | Run serverless route tests |
+| `npm run test:e2e` | Run Playwright E2E smoke tests |
 | `npm run lint` | Lint with ESLint |
-| `npm run typecheck` | TypeScript type checking |
-| `npm run check` | Full CI pipeline (lint + typecheck + test + build + bundle check) |
+| `npm run typecheck` | TypeScript type checking across all three project configs |
+| `npm run check` | Full CI pipeline (lint + typecheck + tests + build + bundle check) |
 
 ## Project Structure
 
@@ -107,10 +103,11 @@ world-asset-prices/
 │   ├── logo.ts        # Logo proxy — GET /api/logo?url=...
 │   └── health.ts      # Health check — GET /api/health
 ├── server/            # Server-side logic (shared by api/ and dev server)
-│   ├── providers/     # CoinPaprika and FMP data providers
-│   ├── cache.ts       # In-memory cache with TTL
-│   ├── durable-cache.ts # Upstash/Vercel KV integration
-│   └── dashboard.ts   # Dashboard payload assembly
+│   ├── providers/     # Stooq, Frankfurter, and CoinPaprika data providers
+│   ├── cache.ts       # In-memory TTL cache
+│   ├── durable-cache.ts # Upstash / Vercel KV integration
+│   ├── fallback/      # Bundled last-resort payload JSON
+│   └── dashboard.ts   # Dashboard payload assembly + segment resolution
 ├── src/               # React frontend
 │   ├── components/    # MarketCard, SectionHeader, LogoMark, etc.
 │   ├── hooks/         # useTheme, useTilt
@@ -124,6 +121,14 @@ world-asset-prices/
 ├── vercel.json        # Vercel deployment config
 └── package.json
 ```
+
+## What this demonstrates
+
+- **Production-grade fetch resilience.** Every upstream is wrapped in a segment resolver that tries live → fresh cache → stale cache → durable KV → bundled fallback. The dashboard degrades gracefully and never renders empty state.
+- **Provider-agnostic data pipeline.** Providers implement a narrow contract (`fetch*From*()` returns a typed array) and are swappable without touching the UI — swapping FMP → Stooq + Frankfurter was a two-file change.
+- **Data-center-aware networking.** Stooq fetching uses a bounded concurrency pool (4 at a time) because Vercel's AWS IPs hit aggressive rate limits on naïve fan-out. Frankfurter's business-day date logic handles ECB's weekend publishing gaps so change% is always a true 1-business-day delta.
+- **Full TS strict mode across three project configs** (client, node, server) with clean typecheck.
+- **CI gates that actually catch regressions**: lint, typecheck, unit, route, E2E, and a bundle-size budget.
 
 ## Contributing
 
