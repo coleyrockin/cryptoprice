@@ -1080,11 +1080,30 @@ html:not(.dark) .night-ticker {
 .stocks-surface { border-color: rgba(168, 85, 247, 0.32); }
 .cryptos-surface { border-color: rgba(34, 192, 255, 0.32); }
 .etfs-surface { border-color: rgba(168, 85, 247, 0.32); }
+.currencies-surface { border-color: rgba(77, 240, 224, 0.32); }
 
 html:not(.dark) .global-assets-surface { border-color: rgba(234, 88, 12, 0.3); }
 html:not(.dark) .stocks-surface { border-color: rgba(124, 58, 237, 0.28); }
 html:not(.dark) .cryptos-surface { border-color: rgba(99, 102, 241, 0.3); }
 html:not(.dark) .etfs-surface { border-color: rgba(109, 40, 217, 0.25); }
+html:not(.dark) .currencies-surface { border-color: rgba(8, 145, 178, 0.28); }
+
+/* Currencies: teal hover glow */
+.currencies-surface .coin-card {
+  --hover-blue: 77, 240, 224;
+  --hover-green: 34, 211, 200;
+  --hover-pink: 120, 250, 240;
+  --hover-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.6),
+    0 0 50px rgba(34, 211, 200, 0.22),
+    0 0 100px rgba(77, 240, 224, 0.09);
+}
+.currencies-surface .coin-card:hover,
+.currencies-surface .coin-card:focus-visible {
+  background:
+    linear-gradient(138deg, rgba(77, 240, 224, 0.28), rgba(34, 211, 200, 0.22) 45%, rgba(120, 250, 240, 0.2)) padding-box,
+    linear-gradient(135deg, rgba(100, 245, 230, 0.65), rgba(50, 220, 210, 0.55), rgba(140, 255, 245, 0.45)) border-box;
+}
 
 /* ETFs: purple hover glow */
 .etfs-surface .coin-card {

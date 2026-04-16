@@ -9,9 +9,9 @@ import { MarketCard } from "./components/MarketCard";
 import { SectionHeader } from "./components/SectionHeader";
 import { formatCompactCurrency, formatCurrency, formatPercent, trendClass } from "./lib/formatters";
 import { useTheme } from "./hooks/useTheme";
-import type { DashboardAsset, DashboardCrypto, DashboardEtf, DashboardStock } from "./types/dashboard";
+import type { DashboardAsset, DashboardCrypto, DashboardCurrency, DashboardEtf, DashboardStock } from "./types/dashboard";
 
-const SECTION_IDS = ["section-assets", "section-stocks", "section-etfs", "section-cryptos", "section-night"] as const;
+const SECTION_IDS = ["section-assets", "section-stocks", "section-etfs", "section-currencies", "section-cryptos", "section-night"] as const;
 
 const SECTION_REVEAL = {
   initial: { opacity: 0, y: 28 },
@@ -24,6 +24,7 @@ const DEFAULT_REFRESH_SEC = 30;
 const EMPTY_CRYPTOS: DashboardCrypto[] = [];
 const EMPTY_STOCKS: DashboardStock[] = [];
 const EMPTY_ETFS: DashboardEtf[] = [];
+const EMPTY_CURRENCIES: DashboardCurrency[] = [];
 const EMPTY_ASSETS: DashboardAsset[] = [];
 
 function SkeletonGrid({ count = 10 }: { count?: number }) {
@@ -84,6 +85,7 @@ function App() {
   const topCryptos = dashboard?.topCryptos ?? EMPTY_CRYPTOS;
   const topStocks = dashboard?.topStocks ?? EMPTY_STOCKS;
   const topEtfs = dashboard?.topEtfs ?? EMPTY_ETFS;
+  const topCurrencies = dashboard?.topCurrencies ?? EMPTY_CURRENCIES;
   const topAssets = dashboard?.topAssets ?? EMPTY_ASSETS;
   const night = dashboard?.night ?? null;
 
@@ -211,6 +213,39 @@ function App() {
     );
   };
 
+  const renderCurrencyGrid = () => {
+    if (isBooting) {
+      return <SkeletonGrid />;
+    }
+
+    if (!topCurrencies.length) {
+      return <p className="muted">No currency data available.</p>;
+    }
+
+    return (
+      <div className="coin-grid">
+        {topCurrencies.map((currency, index) => (
+          <MarketCard
+            key={currency.id}
+            id={currency.id}
+            rank={currency.rank}
+            name={currency.name}
+            symbol={currency.symbol}
+            meta={currency.category}
+            valueLabel="Rate vs USD"
+            value={formatCurrency(currency.rateVsUsd)}
+            secondary={formatPercent(currency.changePercent)}
+            secondaryClassName={clsx("coin-change", trendClass(currency.changePercent))}
+            index={index}
+            logoUrl={currency.logoUrl}
+            fallbackLogoUrls={currency.fallbackLogoUrls}
+            assetStyle
+          />
+        ))}
+      </div>
+    );
+  };
+
   const renderAssetGrid = () => {
     if (isBooting) {
       return <SkeletonGrid />;
@@ -276,13 +311,14 @@ function App() {
         <h1>
           Global Assets <span>Dashboard</span>
         </h1>
-        <p className="tagline">Top 10 global assets, top 10 stocks, top 10 ETFs, top 10 cryptocurrencies, and NIGHT price.</p>
+        <p className="tagline">Top 10 global assets, stocks, ETFs, currencies, cryptocurrencies, and NIGHT price.</p>
       </header>
 
       <nav className="section-nav" aria-label="Dashboard sections">
         <a href="#section-assets" className={clsx(activeSection === "section-assets" && "nav-active")}>Global Assets</a>
         <a href="#section-stocks" className={clsx(activeSection === "section-stocks" && "nav-active")}>Stocks</a>
         <a href="#section-etfs" className={clsx(activeSection === "section-etfs" && "nav-active")}>ETFs</a>
+        <a href="#section-currencies" className={clsx(activeSection === "section-currencies" && "nav-active")}>Currencies</a>
         <a href="#section-cryptos" className={clsx(activeSection === "section-cryptos" && "nav-active")}>Cryptos</a>
         <a href="#section-night" className={clsx(activeSection === "section-night" && "nav-active")}>NIGHT</a>
       </nav>
@@ -301,6 +337,11 @@ function App() {
       <motion.section id="section-etfs" className="surface etfs-surface" {...SECTION_REVEAL}>
         <SectionHeader title="Top 10 ETFs" subtitle="By assets under management" />
         {renderEtfGrid()}
+      </motion.section>
+
+      <motion.section id="section-currencies" className="surface currencies-surface" {...SECTION_REVEAL}>
+        <SectionHeader title="Top 10 Currencies" subtitle="Exchange rates vs USD" />
+        {renderCurrencyGrid()}
       </motion.section>
 
       <motion.section id="section-cryptos" className="surface cryptos-surface" {...SECTION_REVEAL}>

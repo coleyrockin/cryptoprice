@@ -43,6 +43,10 @@ function samplePayload(): DashboardPayload {
         source: "live",
         ageSec: 0,
       },
+      topCurrencies: {
+        source: "live",
+        ageSec: 0,
+      },
       night: {
         source: "live",
         ageSec: 0,
@@ -51,6 +55,7 @@ function samplePayload(): DashboardPayload {
     topCryptos: [],
     topStocks: [],
     topEtfs: [],
+    topCurrencies: [],
     topAssets: [],
     night: null,
   };

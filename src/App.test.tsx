@@ -35,6 +35,10 @@ const payload: DashboardPayload = {
       source: "live",
       ageSec: 0,
     },
+    topCurrencies: {
+      source: "live",
+      ageSec: 0,
+    },
     night: {
       source: "live",
       ageSec: 0,
@@ -70,6 +74,7 @@ const payload: DashboardPayload = {
     },
   ],
   topEtfs: [],
+  topCurrencies: [],
   topAssets: [
     {
       id: "commodity-gold",

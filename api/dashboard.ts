@@ -32,11 +32,12 @@ function durableSegmentMeta(payload: DashboardPayload, nowMs: number): Dashboard
     topCryptos: meta,
     topStocks: meta,
     topEtfs: meta,
+    topCurrencies: meta,
     night: meta,
   };
 }
 
-const ALL_SEGMENTS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "night"];
+const ALL_SEGMENTS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "night"];
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   const requestId = createRequestId();

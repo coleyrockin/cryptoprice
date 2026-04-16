@@ -453,6 +453,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
     topCryptos,
     topStocks,
     topEtfs,
+    topCurrencies,
     topAssets,
     night,
   };
