@@ -1,8 +1,13 @@
+import { runtimeCache } from "../cache.js";
 import { requestJsonWithRetry } from "../request.js";
 import { toFiniteNumber, toSafeString } from "../sanitize.js";
 import type { DashboardEtf, DashboardStock } from "../types.js";
 
 const YAHOO_BASE_URL = "https://query1.finance.yahoo.com";
+const YAHOO_CRUMB_URL = "https://query2.finance.yahoo.com/v1/test/getcrumb";
+const YAHOO_COOKIE_URL = "https://fc.yahoo.com/";
+const CRUMB_CACHE_KEY = "yahoo:crumb";
+const CRUMB_TTL_SEC = 3_600; // 1 hour — crumbs are long-lived
 
 // Fixed lists — top 10 by market cap / AUM. Composition rarely changes.
 const TOP_STOCK_SYMBOLS = ["NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "TSM", "META", "AVGO", "BRK-B", "LLY"];
@@ -13,7 +18,11 @@ const YAHOO_HEADERS = {
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
   Accept: "application/json, text/plain, */*",
   "Accept-Language": "en-US,en;q=0.9",
+  Origin: "https://finance.yahoo.com",
+  Referer: "https://finance.yahoo.com/",
 };
+
+type YahooCrumb = { crumb: string; cookie: string };
 
 type YahooQuoteResult = {
   symbol?: string;
@@ -38,17 +47,89 @@ export type FetchYahooOptions = {
   retries?: number;
 };
 
+/**
+ * Yahoo Finance requires a crumb + session cookie when called from server/data-center IPs.
+ * Flow: fc.yahoo.com → session cookie → getcrumb endpoint → crumb string.
+ * The crumb+cookie are cached in Lambda memory for 1 hour.
+ */
+async function fetchYahooCrumb(timeoutMs: number): Promise<YahooCrumb> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    // Step 1 — get session cookie from Yahoo's consent/fingerprint endpoint
+    const cookieRes = await fetch(YAHOO_COOKIE_URL, {
+      headers: {
+        "User-Agent": YAHOO_HEADERS["User-Agent"],
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+      redirect: "follow",
+      signal: controller.signal,
+    });
+
+    // Node 18+ supports getSetCookie(); fall back to get() for older runtimes
+    const headersAny = cookieRes.headers as unknown as { getSetCookie?: () => string[] };
+    const rawCookies: string[] =
+      typeof headersAny.getSetCookie === "function"
+        ? headersAny.getSetCookie()
+        : [cookieRes.headers.get("set-cookie") ?? ""].filter(Boolean);
+
+    const cookie = rawCookies
+      .map((c) => c.split(";")[0].trim())
+      .filter(Boolean)
+      .join("; ");
+
+    // Step 2 — exchange cookie for a crumb
+    const crumbRes = await fetch(YAHOO_CRUMB_URL, {
+      headers: {
+        ...YAHOO_HEADERS,
+        Cookie: cookie,
+      },
+      signal: controller.signal,
+    });
+
+    if (!crumbRes.ok) {
+      throw new Error(`Yahoo crumb fetch failed: HTTP ${crumbRes.status}`);
+    }
+
+    const crumb = (await crumbRes.text()).trim();
+    if (!crumb || crumb.length < 2) {
+      throw new Error("Yahoo returned empty crumb");
+    }
+
+    return { crumb, cookie };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function getCachedCrumb(timeoutMs: number): Promise<YahooCrumb> {
+  const cached = runtimeCache.getFresh<YahooCrumb>(CRUMB_CACHE_KEY, CRUMB_TTL_SEC);
+  if (cached) return cached;
+
+  const fresh = await fetchYahooCrumb(timeoutMs);
+  runtimeCache.set(CRUMB_CACHE_KEY, fresh);
+  return fresh;
+}
+
 async function fetchYahooQuotes(
   symbols: string[],
   options: FetchYahooOptions,
 ): Promise<YahooQuoteResult[]> {
   const baseUrl = options.baseUrl ?? YAHOO_BASE_URL;
-  const url = `${baseUrl}/v7/finance/quote?symbols=${symbols.join(",")}`;
+  const timeoutMs = options.timeoutMs ?? 8_000;
+
+  const { crumb, cookie } = await getCachedCrumb(timeoutMs);
+  const url = `${baseUrl}/v7/finance/quote?symbols=${symbols.join(",")}&crumb=${encodeURIComponent(crumb)}`;
 
   const data = await requestJsonWithRetry<YahooQuoteResponse>(url, {
-    timeoutMs: options.timeoutMs ?? 6_000,
+    timeoutMs,
     retries: options.retries,
-    headers: YAHOO_HEADERS,
+    headers: {
+      ...YAHOO_HEADERS,
+      Cookie: cookie,
+    },
   });
 
   return data?.quoteResponse?.result ?? [];
