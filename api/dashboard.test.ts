@@ -114,7 +114,7 @@ describe("GET /api/dashboard", () => {
     const body = state.jsonBody as DashboardPayload;
     expect(body.stale).toBe(true);
     expect(body.source.fallbackUsed).toBe(true);
-    expect(body.degradedSegments).toEqual(["topCryptos", "topStocks", "topEtfs", "night"]);
+    expect(body.degradedSegments).toEqual(["topCryptos", "topStocks", "topEtfs", "topCurrencies", "night"]);
     expect(body.segmentMeta.topStocks.source).toBe("durable-cache");
   });
 });
