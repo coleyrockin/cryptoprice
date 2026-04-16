@@ -28,7 +28,7 @@ A single `GET /api/dashboard` call powers the entire payload — the frontend ne
 
 ## Features
 
-- **Five live sections** — Stocks, ETFs, Currencies, Cryptos, and the Midnight Token panel
+- **Six live sections** — Global Assets, Stocks, ETFs, Currencies, Cryptos, and the Midnight Token panel
 - **Light / dark mode** — instant toggle, respects `prefers-color-scheme` on first load, persists preference
 - **Intraday change %** — color-coded green/red on every card (calculated from open → latest close)
 - **7-day sparklines** — inline SVG trend charts on crypto cards
@@ -101,13 +101,19 @@ world-asset-prices/
 ├── api/               # Vercel serverless endpoints
 │   ├── dashboard.ts   # Main data endpoint — GET /api/dashboard
 │   ├── logo.ts        # Logo proxy — GET /api/logo?url=...
-│   └── health.ts      # Health check — GET /api/health
+│   ├── health.ts      # Health check — GET /api/health
+│   └── client-error.ts # Client-side error reporting — POST /api/client-error
 ├── server/            # Server-side logic (shared by api/ and dev server)
 │   ├── providers/     # Stooq, Frankfurter, and CoinPaprika data providers
 │   ├── cache.ts       # In-memory TTL cache
 │   ├── durable-cache.ts # Upstash / Vercel KV integration
 │   ├── fallback/      # Bundled last-resort payload JSON
-│   └── dashboard.ts   # Dashboard payload assembly + segment resolution
+│   ├── dashboard.ts   # Dashboard payload assembly + segment resolution
+│   ├── metrics.ts     # Provider success/failure counters
+│   ├── log.ts         # Structured logger + request ID
+│   ├── security.ts    # Request validation and sanitization
+│   ├── rate-limit.ts  # In-memory rate limiter
+│   └── env.ts         # Typed env var helpers
 ├── src/               # React frontend
 │   ├── components/    # MarketCard, SectionHeader, LogoMark, etc.
 │   ├── hooks/         # useTheme, useTilt

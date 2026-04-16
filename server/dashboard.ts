@@ -36,7 +36,6 @@ export type DashboardBuildOptions = {
   fallbackTtlSec?: number;
   timeoutMs?: number;
   retries?: number;
-  fmpApiKey?: string;
   coinpaprikaBaseUrl?: string;
 };
 
@@ -438,7 +437,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
     stale,
     refreshInSec: cacheTtlSec,
     source: {
-      equities: "fmp",
+      equities: "stooq",
       crypto: "coinpaprika",
       fallbackUsed,
     },
