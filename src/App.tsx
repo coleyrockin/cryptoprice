@@ -88,6 +88,8 @@ function App() {
   const topCurrencies = dashboard?.topCurrencies ?? EMPTY_CURRENCIES;
   const topAssets = dashboard?.topAssets ?? EMPTY_ASSETS;
   const night = dashboard?.night ?? null;
+  const segmentMeta = dashboard?.segmentMeta;
+  const generatedAt = dashboard?.generatedAt;
 
   useEffect(() => {
     if (topCryptos.length === 0) {
@@ -324,28 +326,53 @@ function App() {
       </nav>
 
       <motion.section id="section-assets" className="surface global-assets-surface" {...SECTION_REVEAL}>
-        <SectionHeader title="Top 10 Global Assets" subtitle="By estimated market cap" />
+        <SectionHeader
+          title="Top 10 Global Assets"
+          subtitle="By estimated market cap"
+          meta={segmentMeta?.topStocks}
+          generatedAt={generatedAt}
+        />
         {renderAssetGrid()}
         <p className="disclaimer">* Approximate values. Network/API conditions may delay updates.</p>
       </motion.section>
 
       <motion.section id="section-stocks" className="surface stocks-surface" {...SECTION_REVEAL}>
-        <SectionHeader title="Top 10 Stocks" subtitle="By estimated market cap" />
+        <SectionHeader
+          title="Top 10 Stocks"
+          subtitle="By estimated market cap"
+          meta={segmentMeta?.topStocks}
+          generatedAt={generatedAt}
+        />
         {renderStockGrid()}
       </motion.section>
 
       <motion.section id="section-etfs" className="surface etfs-surface" {...SECTION_REVEAL}>
-        <SectionHeader title="Top 10 ETFs" subtitle="By assets under management" />
+        <SectionHeader
+          title="Top 10 ETFs"
+          subtitle="By assets under management"
+          meta={segmentMeta?.topEtfs}
+          generatedAt={generatedAt}
+        />
         {renderEtfGrid()}
       </motion.section>
 
       <motion.section id="section-currencies" className="surface currencies-surface" {...SECTION_REVEAL}>
-        <SectionHeader title="Top 10 Currencies" subtitle="Exchange rates vs USD" />
+        <SectionHeader
+          title="Top 10 Currencies"
+          subtitle="Exchange rates vs USD"
+          meta={segmentMeta?.topCurrencies}
+          generatedAt={generatedAt}
+        />
         {renderCurrencyGrid()}
       </motion.section>
 
       <motion.section id="section-cryptos" className="surface cryptos-surface" {...SECTION_REVEAL}>
-        <SectionHeader title="Top 10 Cryptocurrencies" subtitle="Live market feed" />
+        <SectionHeader
+          title="Top 10 Cryptocurrencies"
+          subtitle="Live market feed"
+          meta={segmentMeta?.topCryptos}
+          generatedAt={generatedAt}
+        />
         {renderCryptoGrid()}
       </motion.section>
 

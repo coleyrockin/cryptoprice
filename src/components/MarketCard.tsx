@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { motion } from "framer-motion";
-import { useMemo, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 
 import { useTilt } from "../hooks/useTilt";
 import { LogoMark } from "./LogoMark";
@@ -94,6 +94,21 @@ export function MarketCard({
   sparkline,
 }: MarketCardProps) {
   const tilt = useTilt();
+  const priceRef = useRef<HTMLParagraphElement>(null);
+  const prevValueRef = useRef<string>(value);
+
+  useEffect(() => {
+    if (prevValueRef.current === value) return;
+    const isInitial = prevValueRef.current === undefined;
+    prevValueRef.current = value;
+    if (isInitial) return;
+    const el = priceRef.current;
+    if (!el) return;
+    el.classList.remove("coin-price--pulse");
+    // Force reflow so the class re-addition re-triggers the animation
+    void el.offsetWidth;
+    el.classList.add("coin-price--pulse");
+  }, [value]);
 
   const cardStyle = {
     "--card-index": index,
@@ -154,7 +169,7 @@ export function MarketCard({
       </div>
 
       {valueLabel ? <p className="coin-value-label">{valueLabel}</p> : null}
-      <p className="coin-price">{value}</p>
+      <p ref={priceRef} className="coin-price">{value}</p>
       {secondary ? <p className={secondaryClassName}>{secondary}</p> : null}
 
       <div className="coin-foot">

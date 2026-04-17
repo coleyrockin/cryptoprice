@@ -1,4 +1,6 @@
+import { FreshnessBadge } from "./FreshnessBadge";
 import { LogoMark } from "./LogoMark";
+import type { DashboardSegmentMeta } from "../types/dashboard";
 
 type SectionHeaderProps = {
   title: string;
@@ -6,6 +8,8 @@ type SectionHeaderProps = {
   accentSymbol?: string;
   accentLogoUrl?: string | null;
   accentFallbackLogoUrls?: string[];
+  meta?: DashboardSegmentMeta;
+  generatedAt?: string;
 };
 
 export function SectionHeader({
@@ -14,6 +18,8 @@ export function SectionHeader({
   accentSymbol,
   accentLogoUrl,
   accentFallbackLogoUrls,
+  meta,
+  generatedAt,
 }: SectionHeaderProps) {
   return (
     <div className="surface-head">
@@ -31,7 +37,10 @@ export function SectionHeader({
           </div>
         ) : null}
       </div>
-      <p>{subtitle}</p>
+      <div className="surface-head-meta">
+        <p>{subtitle}</p>
+        {meta && generatedAt ? <FreshnessBadge meta={meta} generatedAt={generatedAt} /> : null}
+      </div>
     </div>
   );
 }

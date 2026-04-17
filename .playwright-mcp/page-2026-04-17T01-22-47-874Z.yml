@@ -1,0 +1,116 @@
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - paragraph [ref=e6]: World Asset Prices
+      - button "Switch to dark mode" [ref=e7] [cursor=pointer]:
+        - img [ref=e8]
+    - heading "Global Assets Dashboard" [level=1] [ref=e10]
+    - paragraph [ref=e11]: Top 10 global assets, stocks, ETFs, currencies, cryptocurrencies, and NIGHT price.
+  - navigation "Dashboard sections" [ref=e12]:
+    - link "Global Assets" [ref=e13] [cursor=pointer]:
+      - /url: "#section-assets"
+    - link "Stocks" [ref=e14] [cursor=pointer]:
+      - /url: "#section-stocks"
+    - link "ETFs" [ref=e15] [cursor=pointer]:
+      - /url: "#section-etfs"
+    - link "Currencies" [ref=e16] [cursor=pointer]:
+      - /url: "#section-currencies"
+    - link "Cryptos" [ref=e17] [cursor=pointer]:
+      - /url: "#section-cryptos"
+    - link "NIGHT" [ref=e18] [cursor=pointer]:
+      - /url: "#section-night"
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - heading "Top 10 Global Assets" [level=2] [ref=e22]
+      - paragraph [ref=e23]: By estimated market cap
+    - generic [ref=e24]:
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+    - paragraph [ref=e25]: "* Approximate values. Network/API conditions may delay updates."
+  - generic [ref=e26]:
+    - generic [ref=e27]:
+      - heading "Top 10 Stocks" [level=2] [ref=e29]
+      - paragraph [ref=e30]: By estimated market cap
+    - generic [ref=e31]:
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+  - generic [ref=e32]:
+    - generic [ref=e33]:
+      - heading "Top 10 ETFs" [level=2] [ref=e35]
+      - paragraph [ref=e36]: By assets under management
+    - generic [ref=e37]:
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+  - generic [ref=e38]:
+    - generic [ref=e39]:
+      - heading "Top 10 Currencies" [level=2] [ref=e41]
+      - paragraph [ref=e42]: Exchange rates vs USD
+    - generic [ref=e43]:
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+  - generic [ref=e44]:
+    - generic [ref=e45]:
+      - heading "Top 10 Cryptocurrencies" [level=2] [ref=e47]
+      - paragraph [ref=e48]: Live market feed
+    - generic [ref=e49]:
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+      - article
+  - paragraph [ref=e51]: Waiting for NIGHT feed...
+  - generic [ref=e52]:
+    - generic [ref=e54]:
+      - generic [ref=e55]:
+        - generic [ref=e56]: World Asset Prices
+        - generic [ref=e57]: Real-time global market intelligence
+      - generic [ref=e58]:
+        - generic [ref=e59]:
+          - generic [ref=e60]: Data
+          - generic [ref=e61]: CoinPaprika
+          - generic [ref=e62]: Stooq / Frankfurter
+        - generic [ref=e63]:
+          - generic [ref=e64]: Built With
+          - generic [ref=e65]: React + TypeScript
+          - generic [ref=e66]: Vite + Tailwind
+          - generic [ref=e67]: Vercel Edge
+    - generic [ref=e68]:
+      - generic [ref=e69]: © 2026 World Asset Prices
+      - generic [ref=e71]: Not financial advice
