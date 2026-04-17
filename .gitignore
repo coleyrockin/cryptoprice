@@ -27,3 +27,7 @@ pnpm-debug.log*
 vite.config.js
 vite.config.d.ts
 .vercel
+
+# Local Claude / Playwright MCP artifacts
+.claude/
+.playwright-mcp/
