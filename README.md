@@ -29,11 +29,13 @@ A single `GET /api/dashboard` call powers the entire payload — the frontend ne
 ## Features
 
 - **Six live sections** — Global Assets, Stocks, ETFs, Currencies, Cryptos, and the Midnight Token panel
+- **Per-section freshness badge** — each section surfaces its real data source in real time: green "Live · Xs ago" (pulsing dot), amber "Stale cache" / "Durable cache", or red "Fallback". The ticker updates every second so you can watch freshness drift between refreshes
+- **Price update pulse** — card values flash a soft green highlight for 600ms whenever a new value arrives, so live refreshes are visually confirmed (suppressed under `prefers-reduced-motion`)
 - **Light / dark mode** — instant toggle, respects `prefers-color-scheme` on first load, persists preference
 - **Intraday change %** — color-coded green/red on every card (calculated from open → latest close)
 - **7-day sparklines** — inline SVG trend charts on crypto cards
 - **Auto-refresh** — refetches every 30 seconds via TanStack Query
-- **Resilient fetch layer** — live provider → fresh cache → stale cache → durable KV → bundled fallback
+- **Resilient fetch layer** — live provider → fresh cache → stale cache → durable KV → bundled fallback, with the chosen tier exposed per segment in the UI
 - **Production CI gates** — lint, typecheck, unit tests, route tests, E2E smoke tests, and bundle-size check
 
 ## Tech Stack
