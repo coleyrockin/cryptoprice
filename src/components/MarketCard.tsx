@@ -27,6 +27,8 @@ type MarketCardProps = {
   compared?: boolean;
   onToggleCompare?: () => void;
   sparkline?: number[];
+  priceTitle?: string;
+  secondaryTitle?: string;
 };
 
 function renderSparkline(points: number[], cardId: string): ReactNode {
@@ -92,6 +94,8 @@ export function MarketCard({
   compared = false,
   onToggleCompare,
   sparkline,
+  priceTitle,
+  secondaryTitle,
 }: MarketCardProps) {
   const tilt = useTilt();
   const priceRef = useRef<HTMLParagraphElement>(null);
@@ -169,8 +173,8 @@ export function MarketCard({
       </div>
 
       {valueLabel ? <p className="coin-value-label">{valueLabel}</p> : null}
-      <p ref={priceRef} className="coin-price">{value}</p>
-      {secondary ? <p className={secondaryClassName}>{secondary}</p> : null}
+      <p ref={priceRef} className="coin-price" title={priceTitle}>{value}</p>
+      {secondary ? <p className={secondaryClassName} title={secondaryTitle}>{secondary}</p> : null}
 
       <div className="coin-foot">
         {actionButtons}

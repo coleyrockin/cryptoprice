@@ -7,7 +7,7 @@ import { fetchDashboard } from "./api";
 import { LogoMark } from "./components/LogoMark";
 import { MarketCard } from "./components/MarketCard";
 import { SectionHeader } from "./components/SectionHeader";
-import { formatCompactCurrency, formatCurrency, formatPercent, trendClass } from "./lib/formatters";
+import { formatCompactCurrency, formatCurrency, formatExactCurrency, formatExactNumber, formatPercent, trendClass } from "./lib/formatters";
 import { useTheme } from "./hooks/useTheme";
 import type { DashboardAsset, DashboardCrypto, DashboardCurrency, DashboardEtf, DashboardStock } from "./types/dashboard";
 
@@ -21,6 +21,11 @@ const SECTION_REVEAL = {
 };
 
 const DEFAULT_REFRESH_SEC = 30;
+
+function buildPriceTitle(exact: string, generatedAt: string | undefined, prefix = "Exact"): string {
+  const stamp = generatedAt ? new Date(generatedAt).toLocaleString() : "live";
+  return `${prefix}: ${exact} · Updated ${stamp}`;
+}
 const EMPTY_CRYPTOS: DashboardCrypto[] = [];
 const EMPTY_STOCKS: DashboardStock[] = [];
 const EMPTY_ETFS: DashboardEtf[] = [];
@@ -124,8 +129,10 @@ function App() {
             symbol={coin.symbol}
             meta={coin.category}
             value={formatCurrency(coin.priceUsd)}
+            priceTitle={buildPriceTitle(formatExactCurrency(coin.priceUsd), generatedAt)}
             secondary={formatPercent(coin.change24h)}
             secondaryClassName={clsx("coin-change", trendClass(coin.change24h))}
+            secondaryTitle="24h change"
             index={index}
             logoUrl={coin.logoUrl}
             fallbackLogoUrls={coin.fallbackLogoUrls}
@@ -164,8 +171,10 @@ function App() {
               meta={stock.category}
               valueLabel="Price"
               value={formatCurrency(stock.priceUsd)}
+              priceTitle={buildPriceTitle(formatExactCurrency(stock.priceUsd), generatedAt)}
               secondary={hasChange ? changeText : "—"}
               secondaryClassName={hasChange ? clsx("coin-change", trendClass(stock.changePercent)) : "asset-note"}
+              secondaryTitle={hasChange ? "Daily change" : undefined}
               index={index}
               logoUrl={stock.logoUrl}
               fallbackLogoUrls={stock.fallbackLogoUrls}
@@ -202,8 +211,10 @@ function App() {
               meta={etf.category}
               valueLabel="Price"
               value={formatCurrency(etf.priceUsd)}
+              priceTitle={buildPriceTitle(formatExactCurrency(etf.priceUsd), generatedAt)}
               secondary={hasChange ? changeText : "—"}
               secondaryClassName={hasChange ? clsx("coin-change", trendClass(etf.changePercent)) : "asset-note"}
+              secondaryTitle={hasChange ? "Daily change" : undefined}
               index={index}
               logoUrl={etf.logoUrl}
               fallbackLogoUrls={etf.fallbackLogoUrls}
@@ -236,8 +247,10 @@ function App() {
             meta={currency.category}
             valueLabel="Rate vs USD"
             value={formatCurrency(currency.rateVsUsd)}
+            priceTitle={buildPriceTitle(formatExactCurrency(currency.rateVsUsd), generatedAt, "Exact rate")}
             secondary={formatPercent(currency.changePercent)}
             secondaryClassName={clsx("coin-change", trendClass(currency.changePercent))}
+            secondaryTitle="Daily change"
             index={index}
             logoUrl={currency.logoUrl}
             fallbackLogoUrls={currency.fallbackLogoUrls}
@@ -269,6 +282,7 @@ function App() {
             meta={asset.category}
             valueLabel="Est. Market Cap"
             value={formatCompactCurrency(asset.marketCapUsd)}
+            priceTitle={buildPriceTitle(formatExactNumber(asset.marketCapUsd), generatedAt, "Exact market cap (USD)")}
             secondary="Estimated market cap"
             secondaryClassName="asset-note"
             index={index}
@@ -381,13 +395,13 @@ function App() {
           <div className="night-ticker-row">
             <LogoMark name="NIGHT" symbol={night.symbol} logoUrl={night.logoUrl} fallbackLogoUrls={night.fallbackLogoUrls} />
             <span className="night-ticker-name">NIGHT</span>
-            <span className="night-ticker-price">{formatCurrency(night.priceUsd)}</span>
-            <span className={clsx("night-ticker-change", trendClass(night.change24h))}>{formatPercent(night.change24h)}</span>
+            <span className="night-ticker-price" title={buildPriceTitle(formatExactCurrency(night.priceUsd), generatedAt)}>{formatCurrency(night.priceUsd)}</span>
+            <span className={clsx("night-ticker-change", trendClass(night.change24h))} title="24h change">{formatPercent(night.change24h)}</span>
             <span className="night-ticker-divider" aria-hidden="true" />
-            <span className="night-ticker-stat"><span>MCap</span> {formatCompactCurrency(night.marketCapUsd)}</span>
-            <span className="night-ticker-stat"><span>Vol</span> {formatCompactCurrency(night.volume24hUsd)}</span>
-            <span className="night-ticker-stat"><span>ATH</span> {formatCurrency(night.athPriceUsd)}</span>
-            <span className={clsx("night-ticker-stat", trendClass(night.percentFromAth))}><span>From ATH</span> {formatPercent(night.percentFromAth)}</span>
+            <span className="night-ticker-stat" title={`Exact market cap: ${formatExactNumber(night.marketCapUsd)} USD`}><span>MCap</span> {formatCompactCurrency(night.marketCapUsd)}</span>
+            <span className="night-ticker-stat" title={`Exact 24h volume: ${formatExactNumber(night.volume24hUsd)} USD`}><span>Vol</span> {formatCompactCurrency(night.volume24hUsd)}</span>
+            <span className="night-ticker-stat" title={`Exact ATH: ${formatExactCurrency(night.athPriceUsd)}`}><span>ATH</span> {formatCurrency(night.athPriceUsd)}</span>
+            <span className={clsx("night-ticker-stat", trendClass(night.percentFromAth))} title="Percent from all-time high"><span>From ATH</span> {formatPercent(night.percentFromAth)}</span>
           </div>
         ) : (
           <p className="muted" style={{ margin: 0, fontSize: "0.72rem" }}>Waiting for NIGHT feed...</p>

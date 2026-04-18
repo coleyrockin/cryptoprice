@@ -49,6 +49,9 @@ export function LogoMark({ name, symbol, logoUrl, fallbackLogoUrls = [] }: LogoM
       alt={`${name} logo`}
       className="asset-logo"
       loading="lazy"
+      decoding="async"
+      width={32}
+      height={32}
       onError={() => {
         setLogoIndex((previous) => previous + 1);
       }}

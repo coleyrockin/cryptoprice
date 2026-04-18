@@ -98,4 +98,15 @@ export default defineConfig({
     port: 5189,
     strictPort: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom"],
+          "motion-vendor": ["framer-motion"],
+          "query-vendor": ["@tanstack/react-query"],
+        },
+      },
+    },
+  },
 });

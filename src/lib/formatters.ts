@@ -23,6 +23,30 @@ export function formatCurrency(value: unknown): string {
   }).format(value);
 }
 
+export function formatExactCurrency(value: unknown): string {
+  if (!isFiniteNumber(value)) {
+    return "—";
+  }
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 10,
+  }).format(value);
+}
+
+export function formatExactNumber(value: unknown): string {
+  if (!isFiniteNumber(value)) {
+    return "—";
+  }
+
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 10,
+  }).format(value);
+}
+
 export function formatCompactCurrency(value: unknown): string {
   if (!isFiniteNumber(value)) {
     return "—";
