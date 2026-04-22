@@ -43,11 +43,16 @@ function getHeader(request: ApiRequest, key: string): string | null {
 const IP_PATTERN = /^(?:\d{1,3}\.){3}\d{1,3}$|^[0-9a-fA-F:]{2,39}$/;
 
 function getClientKey(request: ApiRequest): string {
+  const realIp = getHeader(request, "x-real-ip");
+  if (realIp && IP_PATTERN.test(realIp.trim())) {
+    return realIp.trim();
+  }
+
   const forwarded = getHeader(request, "x-forwarded-for");
   if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first && IP_PATTERN.test(first)) {
-      return first;
+    const last = forwarded.split(",").at(-1)?.trim();
+    if (last && IP_PATTERN.test(last)) {
+      return last;
     }
   }
 

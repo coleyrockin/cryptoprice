@@ -37,11 +37,16 @@ function getHeader(request: ApiRequest, key: string): string | null {
 const IP_PATTERN = /^(?:\d{1,3}\.){3}\d{1,3}$|^[0-9a-fA-F:]{2,39}$/;
 
 function getClientKey(request: ApiRequest): string {
+  const realIp = getHeader(request, "x-real-ip");
+  if (realIp && IP_PATTERN.test(realIp.trim())) {
+    return realIp.trim();
+  }
+
   const forwarded = getHeader(request, "x-forwarded-for");
   if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first && IP_PATTERN.test(first)) {
-      return first;
+    const last = forwarded.split(",").at(-1)?.trim();
+    if (last && IP_PATTERN.test(last)) {
+      return last;
     }
   }
 
@@ -141,7 +146,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   try {
     const upstream = await fetch(logoUrl.toString(), {
       headers: {
-        Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+        Accept: "image/avif,image/webp,image/apng,image/png,image/jpeg,image/gif,*/*;q=0.5",
       },
       signal: controller.signal,
     });
@@ -154,7 +159,8 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
 
     const contentType = upstream.headers.get("content-type") ?? "";
-    if (!contentType.startsWith("image/")) {
+    const ALLOWED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/avif", "image/gif"]);
+    if (!ALLOWED_IMAGE_TYPES.has(contentType.split(";")[0].trim())) {
       recordLogoProxyError();
       response.setHeader("X-Wap-Request-Id", requestId);
       response.status(415).json({ error: "Unsupported logo response", requestId });
