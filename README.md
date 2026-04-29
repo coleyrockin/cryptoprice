@@ -14,7 +14,9 @@
 
 ---
 
-![Dashboard preview](docs/site-preview.png)
+<p align="center">
+  <img src="docs/preview-full.png" alt="World Asset Prices dashboard — animated gradient hero, six live sections, midnight aurora spotlight" width="720">
+</p>
 
 ---
 
