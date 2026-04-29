@@ -50,7 +50,8 @@ function getClientKey(request: ApiRequest): string {
 
   const forwarded = getHeader(request, "x-forwarded-for");
   if (forwarded) {
-    const last = forwarded.split(",").at(-1)?.trim();
+    const parts = forwarded.split(",");
+    const last = parts[parts.length - 1]?.trim();
     if (last && IP_PATTERN.test(last)) {
       return last;
     }
