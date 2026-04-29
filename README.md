@@ -31,6 +31,10 @@ A single `GET /api/dashboard` call powers the entire payload — the frontend ne
 - **Six live sections** — Global Assets, Stocks, ETFs, Currencies, Cryptos, and the Midnight Token panel
 - **Per-section freshness badge** — each section surfaces its real data source in real time: green "Live · Xs ago" (pulsing dot), amber "Stale cache" / "Durable cache", or red "Fallback". The ticker updates every second so you can watch freshness drift between refreshes
 - **Price update pulse** — card values flash a soft green highlight for 600ms whenever a new value arrives, so live refreshes are visually confirmed (suppressed under `prefers-reduced-motion`)
+- **Animated hero gradient** — the title flows continuously through a five-stop spectrum on a 14s loop (cyan → violet → magenta → amber → cyan), respects `prefers-reduced-motion`
+- **Midnight aurora spotlight** — the NIGHT panel renders as a starlit aurora with twinkling pinpoints, dual indigo/violet halo glows, and a top aurora ribbon
+- **Sparkline glow** — every 7-day sparkline carries a soft drop-shadow that intensifies (green → cyan blend) on card hover
+- **Hardened logo proxy** — strict hostname allowlist with private-IP blocking, explicit content-type allowlist (no SVG re-serving), per-IP rate limiting keyed on Vercel's unspoofable `x-real-ip`
 - **Light / dark mode** — instant toggle, respects `prefers-color-scheme` on first load, persists preference
 - **Intraday change %** — color-coded green/red on every card (calculated from open → latest close)
 - **7-day sparklines** — inline SVG trend charts on crypto cards
