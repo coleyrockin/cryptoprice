@@ -3,40 +3,40 @@ import { expect, test } from "@playwright/test";
 test("dashboard smoke renders cards, symbols, logos, and status", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page.getByRole("heading", { level: 1, name: /Crypto & Global Assets/i })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "Top 10 Cryptos" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /Global Assets Dashboard/i })).toBeVisible();
+  await expect(page.getByLabel("Search markets")).toBeVisible();
+  await expect(page.getByLabel("Sort markets")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Top 10 Global Assets" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Top 10 Cryptocurrencies" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Top 10 Stocks" })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "Top 10 Assets" })).toBeVisible();
 
   const cards = page.locator(".coin-card");
   await expect(cards.first()).toBeVisible({ timeout: 15_000 });
   expect(await cards.count()).toBeGreaterThan(0);
 
+  const pills = page.locator(".symbol-pill");
+  await expect(pills.first()).toBeVisible({ timeout: 15_000 });
+  expect(await pills.count()).toBeGreaterThan(0);
+
   const logos = page.locator(".asset-logo, .logo-fallback");
   expect(await logos.count()).toBeGreaterThan(0);
 
-  const pills = page.locator(".symbol-pill");
-  expect(await pills.count()).toBeGreaterThan(0);
+  const freshness = page.locator(".freshness-badge");
+  await expect(freshness.first()).toBeVisible();
+  expect(await freshness.count()).toBeGreaterThan(0);
 
-  const status = page.locator(".status");
-  await expect(status).toBeVisible();
+  await page.getByRole("button", { name: /Pin .* to watchlist/ }).first().click();
+  await expect(page.getByRole("heading", { level: 2, name: "Pinned Watchlist" })).toBeVisible();
 
-  const before = await status.textContent();
   await cards.first().hover();
-  await page.waitForTimeout(1_150);
-  const after = await status.textContent();
-
-  expect(before).not.toBeNull();
-  expect(after).not.toBeNull();
-  expect(after).not.toEqual(before);
 });
 
 test("shows stale/degraded status when providers are unavailable", async ({ page }) => {
   await page.goto("/");
 
-  const status = page.locator(".status");
-  await expect(status).toContainText("Stale cache in use");
-  await expect(status).toContainText("refresh in");
+  const degraded = page.locator(".freshness-badge--degraded");
+  await expect(degraded.first()).toBeVisible({ timeout: 15_000 });
+  await expect(degraded.first()).toContainText("Fallback");
 });
 
 test("renders logo fallback marks when logo network requests fail", async ({ page }) => {

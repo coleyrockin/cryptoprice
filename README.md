@@ -31,6 +31,9 @@ A single `GET /api/dashboard` call powers the entire payload — the frontend ne
 ## Features
 
 - **Six live sections** — Global Assets, Stocks, ETFs, Currencies, Cryptos, and the Midnight Token panel
+- **Market discovery controls** — search by name, symbol, or category; filter by section; sort every grid by rank, name, value, or absolute movement
+- **Pinned watchlist** — pin any market card into a persistent watchlist for faster cross-section monitoring
+- **Hero insight rail** — instant snapshot of tracked market count, data health, largest move, and global leader
 - **Per-section freshness badge** — each section surfaces its real data source in real time: green "Live · Xs ago" (pulsing dot), amber "Stale cache" / "Durable cache", or red "Fallback". The ticker updates every second so you can watch freshness drift between refreshes
 - **Price update pulse** — card values flash a soft green highlight for 600ms whenever a new value arrives, so live refreshes are visually confirmed (suppressed under `prefers-reduced-motion`)
 - **Animated hero gradient** — the title flows continuously through a five-stop spectrum on a 14s loop (cyan → violet → magenta → amber → cyan), respects `prefers-reduced-motion`

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fetchDashboard } from "./api";
@@ -122,6 +122,7 @@ describe("App", () => {
   beforeEach(() => {
     mockedFetchDashboard.mockReset();
     mockedFetchDashboard.mockResolvedValue(payload);
+    localStorage.clear();
   });
 
   it("renders safely with missing numbers and keeps ticker pills visible", async () => {
@@ -131,5 +132,30 @@ describe("App", () => {
     expect(screen.getByText("AAPL")).toBeInTheDocument();
     expect(screen.getAllByText("XAU").length).toBeGreaterThan(0);
     expect(screen.getAllByText("—").length).toBeGreaterThan(0);
+  });
+
+  it("filters visible market cards by search text", async () => {
+    renderApp();
+
+    expect(await screen.findByText("Bitcoin")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Search markets"), {
+      target: { value: "apple" },
+    });
+
+    expect(screen.getByText("Apple")).toBeInTheDocument();
+    expect(screen.queryByText("Bitcoin")).not.toBeInTheDocument();
+    expect(screen.getByText('No cryptocurrencies match "apple".')).toBeInTheDocument();
+  });
+
+  it("pins markets into a watchlist section", async () => {
+    renderApp();
+
+    await screen.findByText("Apple");
+    fireEvent.click(screen.getByRole("button", { name: "Pin Apple to watchlist" }));
+
+    const watchlist = screen.getByRole("region", { name: "Pinned Watchlist" });
+    expect(within(watchlist).getByText("Apple")).toBeInTheDocument();
+    expect(within(watchlist).getByRole("button", { name: "Unpin Apple from watchlist" })).toBeInTheDocument();
   });
 });
