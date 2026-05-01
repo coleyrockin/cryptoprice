@@ -60,6 +60,17 @@ const SECTION_REVEAL = {
 
 const DEFAULT_REFRESH_SEC = 30;
 const PINNED_STORAGE_KEY = "wap.pinned-markets.v1";
+const PREFS_STORAGE_KEY = "wap.prefs.v1";
+
+const VALID_SECTION_FILTERS: SectionFilter[] = ["all", "assets", "stocks", "etfs", "currencies", "cryptos"];
+const VALID_SORT_MODES: DashboardSortMode[] = ["rank", "name", "value", "movement"];
+const VALID_DENSITY: DensityMode[] = ["comfortable", "compact"];
+
+type StoredPrefs = {
+  sectionFilter: SectionFilter;
+  sortMode: DashboardSortMode;
+  density: DensityMode;
+};
 
 function buildPriceTitle(exact: string, generatedAt: string | undefined, prefix = "Exact"): string {
   const stamp = generatedAt ? new Date(generatedAt).toLocaleString() : "live";
@@ -81,6 +92,42 @@ function writeStoredPinnedIds(ids: readonly string[]) {
   } catch {
     // Ignore private browsing / quota failures.
   }
+}
+
+function readStoredPrefs(): Partial<StoredPrefs> {
+  try {
+    const raw = localStorage.getItem(PREFS_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Partial<StoredPrefs>;
+    const out: Partial<StoredPrefs> = {};
+    if (parsed.sectionFilter && VALID_SECTION_FILTERS.includes(parsed.sectionFilter)) out.sectionFilter = parsed.sectionFilter;
+    if (parsed.sortMode && VALID_SORT_MODES.includes(parsed.sortMode)) out.sortMode = parsed.sortMode;
+    if (parsed.density && VALID_DENSITY.includes(parsed.density)) out.density = parsed.density;
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function writeStoredPrefs(prefs: StoredPrefs) {
+  try {
+    localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(prefs));
+  } catch {
+    // Ignore private browsing / quota failures.
+  }
+}
+
+function formatRelativeTime(fromIso: string | undefined, now: number): string {
+  if (!fromIso) return "—";
+  const then = new Date(fromIso).getTime();
+  if (!Number.isFinite(then)) return "—";
+  const diffSec = Math.max(0, Math.round((now - then) / 1000));
+  if (diffSec < 5) return "just now";
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const diffMin = Math.round(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.round(diffMin / 60);
+  return `${diffHr}h ago`;
 }
 
 const EMPTY_CRYPTOS: DashboardCrypto[] = [];
@@ -109,11 +156,14 @@ function App() {
   const [activeCryptoId, setActiveCryptoId] = useState<string>("");
   const [activeSection, setActiveSection] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [sectionFilter, setSectionFilter] = useState<SectionFilter>("all");
-  const [sortMode, setSortMode] = useState<DashboardSortMode>("rank");
-  const [density, setDensity] = useState<DensityMode>("comfortable");
+  const initialPrefs = useMemo(() => readStoredPrefs(), []);
+  const [sectionFilter, setSectionFilter] = useState<SectionFilter>(initialPrefs.sectionFilter ?? "all");
+  const [sortMode, setSortMode] = useState<DashboardSortMode>(initialPrefs.sortMode ?? "rank");
+  const [density, setDensity] = useState<DensityMode>(initialPrefs.density ?? "comfortable");
   const [pinnedIds, setPinnedIds] = useState<string[]>(readStoredPinnedIds);
+  const [now, setNow] = useState<number>(() => Date.now());
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const setupSectionObserver = useCallback(() => {
     observerRef.current?.disconnect();
@@ -174,6 +224,41 @@ function App() {
   useEffect(() => {
     writeStoredPinnedIds(pinnedIds);
   }, [pinnedIds]);
+
+  useEffect(() => {
+    writeStoredPrefs({ sectionFilter, sortMode, density });
+  }, [sectionFilter, sortMode, density]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    function handleKey(event: KeyboardEvent) {
+      const target = event.target as HTMLElement | null;
+      const isEditable =
+        !!target &&
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable);
+
+      if (event.key === "/" && !isEditable && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+        return;
+      }
+      if (event.key === "Escape" && document.activeElement === searchInputRef.current) {
+        if (searchTerm) {
+          event.preventDefault();
+          setSearchTerm("");
+        } else {
+          searchInputRef.current?.blur();
+        }
+      }
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [searchTerm]);
 
   const pinnedIdSet = useMemo(() => new Set(pinnedIds), [pinnedIds]);
 
@@ -499,12 +584,28 @@ function App() {
           <label className="market-search">
             <span>Search</span>
             <input
+              ref={searchInputRef}
               type="search"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               aria-label="Search markets"
               placeholder="BTC, Apple, ETF, currency..."
             />
+            {searchTerm ? (
+              <button
+                type="button"
+                className="search-clear"
+                aria-label="Clear search"
+                onClick={() => {
+                  setSearchTerm("");
+                  searchInputRef.current?.focus();
+                }}
+              >
+                ×
+              </button>
+            ) : (
+              <kbd className="search-kbd" aria-hidden="true" title="Press / to focus search">/</kbd>
+            )}
           </label>
 
           <div className="control-cluster" aria-label="Section filter">
@@ -540,6 +641,16 @@ function App() {
           >
             {density === "compact" ? "Comfort" : "Compact"}
           </button>
+
+          <span
+            className={clsx("toolbar-updated", dashboardQuery.isFetching && "is-fetching")}
+            title={generatedAt ? `Last update: ${new Date(generatedAt).toLocaleString()}` : "Waiting for first update"}
+            aria-live="polite"
+          >
+            <span className="toolbar-updated-dot" aria-hidden="true" />
+            <span className="toolbar-updated-label">{dashboardQuery.isFetching ? "Refreshing" : "Updated"}</span>
+            <span className="toolbar-updated-value">{formatRelativeTime(generatedAt, now)}</span>
+          </span>
         </section>
 
         <nav className="section-nav" aria-label="Dashboard sections">

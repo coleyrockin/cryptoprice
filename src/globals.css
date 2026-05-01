@@ -414,8 +414,8 @@ html:not(.dark) .hero-insight--warning dd { color: #b45309; }
 
 /* ── Dashboard Controls ── */
 .dashboard-toolbar {
-  display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto minmax(110px, 0.22fr) auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
   gap: 0.55rem;
   padding: 0.55rem;
@@ -424,6 +424,12 @@ html:not(.dark) .hero-insight--warning dd { color: #b45309; }
   background: var(--surface-bg);
   box-shadow: var(--surface-shadow);
 }
+
+.dashboard-toolbar .market-search { flex: 1 1 220px; min-width: 220px; }
+.dashboard-toolbar .market-select { flex: 0 1 150px; min-width: 110px; }
+.dashboard-toolbar .control-cluster { flex: 0 1 auto; }
+.dashboard-toolbar .density-toggle { flex: 0 0 auto; }
+.dashboard-toolbar .toolbar-updated { flex: 0 0 auto; margin-left: auto; }
 
 .market-search,
 .market-select {
@@ -524,6 +530,109 @@ html:not(.dark) .density-toggle.active {
 .density-toggle {
   border-color: var(--surface-border);
   background: var(--input-bg);
+}
+
+/* ── Search affordances ── */
+.search-kbd {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.32rem;
+  margin-right: 0.18rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 6px;
+  background: var(--logo-fallback-bg);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.search-clear {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin-right: 0.12rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.search-clear:hover,
+.search-clear:focus-visible {
+  color: var(--text);
+  background: var(--logo-fallback-bg);
+  border-color: var(--surface-border);
+  outline: none;
+}
+
+/* Hide native search clear icon — we render our own */
+.market-search input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ── Toolbar "updated" indicator ── */
+.toolbar-updated {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  background: var(--input-bg);
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  min-height: 1.85rem;
+}
+
+.toolbar-updated-dot {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(80, 215, 155, 0.55);
+}
+
+.toolbar-updated.is-fetching .toolbar-updated-dot {
+  animation: toolbar-pulse 1.1s ease-in-out infinite;
+}
+
+.toolbar-updated-label {
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+.toolbar-updated-value {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes toolbar-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.78); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toolbar-updated.is-fetching .toolbar-updated-dot { animation: none; }
 }
 
 /* ── Theme Toggle Button ── */
@@ -1709,9 +1818,7 @@ html:not(.dark) .footer-glow {
   .coin-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .shell-compact .coin-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .hero-insights { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .dashboard-toolbar {
-    grid-template-columns: minmax(220px, 1fr) auto;
-  }
+  .dashboard-toolbar .toolbar-updated { margin-left: 0; }
 }
 
 @media (max-width: 768px) {
@@ -1720,8 +1827,15 @@ html:not(.dark) .footer-glow {
   .shell-compact .coin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
   .dashboard-toolbar {
-    grid-template-columns: 1fr;
     padding: 0.45rem;
+  }
+  .dashboard-toolbar .market-search,
+  .dashboard-toolbar .market-select,
+  .dashboard-toolbar .control-cluster,
+  .dashboard-toolbar .density-toggle,
+  .dashboard-toolbar .toolbar-updated {
+    flex: 1 1 100%;
+    min-width: 0;
   }
 
   .market-search,
