@@ -61,7 +61,11 @@ function shouldEmitStaleAlert(segment: DashboardSegmentKey, thresholdSec: number
   return true;
 }
 
-function normalizeStocks(stocks: DashboardStock[]): DashboardStock[] {
+function normalizeStocks(stocks: unknown): DashboardStock[] {
+  if (!Array.isArray(stocks)) {
+    return [];
+  }
+
   // Early return for empty arrays
   if (stocks.length === 0) {
     return stocks;
@@ -76,7 +80,11 @@ function normalizeStocks(stocks: DashboardStock[]): DashboardStock[] {
   }));
 }
 
-function normalizeCryptos(cryptos: DashboardCrypto[]): DashboardCrypto[] {
+function normalizeCryptos(cryptos: unknown): DashboardCrypto[] {
+  if (!Array.isArray(cryptos)) {
+    return [];
+  }
+
   // Early return for empty arrays
   if (cryptos.length === 0) {
     return cryptos;
@@ -90,32 +98,33 @@ function normalizeCryptos(cryptos: DashboardCrypto[]): DashboardCrypto[] {
     change24h: toFiniteNumber(crypto.change24h),
     sparkline7d: Array.isArray(crypto.sparkline7d)
       ? crypto.sparkline7d
-        .map((point) => toFiniteNumber(point))
-        .filter((point): point is number => point !== null)
+        .map((point: unknown) => toFiniteNumber(point))
+        .filter((point: number | null): point is number => point !== null)
         .slice(-12)
       : [],
   }));
 }
 
-function normalizeNight(night: DashboardNight | null): DashboardNight | null {
-  if (!night) {
+function normalizeNight(night: unknown): DashboardNight | null {
+  if (!night || typeof night !== "object") {
     return null;
   }
 
+  const value = night as DashboardNight;
   return {
-    ...night,
-    priceUsd: toFiniteNumber(night.priceUsd),
-    marketCapUsd: toFiniteNumber(night.marketCapUsd),
-    volume24hUsd: toFiniteNumber(night.volume24hUsd),
-    athPriceUsd: toFiniteNumber(night.athPriceUsd),
-    change24h: toFiniteNumber(night.change24h),
-    percentFromAth: toFiniteNumber(night.percentFromAth),
+    ...value,
+    priceUsd: toFiniteNumber(value.priceUsd),
+    marketCapUsd: toFiniteNumber(value.marketCapUsd),
+    volume24hUsd: toFiniteNumber(value.volume24hUsd),
+    athPriceUsd: toFiniteNumber(value.athPriceUsd),
+    change24h: toFiniteNumber(value.change24h),
+    percentFromAth: toFiniteNumber(value.percentFromAth),
   };
 }
 
-function normalizeCurrencies(currencies: DashboardCurrency[]): DashboardCurrency[] {
+function normalizeCurrencies(currencies: unknown): DashboardCurrency[] {
   if (!Array.isArray(currencies) || currencies.length === 0) {
-    return currencies;
+    return [];
   }
 
   return currencies.map((currency, index) => ({
@@ -126,7 +135,11 @@ function normalizeCurrencies(currencies: DashboardCurrency[]): DashboardCurrency
   }));
 }
 
-function normalizeEtfs(etfs: DashboardEtf[]): DashboardEtf[] {
+function normalizeEtfs(etfs: unknown): DashboardEtf[] {
+  if (!Array.isArray(etfs)) {
+    return [];
+  }
+
   if (etfs.length === 0) {
     return etfs;
   }
@@ -140,7 +153,11 @@ function normalizeEtfs(etfs: DashboardEtf[]): DashboardEtf[] {
   }));
 }
 
-function normalizeAssets(assets: DashboardAsset[]): DashboardAsset[] {
+function normalizeAssets(assets: unknown): DashboardAsset[] {
+  if (!Array.isArray(assets)) {
+    return [];
+  }
+
   return assets
     .map((asset) => ({
       ...asset,

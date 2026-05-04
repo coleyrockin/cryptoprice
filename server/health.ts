@@ -35,7 +35,7 @@ export function buildHealthPayload(requestId: string) {
     ? Math.max(0, Math.floor((Date.now() - fallbackGeneratedAtMs) / 1_000))
     : null;
 
-  return {
+  const payload = {
     ok: readiness !== "down",
     readiness,
     service: "wap-api",
@@ -50,7 +50,15 @@ export function buildHealthPayload(requestId: string) {
       configured: durableConfigured,
     },
     fallbackAgeSec,
-    providerStatus: metrics.provider,
-    metrics,
   };
+
+  if (process.env.HEALTH_INCLUDE_METRICS === "true") {
+    return {
+      ...payload,
+      providerStatus: metrics.provider,
+      metrics,
+    };
+  }
+
+  return payload;
 }

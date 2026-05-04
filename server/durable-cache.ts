@@ -1,4 +1,5 @@
 import { logError } from "./log.js";
+import { isDashboardPayload } from "./dashboard-schema.js";
 import type { DashboardPayload } from "./types.js";
 
 type DurableRecord = {
@@ -82,7 +83,7 @@ export async function readDurableDashboard(maxAgeSec: number): Promise<Dashboard
       return null;
     }
 
-    return parsed.payload;
+    return isDashboardPayload(parsed.payload) ? parsed.payload : null;
   } catch (error) {
     logError("durable-cache.read.failed", error);
     return null;

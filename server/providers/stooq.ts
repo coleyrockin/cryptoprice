@@ -1,7 +1,9 @@
 import { toFiniteNumber, toSafeString } from "../sanitize.js";
+import { readResponseTextWithLimit } from "../request.js";
 import type { DashboardEtf, DashboardStock } from "../types.js";
 
 const STOOQ_BASE_URL = "https://stooq.com";
+const STOOQ_MAX_RESPONSE_BYTES = 64_000;
 
 // Fixed lists ordered by approximate market cap / AUM.
 // Rank is positional — Stooq does not provide market cap or AUM.
@@ -68,7 +70,7 @@ async function fetchStooqQuote(
 
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-    const text = await response.text();
+    const text = await readResponseTextWithLimit(response, STOOQ_MAX_RESPONSE_BYTES);
     // CSV: header line + data line
     // Symbol,Date,Open,High,Low,Close,Volume
     // NVDA.US,2026-04-16,197.43,197.79,196.6,196.675,1954302

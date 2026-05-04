@@ -1,4 +1,5 @@
 import { envInt } from "../server/env.js";
+import { getClientKey, getRequestHeader } from "../server/client-key.js";
 import { createRequestId, logEvent } from "../server/log.js";
 import { recordClientError } from "../server/metrics.js";
 import { rateLimit } from "../server/rate-limit.js";
@@ -27,41 +28,8 @@ type NormalizedClientError = {
   timestamp: string;
 };
 
-function getHeader(request: ApiRequest, key: string): string | null {
-  const value = request.headers?.[key.toLowerCase()] ?? request.headers?.[key];
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (Array.isArray(value) && typeof value[0] === "string") {
-    return value[0];
-  }
-
-  return null;
-}
-
-const IP_PATTERN = /^(?:\d{1,3}\.){3}\d{1,3}$|^[0-9a-fA-F:]{2,39}$/;
-
-function getClientKey(request: ApiRequest): string {
-  const realIp = getHeader(request, "x-real-ip");
-  if (realIp && IP_PATTERN.test(realIp.trim())) {
-    return realIp.trim();
-  }
-
-  const forwarded = getHeader(request, "x-forwarded-for");
-  if (forwarded) {
-    const parts = forwarded.split(",");
-    const last = parts[parts.length - 1]?.trim();
-    if (last && IP_PATTERN.test(last)) {
-      return last;
-    }
-  }
-
-  return request.socket?.remoteAddress ?? "unknown";
-}
-
 function getContentLength(request: ApiRequest): number | null {
-  const raw = getHeader(request, "content-length");
+  const raw = getRequestHeader(request, "content-length");
   if (!raw) {
     return null;
   }
@@ -100,6 +68,23 @@ function toTrimmedString(value: unknown, maxLength: number): string | null {
   return normalized.slice(0, maxLength);
 }
 
+function sanitizeClientUrl(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(value);
+    parsed.username = "";
+    parsed.password = "";
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString();
+  } catch {
+    return value.split("#")[0]?.split("?")[0]?.slice(0, 2_000) ?? null;
+  }
+}
+
 function normalizeClientError(payload: Record<string, unknown>): NormalizedClientError | null {
   const message = toTrimmedString(payload.message, 400);
   if (!message) {
@@ -108,7 +93,7 @@ function normalizeClientError(payload: Record<string, unknown>): NormalizedClien
 
   const source = toTrimmedString(payload.source, 80) ?? "unknown";
   const stack = toTrimmedString(payload.stack, 6_000);
-  const url = toTrimmedString(payload.url, 2_000);
+  const url = sanitizeClientUrl(toTrimmedString(payload.url, 2_000));
   const userAgent = toTrimmedString(payload.userAgent, 300);
 
   const timestampRaw = toTrimmedString(payload.timestamp, 80);

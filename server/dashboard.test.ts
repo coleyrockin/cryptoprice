@@ -292,4 +292,23 @@ describe("buildDashboardPayload", () => {
     expect(payload.topCurrencies[0]?.symbol).toBe("USD");
     expect(payload.segmentMeta.topCurrencies.source).toBe("live");
   });
+
+  it("does not crash when a provider resolves a malformed segment", async () => {
+    mockedFetchTopStocksFromStooq.mockResolvedValue("not-an-array" as unknown as DashboardStock[]);
+    mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
+    mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
+    mockedFetchTopEtfsFromStooq.mockResolvedValue(sampleEtfs);
+    mockedFetchTopCurrenciesFromFrankfurter.mockResolvedValue(sampleCurrencies);
+
+    const payload = await buildDashboardPayload({
+      cache: new MemoryCache(),
+      now: () => 8_000_000,
+      cacheTtlSec: 60,
+      fallbackTtlSec: 600,
+      logger,
+    });
+
+    expect(payload.topStocks).toEqual([]);
+    expect(payload.topCryptos[0]?.symbol).toBe("BTC");
+  });
 });

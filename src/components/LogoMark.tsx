@@ -9,12 +9,24 @@ type LogoMarkProps = {
   fallbackLogoUrls?: string[];
 };
 
+function toSafeLogoSource(source: string): string | null {
+  const trimmed = source.trim();
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== "https:") {
+      return null;
+    }
+
+    parsed.username = "";
+    parsed.password = "";
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
 function logoSourceUrl(source: string): string {
   if (!import.meta.env.PROD) {
-    return source;
-  }
-
-  if (!/^https?:\/\//i.test(source)) {
     return source;
   }
 
@@ -25,7 +37,11 @@ export function LogoMark({ name, symbol, logoUrl, fallbackLogoUrls = [] }: LogoM
   const [logoIndex, setLogoIndex] = useState(0);
 
   const sources = useMemo(
-    () => [logoUrl, ...fallbackLogoUrls].filter((item): item is string => typeof item === "string" && item.trim().length > 0),
+    () =>
+      [logoUrl, ...fallbackLogoUrls]
+        .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+        .map(toSafeLogoSource)
+        .filter((item): item is string => item !== null),
     [fallbackLogoUrls, logoUrl],
   );
 

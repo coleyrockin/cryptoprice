@@ -2,6 +2,7 @@ export type RequestJsonOptions = {
   timeoutMs?: number;
   retries?: number;
   headers?: HeadersInit;
+  maxBytes?: number;
 };
 
 function wait(ms: number): Promise<void> {
@@ -11,6 +12,7 @@ function wait(ms: number): Promise<void> {
 export async function requestJsonWithRetry<T>(url: string, options: RequestJsonOptions = {}): Promise<T> {
   const timeoutMs = options.timeoutMs ?? 4_500;
   const retries = Math.max(0, Math.min(3, options.retries ?? 1));
+  const maxBytes = Math.max(1, Math.min(5_000_000, options.maxBytes ?? 1_000_000));
 
   let lastError: unknown;
 
@@ -32,7 +34,7 @@ export async function requestJsonWithRetry<T>(url: string, options: RequestJsonO
         throw new Error(`HTTP ${response.status}`);
       }
 
-      return (await response.json()) as T;
+      return JSON.parse(await readResponseTextWithLimit(response, maxBytes)) as T;
     } catch (error) {
       lastError = error;
       if (attempt < retries) {
@@ -46,4 +48,41 @@ export async function requestJsonWithRetry<T>(url: string, options: RequestJsonO
   }
 
   throw lastError instanceof Error ? lastError : new Error("Request failed");
+}
+
+export async function readResponseTextWithLimit(response: Response, maxBytes: number): Promise<string> {
+  const contentLength = Number.parseInt(response.headers.get("content-length") ?? "", 10);
+  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+    throw new Error("payload_too_large");
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) {
+    const fallback = Buffer.from(await response.arrayBuffer());
+    if (fallback.byteLength > maxBytes) {
+      throw new Error("payload_too_large");
+    }
+
+    return fallback.toString("utf8");
+  }
+
+  const chunks: Buffer[] = [];
+  let totalBytes = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    const chunk = Buffer.from(value);
+    totalBytes += chunk.byteLength;
+    if (totalBytes > maxBytes) {
+      throw new Error("payload_too_large");
+    }
+
+    chunks.push(chunk);
+  }
+
+  return Buffer.concat(chunks).toString("utf8");
 }

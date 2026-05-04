@@ -12,6 +12,8 @@ describe("buildHealthPayload", () => {
     const health = buildHealthPayload("req-1");
     expect(health.readiness).toBe("ready");
     expect(health.checks.providers).toBe("ok");
+    expect(health).not.toHaveProperty("metrics");
+    expect(health).not.toHaveProperty("providerStatus");
   });
 
   it("reports degraded when provider failures/fallback are observed", () => {

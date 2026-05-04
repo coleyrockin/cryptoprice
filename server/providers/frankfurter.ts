@@ -87,6 +87,10 @@ export function normalizeFrankfurterCurrencies(
  */
 function previousBusinessDay(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00Z");
+  if (!Number.isFinite(d.getTime())) {
+    return previousBusinessDay(new Date().toISOString().slice(0, 10));
+  }
+
   const dow = d.getUTCDay(); // 0=Sun … 6=Sat
   const daysBack = dow === 1 ? 3 : dow === 0 ? 2 : 1; // Mon→Fri, Sun→Fri, else −1
   d.setUTCDate(d.getUTCDate() - daysBack);

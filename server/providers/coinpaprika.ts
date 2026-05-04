@@ -93,11 +93,12 @@ export function normalizeCoinpaprikaCryptos(payload: unknown, limit = 10): Dashb
     return [];
   }
 
+  const safeLimit = Math.max(1, Math.min(25, limit));
   return payload
+    .slice(0, safeLimit)
     .map((entry, index) => normalizeCoinTicker((entry ?? {}) as CoinpaprikaTicker, index + 1))
     .filter((entry): entry is DashboardCrypto => Boolean(entry))
     .sort((left, right) => left.rank - right.rank)
-    .slice(0, limit)
     .map((entry, index) => ({
       ...entry,
       rank: index + 1,

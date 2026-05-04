@@ -1,4 +1,5 @@
 import { envInt } from "../server/env.js";
+import { getClientKey } from "../server/client-key.js";
 import { createRequestId, logError, logEvent } from "../server/log.js";
 import { recordLogoProxyError, recordLogoProxyRequest } from "../server/metrics.js";
 import { rateLimit } from "../server/rate-limit.js";
@@ -20,39 +21,6 @@ type ApiResponse = {
   send: (value: Buffer | string) => void;
   json: (value: unknown) => void;
 };
-
-function getHeader(request: ApiRequest, key: string): string | null {
-  const value = request.headers?.[key.toLowerCase()] ?? request.headers?.[key];
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (Array.isArray(value) && typeof value[0] === "string") {
-    return value[0];
-  }
-
-  return null;
-}
-
-const IP_PATTERN = /^(?:\d{1,3}\.){3}\d{1,3}$|^[0-9a-fA-F:]{2,39}$/;
-
-function getClientKey(request: ApiRequest): string {
-  const realIp = getHeader(request, "x-real-ip");
-  if (realIp && IP_PATTERN.test(realIp.trim())) {
-    return realIp.trim();
-  }
-
-  const forwarded = getHeader(request, "x-forwarded-for");
-  if (forwarded) {
-    const parts = forwarded.split(",");
-    const last = parts[parts.length - 1]?.trim();
-    if (last && IP_PATTERN.test(last)) {
-      return last;
-    }
-  }
-
-  return request.socket?.remoteAddress ?? "unknown";
-}
 
 function getUrlParam(request: ApiRequest): string | null {
   const queryValue = request.query?.url;
@@ -149,6 +117,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       headers: {
         Accept: "image/avif,image/webp,image/apng,image/png,image/jpeg,image/gif,*/*;q=0.5",
       },
+      redirect: "manual",
       signal: controller.signal,
     });
 

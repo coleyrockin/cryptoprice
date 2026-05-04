@@ -34,4 +34,17 @@ describe("LogoMark", () => {
     render(<LogoMark name="Silver" symbol="XAG" />);
     expect(screen.getByText("XAG")).toBeInTheDocument();
   });
+
+  it("skips unsafe logo sources before rendering an image", () => {
+    render(
+      <LogoMark
+        name="Bitcoin"
+        symbol="BTC"
+        logoUrl="//tracker.example/pixel.png"
+        fallbackLogoUrls={["data:image/svg+xml,<svg></svg>", "https://example.com/fallback.png"]}
+      />,
+    );
+
+    expect(screen.getByAltText("Bitcoin logo")).toHaveAttribute("src", "https://example.com/fallback.png");
+  });
 });

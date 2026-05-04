@@ -56,4 +56,28 @@ describe("CoinPaprika provider normalization", () => {
     expect(night?.volume24hUsd).toBe(5100000);
     expect(night?.percentFromAth).toBeNull();
   });
+
+  it("normalizes only the bounded crypto slice requested by the caller", () => {
+    const payload = Array.from({ length: 50 }, (_, index) => ({
+      id: `coin-${index}`,
+      symbol: `C${index}`,
+      name: `Coin ${index}`,
+      quotes: {
+        USD: {
+          price: index + 1,
+          market_cap: 1000 + index,
+        },
+      },
+    }));
+
+    Object.defineProperty(payload[3], "quotes", {
+      get() {
+        throw new Error("outside requested slice");
+      },
+    });
+
+    const cryptos = normalizeCoinpaprikaCryptos(payload, 3);
+    expect(cryptos).toHaveLength(3);
+    expect(cryptos.map((crypto) => crypto.symbol)).toEqual(["C0", "C1", "C2"]);
+  });
 });
