@@ -95,6 +95,10 @@ export function parseAndValidateLogoUrl(value: string | null): { url: URL | null
     return { url: null, reason: "invalid_protocol" };
   }
 
+  if (parsed.username || parsed.password) {
+    return { url: null, reason: "userinfo_not_allowed" };
+  }
+
   if (!isAllowedLogoHost(parsed.hostname)) {
     return { url: null, reason: "host_not_allowed" };
   }

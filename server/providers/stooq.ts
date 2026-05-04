@@ -11,6 +11,32 @@ const STOOQ_MAX_RESPONSE_BYTES = 64_000;
 const TOP_STOCK_SYMBOLS = ["NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "TSM", "META", "AVGO", "BRK-B", "LLY"];
 const TOP_ETF_SYMBOLS   = ["SPY",  "IVV",  "VOO",  "VTI",  "QQQ",  "VUG", "BND",  "AGG",  "VXUS",  "GLD"];
 
+const STOCK_MARKET_CAP_USD: Record<string, number> = {
+  NVDA: 4_690_000_000_000,
+  AAPL: 4_000_000_000_000,
+  MSFT: 2_890_000_000_000,
+  GOOGL: 3_760_000_000_000,
+  AMZN: 2_240_000_000_000,
+  TSM: 1_630_000_000_000,
+  META: 1_620_000_000_000,
+  AVGO: 1_540_000_000_000,
+  "BRK-B": 1_070_000_000_000,
+  LLY: 983_000_000_000,
+};
+
+const ETF_AUM_USD: Record<string, number> = {
+  SPY: 585_000_000_000,
+  IVV: 510_000_000_000,
+  VOO: 485_000_000_000,
+  VTI: 395_000_000_000,
+  QQQ: 292_000_000_000,
+  VUG: 125_000_000_000,
+  BND: 118_000_000_000,
+  AGG: 106_000_000_000,
+  VXUS: 72_000_000_000,
+  GLD: 67_000_000_000,
+};
+
 // Human-readable names (Stooq doesn't return full names)
 const STOCK_NAMES: Record<string, string> = {
   NVDA: "NVIDIA",
@@ -48,14 +74,37 @@ function toStooqSymbol(symbol: string): string {
   return `${symbol.toLowerCase()}.us`;
 }
 
-async function fetchStooqQuote(
-  symbol: string,
+function fromStooqSymbol(symbol: string): string {
+  return symbol.trim().toUpperCase().replace(/\.US$/, "");
+}
+
+function parseStooqRows(text: string): Map<string, { open: number | null; close: number | null }> {
+  const map = new Map<string, { open: number | null; close: number | null }>();
+  const lines = text.trim().split(/\r?\n/).slice(1);
+
+  for (const line of lines) {
+    const parts = line.split(",");
+    if (parts.length < 6) continue;
+
+    const symbol = fromStooqSymbol(parts[0] ?? "");
+    const open = toFiniteNumber(parts[2]);
+    const close = toFiniteNumber(parts[5]);
+    if (!symbol || close === null) continue;
+
+    map.set(symbol, { open, close });
+  }
+
+  return map;
+}
+
+async function fetchStooqQuotes(
+  symbols: string[],
   options: FetchStooqOptions,
-): Promise<{ open: number | null; close: number | null } | null> {
-  const baseUrl = options.baseUrl ?? STOOQ_BASE_URL;
-  const stooqSym = toStooqSymbol(symbol);
+): Promise<Map<string, { open: number | null; close: number | null }>> {
+  const baseUrl = resolveProviderBaseUrl(options.baseUrl, STOOQ_BASE_URL, "Stooq", "stooq.com");
+  const stooqSymbols = symbols.map(toStooqSymbol).join("+");
   // f=sd2ohlcv: Symbol, Date, Open, High, Low, Close, Volume
-  const url = `${baseUrl}/q/l/?s=${stooqSym}&f=sd2ohlcv&h&e=csv`;
+  const url = `${baseUrl}/q/l/?s=${stooqSymbols}&f=sd2ohlcv&h&e=csv`;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? 6_000);
@@ -72,52 +121,13 @@ async function fetchStooqQuote(
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
     const text = await readResponseTextWithLimit(response, STOOQ_MAX_RESPONSE_BYTES);
-    // CSV: header line + data line
+    // CSV: header line + one data line per requested symbol
     // Symbol,Date,Open,High,Low,Close,Volume
     // NVDA.US,2026-04-16,197.43,197.79,196.6,196.675,1954302
-    const lines = text.trim().split("\n");
-    if (lines.length < 2) return null;
-
-    const parts = lines[1].split(",");
-    // parts: [Symbol, Date, Open, High, Low, Close, Volume]
-    const open = toFiniteNumber(parts[2]);
-    const close = toFiniteNumber(parts[5]);
-
-    if (close === null) return null;
-    return { open, close };
+    return parseStooqRows(text);
   } finally {
     clearTimeout(timer);
   }
-}
-
-/**
- * Fetch symbols with a concurrency cap to avoid overwhelming Stooq.
- * Failures are silently dropped so partial results still render.
- */
-async function fetchAllQuotes(
-  symbols: string[],
-  options: FetchStooqOptions,
-): Promise<Map<string, { open: number | null; close: number | null }>> {
-  const MAX_CONCURRENT = 4;
-  const map = new Map<string, { open: number | null; close: number | null }>();
-
-  for (let i = 0; i < symbols.length; i += MAX_CONCURRENT) {
-    const batch = symbols.slice(i, i + MAX_CONCURRENT);
-    const results = await Promise.allSettled(
-      batch.map(async (sym) => {
-        const quote = await fetchStooqQuote(sym, options);
-        return { sym, quote };
-      }),
-    );
-
-    for (const r of results) {
-      if (r.status === "fulfilled" && r.value.quote) {
-        map.set(r.value.sym, r.value.quote);
-      }
-    }
-  }
-
-  return map;
 }
 
 function calcChangePercent(open: number | null, close: number | null): number | null {
@@ -128,10 +138,7 @@ function calcChangePercent(open: number | null, close: number | null): number | 
 export async function fetchTopStocksFromStooq(
   options: FetchStooqOptions = {},
 ): Promise<DashboardStock[]> {
-  const quotes = await fetchAllQuotes(TOP_STOCK_SYMBOLS, {
-    ...options,
-    baseUrl: resolveProviderBaseUrl(options.baseUrl, STOOQ_BASE_URL, "Stooq", "stooq.com"),
-  });
+  const quotes = await fetchStooqQuotes(TOP_STOCK_SYMBOLS, options);
 
   if (quotes.size === 0) {
     throw new Error("Stooq returned no stock data");
@@ -148,7 +155,7 @@ export async function fetchTopStocksFromStooq(
         name: toSafeString(STOCK_NAMES[symbol], symbol),
         symbol,
         category: "Stock" as const,
-        marketCapUsd: null,
+        marketCapUsd: STOCK_MARKET_CAP_USD[symbol] ?? null,
         priceUsd: q.close,
         changePercent: calcChangePercent(q.open, q.close),
         logoUrl: `https://financialmodelingprep.com/image-stock/${symbol}.png`,
@@ -161,10 +168,7 @@ export async function fetchTopStocksFromStooq(
 export async function fetchTopEtfsFromStooq(
   options: FetchStooqOptions = {},
 ): Promise<DashboardEtf[]> {
-  const quotes = await fetchAllQuotes(TOP_ETF_SYMBOLS, {
-    ...options,
-    baseUrl: resolveProviderBaseUrl(options.baseUrl, STOOQ_BASE_URL, "Stooq", "stooq.com"),
-  });
+  const quotes = await fetchStooqQuotes(TOP_ETF_SYMBOLS, options);
 
   if (quotes.size === 0) {
     throw new Error("Stooq returned no ETF data");
@@ -181,7 +185,7 @@ export async function fetchTopEtfsFromStooq(
         name: toSafeString(ETF_NAMES[symbol], symbol),
         symbol,
         category: "ETF" as const,
-        aumUsd: null,
+        aumUsd: ETF_AUM_USD[symbol] ?? null,
         priceUsd: q.close,
         changePercent: calcChangePercent(q.open, q.close),
         logoUrl: `https://financialmodelingprep.com/image-stock/${symbol}.png`,

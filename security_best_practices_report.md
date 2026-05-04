@@ -12,7 +12,7 @@ The main hardening opportunities were around trust boundaries for client IP base
 
 Implemented after the initial review:
 
-- Centralized client-key derivation in `server/client-key.ts` and stopped trusting forwarding headers outside Vercel-evidenced requests.
+- Centralized client-key derivation in `server/client-key.ts` and stopped trusting forwarding headers unless enabled by server-side deployment environment.
 - Added route tests proving spoofed forwarding headers do not bypass local/non-Vercel rate limits.
 - Added server-side telemetry URL redaction in `api/client-error.ts` so username, password, query strings, and fragments are stripped before logs.
 - Added a route test proving token-like URL query and fragment values are not logged.
@@ -89,7 +89,7 @@ If the app is ever run behind a platform that does not overwrite `X-Forwarded-Fo
 
 Fix implemented:
 
-The routes now use `server/client-key.ts`. Forwarding headers are trusted only when `process.env.VERCEL === "1"` or `x-vercel-id` is present; otherwise the socket IP is used. This preserves Vercel behavior while avoiding silent spoofable header trust in local/non-Vercel deployments.
+The routes now use `server/client-key.ts`. Forwarding headers are trusted only when `process.env.VERCEL === "1"` or `TRUST_PROXY_HEADERS=true`; otherwise the socket IP is used. This preserves Vercel behavior while avoiding silent spoofable header trust in local/non-Vercel deployments.
 
 Mitigation:
 

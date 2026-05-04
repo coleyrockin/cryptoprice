@@ -20,6 +20,12 @@ describe("security helpers", () => {
     expect(parseAndValidateLogoUrl("https://evil.example.com/logo.png").reason).toBe("host_not_allowed");
   });
 
+  it("rejects logo URLs with username or password components", () => {
+    expect(parseAndValidateLogoUrl("https://user:secret@static.coinpaprika.com/coin/btc-bitcoin/logo.png").reason).toBe(
+      "userinfo_not_allowed",
+    );
+  });
+
   it("accepts valid https logo URLs from allowlist", () => {
     const result = parseAndValidateLogoUrl("https://static.coinpaprika.com/coin/btc-bitcoin/logo.png");
     expect(result.reason).toBeNull();

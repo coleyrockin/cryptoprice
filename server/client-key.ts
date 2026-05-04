@@ -31,12 +31,12 @@ function normalizeIp(value: string | null): string | null {
   return candidate;
 }
 
-function shouldTrustProxyHeaders(request: ClientKeyRequest): boolean {
-  return process.env.VERCEL === "1" || getRequestHeader(request, "x-vercel-id") !== null;
+function shouldTrustProxyHeaders(): boolean {
+  return process.env.VERCEL === "1" || process.env.TRUST_PROXY_HEADERS === "true";
 }
 
 export function getClientKey(request: ClientKeyRequest): string {
-  if (shouldTrustProxyHeaders(request)) {
+  if (shouldTrustProxyHeaders()) {
     const forwarded =
       normalizeIp(getRequestHeader(request, "x-vercel-forwarded-for")) ??
       normalizeIp(getRequestHeader(request, "x-forwarded-for")) ??

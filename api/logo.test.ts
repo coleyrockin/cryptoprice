@@ -157,4 +157,31 @@ describe("GET /api/logo", () => {
       expect.objectContaining({ redirect: "manual" }),
     );
   });
+
+  it("redacts logo upstream query strings before logging fetch failures", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("upstream failed");
+      }),
+    );
+
+    const { response, state } = createMockResponse();
+    await handler(
+      {
+        method: "GET",
+        query: { url: "https://static.coinpaprika.com/coin/btc-bitcoin/logo.png?token=secret#fragment" },
+      },
+      response,
+    );
+
+    expect(state.statusCode).toBe(502);
+    const logLine = errorSpy.mock.calls[0]?.[0];
+    expect(typeof logLine).toBe("string");
+    const logged = JSON.parse(logLine as string) as { upstream?: string };
+    expect(logged.upstream).toBe("https://static.coinpaprika.com/coin/btc-bitcoin/logo.png");
+    expect(logLine).not.toContain("token=secret");
+    expect(logLine).not.toContain("fragment");
+  });
 });

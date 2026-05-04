@@ -73,6 +73,15 @@ async function readResponseBodyWithLimit(response: Response, maxBytes: number): 
   return Buffer.concat(chunks);
 }
 
+function sanitizeUpstreamLogUrl(url: URL): string {
+  const safe = new URL(url.toString());
+  safe.username = "";
+  safe.password = "";
+  safe.search = "";
+  safe.hash = "";
+  return safe.toString();
+}
+
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   const requestId = createRequestId();
 
@@ -163,7 +172,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
     logError("api.logo.failed", error, {
       requestId,
-      upstream: logoUrl.toString(),
+      upstream: sanitizeUpstreamLogUrl(logoUrl),
     });
 
     response.setHeader("X-Wap-Request-Id", requestId);
