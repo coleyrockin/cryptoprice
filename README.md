@@ -83,7 +83,7 @@ All environment variables are **optional** — the app runs fully without any co
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `COINPAPRIKA_BASE_URL` | Override CoinPaprika base URL | `https://api.coinpaprika.com` |
+| `COINPAPRIKA_BASE_URL` | Pin CoinPaprika base URL; must be exact HTTPS origin if set | `https://api.coinpaprika.com` |
 | `CACHE_TTL_SEC` | Live-data cache TTL (seconds) | `30` |
 | `FALLBACK_TTL_SEC` | Stale cache TTL before bundled fallback | `600` |
 | `STALE_ALERT_SEC` | Threshold for flagging stale-served responses | `300` |

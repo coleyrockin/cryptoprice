@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { normalizeCoinpaprikaCryptos, normalizeCoinpaprikaNight } from "./coinpaprika";
+import { fetchTopCryptosFromCoinpaprika, normalizeCoinpaprikaCryptos, normalizeCoinpaprikaNight } from "./coinpaprika";
 
 describe("CoinPaprika provider normalization", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("maps crypto tickers into normalized dashboard records", () => {
     const cryptos = normalizeCoinpaprikaCryptos([
       {
@@ -79,5 +83,18 @@ describe("CoinPaprika provider normalization", () => {
     const cryptos = normalizeCoinpaprikaCryptos(payload, 3);
     expect(cryptos).toHaveLength(3);
     expect(cryptos.map((crypto) => crypto.symbol)).toEqual(["C0", "C1", "C2"]);
+  });
+
+  it("rejects non-HTTPS base URL overrides before fetching", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      fetchTopCryptosFromCoinpaprika({
+        baseUrl: "http://api.coinpaprika.com",
+        retries: 0,
+      }),
+    ).rejects.toThrow("Invalid CoinPaprika base URL");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

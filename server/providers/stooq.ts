@@ -1,5 +1,6 @@
 import { toFiniteNumber, toSafeString } from "../sanitize.js";
 import { readResponseTextWithLimit } from "../request.js";
+import { resolveProviderBaseUrl } from "./base-url.js";
 import type { DashboardEtf, DashboardStock } from "../types.js";
 
 const STOOQ_BASE_URL = "https://stooq.com";
@@ -127,7 +128,10 @@ function calcChangePercent(open: number | null, close: number | null): number | 
 export async function fetchTopStocksFromStooq(
   options: FetchStooqOptions = {},
 ): Promise<DashboardStock[]> {
-  const quotes = await fetchAllQuotes(TOP_STOCK_SYMBOLS, options);
+  const quotes = await fetchAllQuotes(TOP_STOCK_SYMBOLS, {
+    ...options,
+    baseUrl: resolveProviderBaseUrl(options.baseUrl, STOOQ_BASE_URL, "Stooq", "stooq.com"),
+  });
 
   if (quotes.size === 0) {
     throw new Error("Stooq returned no stock data");
@@ -157,7 +161,10 @@ export async function fetchTopStocksFromStooq(
 export async function fetchTopEtfsFromStooq(
   options: FetchStooqOptions = {},
 ): Promise<DashboardEtf[]> {
-  const quotes = await fetchAllQuotes(TOP_ETF_SYMBOLS, options);
+  const quotes = await fetchAllQuotes(TOP_ETF_SYMBOLS, {
+    ...options,
+    baseUrl: resolveProviderBaseUrl(options.baseUrl, STOOQ_BASE_URL, "Stooq", "stooq.com"),
+  });
 
   if (quotes.size === 0) {
     throw new Error("Stooq returned no ETF data");

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { dashboardFallbackPayload } from "./dashboard";
 import { readDurableDashboard } from "./durable-cache";
 
 describe("readDurableDashboard", () => {
@@ -39,6 +40,30 @@ describe("readDurableDashboard", () => {
             },
           },
         ),
+      ),
+    );
+
+    await expect(readDurableDashboard(600)).resolves.toBeNull();
+  });
+
+  it("rejects durable cache records with invalid entry fields inside arrays", async () => {
+    const payload = structuredClone(dashboardFallbackPayload);
+    payload.topStocks = [
+      {
+        ...payload.topStocks[0],
+        id: 123 as unknown as string,
+      },
+    ];
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          result: JSON.stringify({
+            updatedAt: new Date().toISOString(),
+            payload,
+          }),
+        }),
       ),
     );
 

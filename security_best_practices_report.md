@@ -16,6 +16,10 @@ Implemented after the initial review:
 - Added route tests proving spoofed forwarding headers do not bypass local/non-Vercel rate limits.
 - Added server-side telemetry URL redaction in `api/client-error.ts` so username, password, query strings, and fragments are stripped before logs.
 - Added a route test proving token-like URL query and fragment values are not logged.
+- Replaced raw stack logging with short stack hashes in `api/client-error.ts`.
+- Tightened `img-src` in `vercel.json` to same-origin and `data:` images only.
+- Added expected-host HTTPS validation for provider base URL overrides.
+- Added deeper durable dashboard payload validation for entry fields inside arrays.
 
 ## Scope
 
@@ -97,7 +101,7 @@ This may be low risk on Vercel if `x-real-ip` is guaranteed and client-supplied 
 
 ### S2. Client error telemetry can log full URLs and raw stack text from unauthenticated clients
 
-Status: fixed for URL redaction; stack text remains length-limited.
+Status: fixed. URLs are redacted and stacks are logged as hashes.
 
 Rule ID: LOG-PII-001
 
@@ -134,7 +138,7 @@ Full URLs can contain query strings or fragments with sensitive values from futu
 
 Fix implemented:
 
-The server now strips URL username, password, query string, and fragment before logging telemetry. This protects the route even if a future client sends a full URL. Stack text remains length-limited; consider stack hashing or first-party-frame extraction in a future observability pass if logs become noisy.
+The server now strips URL username, password, query string, and fragment before logging telemetry. Raw stack text is no longer logged; the route records a short SHA-256 stack hash for correlation without persisting stack contents.
 
 Mitigation:
 
@@ -147,6 +151,8 @@ The current dashboard has no authentication or token-bearing routes, so this is 
 ## Low Findings
 
 ### S3. CSP allows broad image sources and inline styles
+
+Status: partially fixed. `img-src` is tightened; inline styles remain allowed for current UI/runtime compatibility.
 
 Rule ID: CSP-HARDEN-001
 
@@ -162,11 +168,11 @@ Evidence:
 
 Impact:
 
-This is not a direct vulnerability because `script-src` remains restricted and React escapes rendered text by default. However, `img-src https:` permits any HTTPS image origin, and `style-src 'unsafe-inline'` weakens CSP's ability to constrain style injection.
+This is not a direct vulnerability because `script-src` remains restricted and React escapes rendered text by default. The broad `img-src https:` allowance was removed. `style-src 'unsafe-inline'` still weakens CSP's ability to constrain style injection.
 
 Fix:
 
-If production image rendering is always routed through `/api/logo`, tighten `img-src` to `'self' data:` plus any exact origins still needed. Keep `unsafe-inline` only if required by React/framer inline styles or current CSS delivery, and document why.
+Keep `unsafe-inline` only if required by React/framer inline styles or current CSS delivery, and document why. Consider a staged CSP report-only deployment before removing it.
 
 Mitigation:
 
@@ -217,6 +223,6 @@ If this app only serves a domain whose subdomains are fully under control and HT
 
 ## Recommended Fix Order
 
-1. Review S3 during the next deployment hardening pass.
-2. Confirm and document S4 before relying on HSTS preload long term.
-3. Consider stack hashing or first-party stack-frame extraction if client telemetry volume grows.
+1. Confirm and document S4 before relying on HSTS preload long term.
+2. Consider a future CSP report-only pass to see whether `style-src 'unsafe-inline'` can be removed.
+3. Keep provider override validation pinned to expected HTTPS origins unless a signed/internal mirror is deliberately introduced.

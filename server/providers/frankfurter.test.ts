@@ -30,11 +30,23 @@ describe("Frankfurter provider", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const currencies = await fetchTopCurrenciesFromFrankfurter({
-      baseUrl: "https://frankfurter.example.test",
       retries: 0,
     });
 
     expect(currencies.length).toBeGreaterThan(1);
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects unexpected base URL hosts before fetching", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      fetchTopCurrenciesFromFrankfurter({
+        baseUrl: "https://evil.example",
+        retries: 0,
+      }),
+    ).rejects.toThrow("Invalid Frankfurter base URL");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

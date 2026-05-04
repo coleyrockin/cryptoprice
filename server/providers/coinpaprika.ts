@@ -1,5 +1,6 @@
 import { requestJsonWithRetry } from "../request.js";
 import { toFiniteNumber, toLogoCandidates, toSafeString } from "../sanitize.js";
+import { resolveProviderBaseUrl } from "./base-url.js";
 import type { DashboardCrypto, DashboardNight } from "../types.js";
 
 const COINPAPRIKA_BASE_URL = "https://api.coinpaprika.com";
@@ -135,7 +136,12 @@ export function normalizeCoinpaprikaNight(payload: unknown): DashboardNight | nu
 
 export async function fetchTopCryptosFromCoinpaprika(options: FetchCoinpaprikaOptions = {}): Promise<DashboardCrypto[]> {
   const limit = Math.max(1, Math.min(25, options.limit ?? 10));
-  const baseUrl = options.baseUrl ?? process.env.COINPAPRIKA_BASE_URL ?? COINPAPRIKA_BASE_URL;
+  const baseUrl = resolveProviderBaseUrl(
+    options.baseUrl ?? process.env.COINPAPRIKA_BASE_URL,
+    COINPAPRIKA_BASE_URL,
+    "CoinPaprika",
+    "api.coinpaprika.com",
+  );
 
   const url = new URL(`${baseUrl}/v1/tickers`);
   url.searchParams.set("quotes", "USD");
@@ -156,7 +162,12 @@ export async function fetchTopCryptosFromCoinpaprika(options: FetchCoinpaprikaOp
 }
 
 export async function fetchNightFromCoinpaprika(options: FetchCoinpaprikaOptions = {}): Promise<DashboardNight | null> {
-  const baseUrl = options.baseUrl ?? process.env.COINPAPRIKA_BASE_URL ?? COINPAPRIKA_BASE_URL;
+  const baseUrl = resolveProviderBaseUrl(
+    options.baseUrl ?? process.env.COINPAPRIKA_BASE_URL,
+    COINPAPRIKA_BASE_URL,
+    "CoinPaprika",
+    "api.coinpaprika.com",
+  );
 
   const url = new URL(`${baseUrl}/v1/tickers/${NIGHT_ID}`);
   url.searchParams.set("quotes", "USD");

@@ -150,4 +150,28 @@ describe("POST /api/client-error", () => {
     const logged = JSON.parse(logLine as string) as { payload: { url: string } };
     expect(logged.payload.url).toBe("https://example.com/app");
   });
+
+  it("logs stack hashes instead of raw stack traces", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const { response, state } = createMockResponse();
+
+    handler(
+      {
+        method: "POST",
+        body: {
+          source: "window-error",
+          message: "something broke",
+          stack: "Error: secret user email boyd@example.com\n    at SensitiveComponent",
+        },
+      },
+      response,
+    );
+
+    expect(state.statusCode).toBe(202);
+    const logLine = warnSpy.mock.calls[0]?.[0];
+    const logged = JSON.parse(logLine as string) as { payload: { stack?: string; stackHash?: string } };
+    expect(logged.payload.stack).toBeUndefined();
+    expect(logged.payload.stackHash).toMatch(/^[a-f0-9]{16}$/);
+    expect(logLine).not.toContain("boyd@example.com");
+  });
 });

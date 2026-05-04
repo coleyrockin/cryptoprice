@@ -1,5 +1,6 @@
 import { requestJsonWithRetry } from "../request.js";
 import { toFiniteNumber } from "../sanitize.js";
+import { resolveProviderBaseUrl } from "./base-url.js";
 import type { DashboardCurrency } from "../types.js";
 
 const FRANKFURTER_BASE_URL = "https://api.frankfurter.app";
@@ -100,7 +101,7 @@ function previousBusinessDay(dateStr: string): string {
 export async function fetchTopCurrenciesFromFrankfurter(
   options: FetchFrankfurterOptions = {},
 ): Promise<DashboardCurrency[]> {
-  const baseUrl = options.baseUrl ?? FRANKFURTER_BASE_URL;
+  const baseUrl = resolveProviderBaseUrl(options.baseUrl, FRANKFURTER_BASE_URL, "Frankfurter", "api.frankfurter.app");
   const qs = `from=USD&to=${FOREIGN_SYMBOLS}`;
 
   // Step 1: fetch latest rates — response includes the date ECB published them.

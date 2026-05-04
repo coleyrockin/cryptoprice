@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { envInt } from "../server/env.js";
 import { getClientKey, getRequestHeader } from "../server/client-key.js";
 import { createRequestId, logEvent } from "../server/log.js";
@@ -22,7 +24,7 @@ type ApiResponse = {
 type NormalizedClientError = {
   message: string;
   source: string;
-  stack: string | null;
+  stackHash: string | null;
   url: string | null;
   userAgent: string | null;
   timestamp: string;
@@ -85,6 +87,14 @@ function sanitizeClientUrl(value: string | null): string | null {
   }
 }
 
+function hashStack(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  return createHash("sha256").update(value).digest("hex").slice(0, 16);
+}
+
 function normalizeClientError(payload: Record<string, unknown>): NormalizedClientError | null {
   const message = toTrimmedString(payload.message, 400);
   if (!message) {
@@ -92,7 +102,7 @@ function normalizeClientError(payload: Record<string, unknown>): NormalizedClien
   }
 
   const source = toTrimmedString(payload.source, 80) ?? "unknown";
-  const stack = toTrimmedString(payload.stack, 6_000);
+  const stackHash = hashStack(toTrimmedString(payload.stack, 6_000));
   const url = sanitizeClientUrl(toTrimmedString(payload.url, 2_000));
   const userAgent = toTrimmedString(payload.userAgent, 300);
 
@@ -102,7 +112,7 @@ function normalizeClientError(payload: Record<string, unknown>): NormalizedClien
   return {
     message,
     source,
-    stack,
+    stackHash,
     url,
     userAgent,
     timestamp: Number.isFinite(parsedTimestamp) ? new Date(parsedTimestamp).toISOString() : new Date().toISOString(),
