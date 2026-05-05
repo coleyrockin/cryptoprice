@@ -309,10 +309,8 @@
       "symbol": "XAU",
       "category": "Commodity",
       "marketCapUsd": 36210000000000,
-      "logoUrl": "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f7e1.svg",
-      "fallbackLogoUrls": [
-        "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f947.svg"
-      ]
+      "logoUrl": null,
+      "fallbackLogoUrls": []
     },
     {
       "id": "commodity-silver",
@@ -321,10 +319,8 @@
       "symbol": "XAG",
       "category": "Commodity",
       "marketCapUsd": 5038000000000,
-      "logoUrl": "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/26aa.svg",
-      "fallbackLogoUrls": [
-        "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f948.svg"
-      ]
+      "logoUrl": null,
+      "fallbackLogoUrls": []
     },
     {
       "id": "stock-nvda",

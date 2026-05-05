@@ -213,6 +213,16 @@ describe("buildDashboardPayload", () => {
     expect(payload.topCryptos[0]?.id).toBe(dashboardFallbackPayload.topCryptos[0]?.id);
   });
 
+  it("uses monogram fallbacks for commodities instead of blocked SVG logo URLs", () => {
+    const commodities = dashboardFallbackPayload.topAssets.filter((asset) => asset.category === "Commodity");
+
+    expect(commodities.length).toBeGreaterThan(0);
+    for (const commodity of commodities) {
+      expect(commodity.logoUrl).toBeNull();
+      expect(commodity.fallbackLogoUrls).toEqual([]);
+    }
+  });
+
   it("reports partially degraded segments when a single provider fails", async () => {
     const cache = new MemoryCache();
     const now = 4_000_000;

@@ -4,7 +4,6 @@ const DEFAULT_ALLOWED_LOGO_HOSTS = [
   "cryptoicon-api.pages.dev",
   "financialmodelingprep.com",
   "images.financialmodelingprep.com",
-  "cdnjs.cloudflare.com",
   "flagcdn.com",
 ];
 
