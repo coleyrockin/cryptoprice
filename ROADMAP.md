@@ -8,7 +8,6 @@ This file outlines planned features and improvements for World Asset Prices.
 - **Currency selector** — Allow users to switch the display currency (USD, EUR, GBP, JPY) using exchange-rate conversion on the frontend.
 - **Expanded asset coverage** — Add commodities (gold, silver, oil) and bond indices to the existing crypto/stock/global-assets sections.
 - **Persistent watchlist sync** — Optionally sync the watchlist to a backend so it is preserved across devices (e.g., via Vercel KV or a lightweight user account).
-- **Accessible color theme toggle** — Provide a light mode alongside the current dark/glassmorphism theme, with preference saved in `localStorage`.
 
 ## Mid-term
 

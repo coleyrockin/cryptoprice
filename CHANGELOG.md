@@ -35,4 +35,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Package metadata and keywords updated for clearer professional positioning.
 - Preview images moved from repository root to `docs/` for a cleaner project structure.
 
-[0.1.0]: https://github.com/coleyrockin/cryptoprice/releases/tag/v0.1.0
+[0.1.0]: https://github.com/coleyrockin/world-asset-prices/releases/tag/v0.1.0
