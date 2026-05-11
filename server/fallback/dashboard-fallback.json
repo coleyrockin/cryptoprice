@@ -3,9 +3,10 @@
   "stale": true,
   "refreshInSec": 30,
   "source": {
-    "equities": "fmp",
+    "equities": "stooq",
     "crypto": "coinpaprika",
-    "fallbackUsed": true
+    "fallbackUsed": true,
+    "equityFundamentalsAsOf": "2026-05-04"
   },
   "topCryptos": [
     {

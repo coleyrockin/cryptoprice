@@ -22,7 +22,7 @@
 
 ## About
 
-A live financial dashboard tracking the **top 10 stocks, ETFs, fiat currencies, and cryptocurrencies** side-by-side in one view, plus a dedicated Midnight Token (NIGHT) panel. Built as a full-stack React + Vercel app with a resilient serverless data layer.
+A live financial dashboard tracking **top stocks, ETFs, fiat currencies, and cryptocurrencies** side-by-side in one view, plus a dedicated Midnight Token (NIGHT) panel. Stock prices, ETF prices, FX rates, and crypto prices update from live providers; stock market-cap and ETF AUM ranks are static estimates with an as-of date exposed in the UI.
 
 A single `GET /api/dashboard` call powers the entire payload — the frontend never talks to external APIs directly. The server composes data from multiple free, no-key providers (Stooq, Frankfurter, CoinPaprika) behind a tiered cache: fresh in-memory → stale-if-error → durable KV fallback → bundled fallback JSON. The site never shows "no data," even if every upstream goes down.
 
@@ -30,7 +30,7 @@ A single `GET /api/dashboard` call powers the entire payload — the frontend ne
 
 ## Features
 
-- **Six live sections** — Global Assets, Stocks, ETFs, Currencies, Cryptos, and the Midnight Token panel
+- **Six market sections** — Global Assets, Stocks, ETFs, Currencies, Cryptos, and the Midnight Token panel
 - **Market discovery controls** — search by name, symbol, or category; filter by section; sort every grid by rank, name, value, or absolute movement
 - **Pinned watchlist** — pin any market card into a persistent watchlist for faster cross-section monitoring
 - **Hero insight rail** — instant snapshot of tracked market count, data health, largest move, and global leader
@@ -54,8 +54,8 @@ A single `GET /api/dashboard` call powers the entire payload — the frontend ne
 | **Frontend** | React 19, TypeScript 5.9, Vite 7, TanStack React Query 5 |
 | **Styling** | Tailwind CSS v4, clsx |
 | **Animation** | Framer Motion 12 |
-| **Backend** | Vercel Serverless Functions (Node 24) |
-| **Data sources** | [Stooq](https://stooq.com) (stocks + ETFs), [Frankfurter / ECB](https://frankfurter.dev) (FX), [CoinPaprika](https://coinpaprika.com/api/) (crypto) — all free, no keys |
+| **Backend** | Vercel Serverless Functions (Node 20) |
+| **Data sources** | [Stooq](https://stooq.com) (stock + ETF prices), static stock-cap / ETF-AUM estimates, [Frankfurter / ECB](https://frankfurter.dev) (FX), [CoinPaprika](https://coinpaprika.com/api/) (crypto) — all free, no keys |
 | **Durable cache** | Upstash / Vercel KV (optional; falls back to in-memory + bundled JSON) |
 | **Testing** | Vitest 4, Testing Library, Playwright E2E |
 | **Linting** | ESLint 10, typescript-eslint |
@@ -149,7 +149,7 @@ world-asset-prices/
 
 - **Production-grade fetch resilience.** Every upstream is wrapped in a segment resolver that tries live → fresh cache → stale cache → durable KV → bundled fallback. The dashboard degrades gracefully and never renders empty state.
 - **Provider-agnostic data pipeline.** Providers implement a narrow contract (`fetch*From*()` returns a typed array) and are swappable without touching the UI — swapping FMP → Stooq + Frankfurter was a two-file change.
-- **Data-center-aware networking.** Stooq fetching batches each equity segment into one CSV request because Vercel's AWS IPs hit aggressive rate limits on naïve fan-out. Frankfurter's business-day date logic handles ECB's weekend publishing gaps so change% is always a true 1-business-day delta.
+- **Data-center-aware networking.** Stooq fetching batches each equity segment into one CSV request because Vercel's AWS IPs hit aggressive rate limits on naïve fan-out. Stock market-cap and ETF-AUM values are static estimates with an explicit as-of date; Frankfurter's business-day date logic handles ECB's weekend publishing gaps so change% is always a true 1-business-day delta.
 - **Full TS strict mode across three project configs** (client, node, server) with clean typecheck.
 - **CI gates that actually catch regressions**: lint, typecheck, unit, route, E2E, and a bundle-size budget.
 

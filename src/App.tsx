@@ -207,6 +207,8 @@ function App() {
   const night = dashboard?.night ?? null;
   const segmentMeta = dashboard?.segmentMeta;
   const generatedAt = dashboard?.generatedAt;
+  const equityFundamentalsAsOf = dashboard?.source.equityFundamentalsAsOf;
+  const equityEstimateLabel = equityFundamentalsAsOf ? `Live prices; estimates as of ${equityFundamentalsAsOf}` : "Live prices; estimated fundamentals";
   const normalizedSearchTerm = searchTerm.trim();
   const isBooting = dashboardQuery.isPending && !dashboard;
 
@@ -681,7 +683,7 @@ function App() {
           <motion.section id="section-assets" className="surface global-assets-surface" {...SECTION_REVEAL}>
             <SectionHeader
               title="Top 10 Global Assets"
-              subtitle="By estimated market cap"
+              subtitle={equityEstimateLabel}
               meta={segmentMeta?.topStocks}
               generatedAt={generatedAt}
             />
@@ -694,7 +696,7 @@ function App() {
           <motion.section id="section-stocks" className="surface stocks-surface" {...SECTION_REVEAL}>
             <SectionHeader
               title="Top 10 Stocks"
-              subtitle="By estimated market cap"
+              subtitle={equityEstimateLabel}
               meta={segmentMeta?.topStocks}
               generatedAt={generatedAt}
             />
@@ -706,7 +708,7 @@ function App() {
           <motion.section id="section-etfs" className="surface etfs-surface" {...SECTION_REVEAL}>
             <SectionHeader
               title="Top 10 ETFs"
-              subtitle="By assets under management"
+              subtitle={equityEstimateLabel}
               meta={segmentMeta?.topEtfs}
               generatedAt={generatedAt}
             />

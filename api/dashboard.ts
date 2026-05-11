@@ -1,4 +1,4 @@
-import { buildDashboardPayload } from "../server/dashboard.js";
+import { buildDashboardPayload, buildTopAssets } from "../server/dashboard.js";
 import { readDurableDashboard, writeDurableDashboard } from "../server/durable-cache.js";
 import { envInt } from "../server/env.js";
 import { createRequestId, createStructuredLogger, logError, logEvent } from "../server/log.js";
@@ -22,22 +22,53 @@ type ApiResponse = {
   json: (value: unknown) => void;
 };
 
-function durableSegmentMeta(payload: DashboardPayload, nowMs: number): DashboardPayload["segmentMeta"] {
+function durableSegmentMeta(payload: DashboardPayload, nowMs: number): DashboardPayload["segmentMeta"][DashboardSegmentKey] {
   const ageSec = Math.max(0, Math.floor((nowMs - Date.parse(payload.generatedAt)) / 1_000));
-  const meta = {
+  return {
     source: "durable-cache" as const,
     ageSec: Number.isFinite(ageSec) ? ageSec : 0,
-  };
-  return {
-    topCryptos: meta,
-    topStocks: meta,
-    topEtfs: meta,
-    topCurrencies: meta,
-    night: meta,
   };
 }
 
 const ALL_SEGMENTS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "night"];
+
+function fallbackSegments(payload: DashboardPayload): DashboardSegmentKey[] {
+  return ALL_SEGMENTS.filter((segment) => payload.segmentMeta[segment].source === "fallback");
+}
+
+function mergeDurableFallbackSegments(payload: DashboardPayload, durablePayload: DashboardPayload, nowMs: number): DashboardPayload {
+  const segments = fallbackSegments(payload);
+  const segmentMeta = { ...payload.segmentMeta };
+  const merged: DashboardPayload = {
+    ...payload,
+    source: {
+      ...payload.source,
+      fallbackUsed: true,
+    },
+    stale: true,
+    segmentMeta,
+  };
+
+  for (const segment of segments) {
+    segmentMeta[segment] = durableSegmentMeta(durablePayload, nowMs);
+    if (segment === "topCryptos") merged.topCryptos = durablePayload.topCryptos;
+    if (segment === "topStocks") merged.topStocks = durablePayload.topStocks;
+    if (segment === "topEtfs") merged.topEtfs = durablePayload.topEtfs;
+    if (segment === "topCurrencies") merged.topCurrencies = durablePayload.topCurrencies;
+    if (segment === "night") merged.night = durablePayload.night;
+  }
+
+  if (segments.includes("topCryptos") || segments.includes("topStocks")) {
+    merged.topAssets = buildTopAssets(merged.topStocks, merged.topCryptos);
+  }
+
+  merged.degradedSegments = ALL_SEGMENTS.filter((segment) => {
+    const source = segmentMeta[segment].source;
+    return source === "stale-cache" || source === "fallback" || source === "durable-cache";
+  });
+
+  return merged;
+}
 
 export default async function handler(request: ApiRequest, response: ApiResponse): Promise<void> {
   const requestId = createRequestId();
@@ -58,25 +89,15 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     const payload = await buildDashboardPayload({ logger });
     let resolvedPayload = payload;
 
-    if (payload.stale || payload.source.fallbackUsed) {
+    const fallbackSegmentKeys = fallbackSegments(payload);
+    if (fallbackSegmentKeys.length > 0) {
       recordFallbackServe();
       const durablePayload = await readDurableDashboard(fallbackTtlSec);
       if (durablePayload) {
         recordDurableCacheHit();
-        const nowMs = Date.now();
-        resolvedPayload = {
-          ...durablePayload,
-          generatedAt: new Date(nowMs).toISOString(),
-          stale: true,
-          degradedSegments: ALL_SEGMENTS,
-          segmentMeta: durableSegmentMeta(durablePayload, nowMs),
-          source: {
-            ...durablePayload.source,
-            fallbackUsed: true,
-          },
-        };
+        resolvedPayload = mergeDurableFallbackSegments(payload, durablePayload, Date.now());
       }
-    } else {
+    } else if (!payload.stale) {
       const wroteDurablePayload = await writeDurableDashboard(payload, fallbackTtlSec);
       if (wroteDurablePayload) {
         recordDurableCacheWrite();

@@ -1,7 +1,15 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import { buildHealthPayload } from "./health";
-import { recordDashboardError, recordDashboardRequest, recordFallbackServe, recordProviderFailure, resetMetrics } from "./metrics";
+import {
+  recordDashboardError,
+  recordDashboardRequest,
+  recordFallbackServe,
+  recordProviderFailure,
+  recordProviderFallback,
+  recordProviderSuccess,
+  resetMetrics,
+} from "./metrics";
 
 describe("buildHealthPayload", () => {
   afterEach(() => {
@@ -24,6 +32,17 @@ describe("buildHealthPayload", () => {
     expect(health.readiness).toBe("degraded");
     expect(health.checks.providers).toBe("degraded");
     expect(health.checks.fallback).toBe("in-use");
+  });
+
+  it("recovers after a later provider success", () => {
+    recordProviderFailure("topCryptos");
+    recordProviderFallback("topCryptos");
+    recordProviderSuccess("topCryptos", 12);
+
+    const health = buildHealthPayload("req-recovered");
+    expect(health.readiness).toBe("ready");
+    expect(health.checks.providers).toBe("ok");
+    expect(health.checks.fallback).toBe("standby");
   });
 
   it("reports down when all dashboard requests fail", () => {

@@ -120,7 +120,13 @@ function hasSegmentMeta(value: unknown): boolean {
 }
 
 function hasSource(value: unknown): boolean {
-  return isRecord(value) && isString(value.equities) && value.crypto === "coinpaprika" && isBoolean(value.fallbackUsed);
+  return (
+    isRecord(value) &&
+    isString(value.equities) &&
+    value.crypto === "coinpaprika" &&
+    isBoolean(value.fallbackUsed) &&
+    (!("equityFundamentalsAsOf" in value) || isString(value.equityFundamentalsAsOf))
+  );
 }
 
 export function isDashboardPayload(value: unknown): value is DashboardPayload {

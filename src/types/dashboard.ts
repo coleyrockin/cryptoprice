@@ -2,6 +2,7 @@ export type DashboardSource = {
   equities: string;
   crypto: "coinpaprika";
   fallbackUsed: boolean;
+  equityFundamentalsAsOf?: string;
 };
 
 export type DashboardSegmentKey = "topCryptos" | "topStocks" | "topEtfs" | "topCurrencies" | "night";

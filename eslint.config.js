@@ -5,7 +5,18 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["dist", "coverage", "playwright-report", "test-results", "docs", ".vercel"],
+    ignores: [
+      "**/dist/**",
+      "**/coverage/**",
+      "**/playwright-report/**",
+      "**/test-results/**",
+      "docs/**",
+      ".claude/**",
+      ".playwright-cli/**",
+      ".vercel/**",
+      "node_modules/**",
+      "*.tsbuildinfo",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
