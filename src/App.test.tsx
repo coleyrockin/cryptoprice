@@ -20,7 +20,7 @@ const payload: DashboardPayload = {
     equities: "stooq",
     crypto: "coinpaprika",
     fallbackUsed: false,
-    equityFundamentalsAsOf: "2026-05-11",
+    equityFundamentalsAsOf: "2026-05-12",
   },
   degradedSegments: [],
   segmentMeta: {

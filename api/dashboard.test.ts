@@ -51,6 +51,19 @@ function stockEntry(id: string, symbol: string): DashboardPayload["topStocks"][n
   };
 }
 
+function privateCompanyEntry(id: string, symbol: string): DashboardPayload["topPrivateCompanies"][number] {
+  return {
+    id,
+    rank: 1,
+    name: symbol,
+    symbol,
+    category: "Private Company",
+    marketCapUsd: 1000,
+    logoUrl: null,
+    fallbackLogoUrls: [],
+  };
+}
+
 function samplePayload(): DashboardPayload {
   return {
     generatedAt: "2026-02-24T00:00:00.000Z",
@@ -60,7 +73,7 @@ function samplePayload(): DashboardPayload {
       equities: "stooq",
       crypto: "coinpaprika",
       fallbackUsed: false,
-      equityFundamentalsAsOf: "2026-05-11",
+      equityFundamentalsAsOf: "2026-05-12",
     },
     degradedSegments: [],
     segmentMeta: {
@@ -225,6 +238,31 @@ describe("GET /api/dashboard", () => {
     expect(body.degradedSegments).toEqual(["topStocks"]);
     expect(body.segmentMeta.topCryptos.source).toBe("live");
     expect(body.segmentMeta.topStocks.source).toBe("durable-cache");
+  });
+
+  it("fills private-company fallback segment from durable cache", async () => {
+    const partial = samplePayload();
+    partial.stale = true;
+    partial.source.fallbackUsed = true;
+    partial.degradedSegments = ["topPrivateCompanies"];
+    partial.segmentMeta.topPrivateCompanies.source = "fallback";
+    partial.segmentMeta.topPrivateCompanies.ageSec = 500;
+    partial.topPrivateCompanies = [privateCompanyEntry("private-old", "OLD")];
+
+    mockedBuildDashboardPayload.mockResolvedValue(partial);
+
+    const durable = samplePayload();
+    durable.topPrivateCompanies = [privateCompanyEntry("private-spacex", "SPACEX")];
+    mockedReadDurableDashboard.mockResolvedValue(durable);
+
+    const { response, state } = createMockResponse();
+    await handler({ method: "GET" }, response);
+
+    expect(state.statusCode).toBe(200);
+    const body = state.jsonBody as DashboardPayload;
+    expect(body.topPrivateCompanies[0]?.id).toBe("private-spacex");
+    expect(body.degradedSegments).toEqual(["topPrivateCompanies"]);
+    expect(body.segmentMeta.topPrivateCompanies.source).toBe("durable-cache");
   });
 
   it("does not consult durable cache for stale-cache-only responses", async () => {

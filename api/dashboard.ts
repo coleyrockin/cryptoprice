@@ -55,6 +55,7 @@ function mergeDurableFallbackSegments(payload: DashboardPayload, durablePayload:
     if (segment === "topStocks") merged.topStocks = durablePayload.topStocks;
     if (segment === "topEtfs") merged.topEtfs = durablePayload.topEtfs;
     if (segment === "topCurrencies") merged.topCurrencies = durablePayload.topCurrencies;
+    if (segment === "topPrivateCompanies") merged.topPrivateCompanies = durablePayload.topPrivateCompanies;
     if (segment === "night") merged.night = durablePayload.night;
   }
 
