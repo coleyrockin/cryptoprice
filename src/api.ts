@@ -50,6 +50,10 @@ function normalizeDashboardPayload(payload: DashboardPayload): DashboardPayload 
         source: "fallback",
         ageSec,
       },
+      topPrivateCompanies: {
+        source: "fallback",
+        ageSec,
+      },
       night: {
         source: "fallback",
         ageSec,
@@ -59,6 +63,7 @@ function normalizeDashboardPayload(payload: DashboardPayload): DashboardPayload 
     topStocks: Array.isArray(payload.topStocks) ? payload.topStocks : [],
     topEtfs: Array.isArray(payload.topEtfs) ? payload.topEtfs : [],
     topCurrencies: Array.isArray(payload.topCurrencies) ? payload.topCurrencies : [],
+    topPrivateCompanies: Array.isArray(payload.topPrivateCompanies) ? payload.topPrivateCompanies : [],
     topAssets: Array.isArray(payload.topAssets) ? payload.topAssets : [],
     night: payload.night ?? null,
   };

@@ -1,6 +1,6 @@
 import type { DashboardPayload, DashboardSegmentKey, DashboardSegmentSource } from "./types.js";
 
-const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "night"];
+const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "topPrivateCompanies", "night"];
 const SEGMENT_SOURCES = new Set<DashboardSegmentSource>(["live", "fresh-cache", "stale-cache", "fallback", "durable-cache"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -71,6 +71,14 @@ function isEtf(value: unknown): boolean {
     isNullableNumber(value.aumUsd) &&
     isNullableNumber(value.priceUsd) &&
     isNullableNumber(value.changePercent)
+  );
+}
+
+function isPrivateCompany(value: unknown): boolean {
+  return (
+    hasBaseEntry(value) &&
+    value.category === "Private Company" &&
+    isNullableNumber(value.marketCapUsd)
   );
 }
 
@@ -147,6 +155,8 @@ export function isDashboardPayload(value: unknown): value is DashboardPayload {
     value.topEtfs.every(isEtf) &&
     Array.isArray(value.topCurrencies) &&
     value.topCurrencies.every(isCurrency) &&
+    Array.isArray(value.topPrivateCompanies) &&
+    value.topPrivateCompanies.every(isPrivateCompany) &&
     Array.isArray(value.topAssets) &&
     value.topAssets.every(isAsset) &&
     (value.night === null || isNight(value.night)) &&

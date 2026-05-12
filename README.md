@@ -15,14 +15,14 @@
 ---
 
 <p align="center">
-  <img src="docs/preview-full.png" alt="World Asset Prices dashboard — animated gradient hero, six live sections, midnight aurora spotlight" width="720">
+  <img src="docs/screenshot.jpg" alt="World Asset Prices dark-mode dashboard with global asset cards and live market controls" width="720">
 </p>
 
 ---
 
 ## About
 
-A live financial dashboard tracking **top stocks, ETFs, fiat currencies, and cryptocurrencies** side-by-side in one view, plus a dedicated Midnight Token (NIGHT) panel. Stock prices, ETF prices, FX rates, and crypto prices update from live providers; stock market-cap and ETF AUM ranks are static estimates with an as-of date exposed in the UI.
+A live financial dashboard tracking **top stocks, private companies, ETFs, fiat currencies, and cryptocurrencies** side-by-side in one view, plus a dedicated Midnight Token (NIGHT) panel. Stock prices, ETF prices, FX rates, and crypto prices update from live providers; stock market-cap and ETF AUM values are price-derived estimates using baseline share/unit snapshots.
 
 A single `GET /api/dashboard` call powers the entire payload — the frontend never talks to external APIs directly. The server composes data from multiple free, no-key providers (Stooq, Frankfurter, CoinPaprika) behind a tiered cache: fresh in-memory → stale-if-error → durable KV fallback → bundled fallback JSON. The site never shows "no data," even if every upstream goes down.
 
@@ -30,7 +30,7 @@ A single `GET /api/dashboard` call powers the entire payload — the frontend ne
 
 ## Features
 
-- **Six market sections** — Global Assets, Stocks, ETFs, Currencies, Cryptos, and the Midnight Token panel
+- **Seven market sections** — Global Assets, Stocks, Private Companies, ETFs, Currencies, Cryptos, and the Midnight Token panel
 - **Market discovery controls** — search by name, symbol, or category; filter by section; sort every grid by rank, name, value, or absolute movement
 - **Pinned watchlist** — pin any market card into a persistent watchlist for faster cross-section monitoring
 - **Hero insight rail** — instant snapshot of tracked market count, data health, largest move, and global leader
@@ -47,6 +47,31 @@ A single `GET /api/dashboard` call powers the entire payload — the frontend ne
 - **Resilient fetch layer** — live provider → fresh cache → stale cache → durable KV → bundled fallback, with the chosen tier exposed per segment in the UI
 - **Production CI gates** — lint, typecheck, unit tests, route tests, E2E smoke tests, and bundle-size check
 
+## Data health and fallback semantics
+
+The dashboard keeps a per-segment source state and derives a compact health summary for the hero panel.
+
+Segment source values:
+
+- `live` / `fresh-cache` — data is new enough for normal operation
+- `stale-cache` — provider failed, using stale cache still inside fallback TTL
+- `durable-cache` — segment loaded from durable KV cache while fallback was needed
+- `fallback` — segment loaded from the bundled fallback JSON snapshot
+
+The hero **Data health** card reports:
+
+- `Live` when all segments are `live` or `fresh-cache`
+- `Degraded` when any segment is `stale-cache`, `durable-cache`, or `fallback`
+- a compact detail list that explains how many segments are degraded and how many are on true fallback
+
+Recovery is immediate for each segment when it returns to `live` / `fresh-cache`; when fallback or stale conditions remain, the degraded count and per-segment badge state stay visible.
+
+## Private companies section notes
+
+- The private companies list is currently sourced from `dashboard-fallback.json` and treated as a separate top-level section with its own `segmentMeta` tracking.
+- If you add a private-company data provider later, wire it through the same segment contract (`source`, `ageSec`, `segmentMeta`, and degraded markers) so it participates in `Data health`.
+- If other providers degrade, unaffected sections keep refreshing and stay isolated from the private section’s stale/fallback state.
+
 ## Tech Stack
 
 | Category | Technologies |
@@ -55,7 +80,7 @@ A single `GET /api/dashboard` call powers the entire payload — the frontend ne
 | **Styling** | Tailwind CSS v4, clsx |
 | **Animation** | Framer Motion 12 |
 | **Backend** | Vercel Serverless Functions (Node 20) |
-| **Data sources** | [Stooq](https://stooq.com) (stock + ETF prices), static stock-cap / ETF-AUM estimates, [Frankfurter / ECB](https://frankfurter.dev) (FX), [CoinPaprika](https://coinpaprika.com/api/) (crypto) — all free, no keys |
+| **Data sources** | [Stooq](https://stooq.com) (stock + ETF prices), live price-derived stock/ETF market-cap and AUM estimates, [Frankfurter / ECB](https://frankfurter.dev) (FX), [CoinPaprika](https://coinpaprika.com/api/) (crypto) — all free, no keys |
 | **Durable cache** | Upstash / Vercel KV (optional; falls back to in-memory + bundled JSON) |
 | **Testing** | Vitest 4, Testing Library, Playwright E2E |
 | **Linting** | ESLint 10, typescript-eslint |
@@ -149,7 +174,7 @@ world-asset-prices/
 
 - **Production-grade fetch resilience.** Every upstream is wrapped in a segment resolver that tries live → fresh cache → stale cache → durable KV → bundled fallback. The dashboard degrades gracefully and never renders empty state.
 - **Provider-agnostic data pipeline.** Providers implement a narrow contract (`fetch*From*()` returns a typed array) and are swappable without touching the UI — swapping FMP → Stooq + Frankfurter was a two-file change.
-- **Data-center-aware networking.** Stooq fetching batches each equity segment into one CSV request because Vercel's AWS IPs hit aggressive rate limits on naïve fan-out. Stock market-cap and ETF-AUM values are static estimates with an explicit as-of date; Frankfurter's business-day date logic handles ECB's weekend publishing gaps so change% is always a true 1-business-day delta.
+- **Data-center-aware networking.** Stooq fetching batches each equity segment into one CSV request because Vercel's AWS IPs hit aggressive rate limits on naïve fan-out. Stock market-cap and ETF-AUM values are live-price-derived estimates using snapshot share/unit counts; Frankfurter's business-day date logic handles ECB's weekend publishing gaps so change% is always a true 1-business-day delta.
 - **Full TS strict mode across three project configs** (client, node, server) with clean typecheck.
 - **CI gates that actually catch regressions**: lint, typecheck, unit, route, E2E, and a bundle-size budget.
 

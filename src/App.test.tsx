@@ -20,7 +20,7 @@ const payload: DashboardPayload = {
     equities: "stooq",
     crypto: "coinpaprika",
     fallbackUsed: false,
-    equityFundamentalsAsOf: "2026-05-04",
+    equityFundamentalsAsOf: "2026-05-11",
   },
   degradedSegments: [],
   segmentMeta: {
@@ -37,6 +37,10 @@ const payload: DashboardPayload = {
       ageSec: 0,
     },
     topCurrencies: {
+      source: "live",
+      ageSec: 0,
+    },
+    topPrivateCompanies: {
       source: "live",
       ageSec: 0,
     },
@@ -76,6 +80,7 @@ const payload: DashboardPayload = {
   ],
   topEtfs: [],
   topCurrencies: [],
+  topPrivateCompanies: [],
   topAssets: [
     {
       id: "commodity-gold",
@@ -158,5 +163,38 @@ describe("App", () => {
     const watchlist = screen.getByRole("region", { name: "Pinned Watchlist" });
     expect(within(watchlist).getByText("Apple")).toBeInTheDocument();
     expect(within(watchlist).getByRole("button", { name: "Unpin Apple from watchlist" })).toBeInTheDocument();
+  });
+
+  it("renders compact health segment badges when data is degraded", async () => {
+    mockedFetchDashboard.mockResolvedValue({
+      ...payload,
+      stale: true,
+      source: {
+        ...payload.source,
+        fallbackUsed: false,
+      },
+      degradedSegments: ["topStocks", "topEtfs"],
+      segmentMeta: {
+        ...payload.segmentMeta,
+        topStocks: {
+          ...payload.segmentMeta.topStocks,
+          source: "stale-cache",
+          ageSec: 90,
+        },
+        topEtfs: {
+          ...payload.segmentMeta.topEtfs,
+          source: "durable-cache",
+          ageSec: 300,
+        },
+      },
+    });
+
+    renderApp();
+
+    const healthRow = await screen.findByLabelText("Degraded segments");
+    expect(healthRow).toBeInTheDocument();
+    expect(healthRow.textContent).toContain("Stocks");
+    expect(healthRow.textContent).toContain("ETFs");
+    expect(healthRow.textContent).toContain("Durable cache");
   });
 });

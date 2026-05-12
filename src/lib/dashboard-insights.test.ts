@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { buildDashboardInsights, dashboardEntryMatches, getEntryChange, getEntryValue, sortDashboardEntries } from "./dashboard-insights";
+import {
+  buildDashboardInsights,
+  dashboardEntryMatches,
+  getEntryChange,
+  getEntryValue,
+  getWorstSegmentHealthSummaries,
+  sortDashboardEntries,
+} from "./dashboard-insights";
 import type { DashboardAsset, DashboardCrypto, DashboardCurrency, DashboardPayload, DashboardStock } from "../types/dashboard";
 
 const btc: DashboardCrypto = {
@@ -69,12 +76,14 @@ function makePayload(overrides: Partial<DashboardPayload> = {}): DashboardPayloa
       topStocks: { source: "fresh-cache", ageSec: 12 },
       topEtfs: { source: "live", ageSec: 5 },
       topCurrencies: { source: "live", ageSec: 3 },
+      topPrivateCompanies: { source: "live", ageSec: 7 },
       night: { source: "live", ageSec: 9 },
     },
     topCryptos: [btc],
     topStocks: [apple],
     topEtfs: [],
     topCurrencies: [euro],
+    topPrivateCompanies: [],
     topAssets: [gold],
     night: null,
     ...overrides,
@@ -112,8 +121,8 @@ describe("dashboard insights", () => {
 
   it("builds concise hero insight cards from dashboard data", () => {
     expect(buildDashboardInsights(makePayload())).toEqual([
-      { label: "Tracked markets", value: "4", detail: "Across 5 live sections", tone: "neutral" },
-      { label: "Data health", value: "Live", detail: "5 of 5 segments fresh", tone: "positive" },
+      { label: "Tracked markets", value: "4", detail: "Across 6 live sections", tone: "neutral" },
+      { label: "Data health", value: "Live", detail: "6 of 6 segments live", tone: "positive" },
       { label: "Largest move", value: "+2.50%", detail: "Bitcoin (BTC)", tone: "positive" },
       { label: "Global leader", value: "$20T", detail: "Gold (XAU)", tone: "neutral" },
     ]);
@@ -128,13 +137,43 @@ describe("dashboard insights", () => {
         crypto: "coinpaprika",
         fallbackUsed: true,
       },
+      segmentMeta: {
+        ...makePayload().segmentMeta,
+        topStocks: {
+          ...makePayload().segmentMeta.topStocks,
+          source: "stale-cache",
+          ageSec: 60,
+        },
+      },
     }));
 
     expect(insights[1]).toEqual({
       label: "Data health",
       value: "Degraded",
-      detail: "1 segment using fallback data",
+      detail: "Using 1 stale segment",
       tone: "warning",
     });
+  });
+
+  it("returns top degraded segments with the worst health first", () => {
+    const summary = getWorstSegmentHealthSummaries(
+      makePayload({
+        degradedSegments: ["topStocks", "topEtfs", "topPrivateCompanies"],
+        segmentMeta: {
+          topCryptos: { source: "live", ageSec: 0 },
+          topStocks: { source: "durable-cache", ageSec: 4_100 },
+          topEtfs: { source: "fallback", ageSec: 3_000 },
+          topCurrencies: { source: "live", ageSec: 0 },
+          topPrivateCompanies: { source: "stale-cache", ageSec: 4_050 },
+          night: { source: "live", ageSec: 0 },
+        },
+      }),
+    );
+
+    expect(summary).toEqual([
+      { segment: "topEtfs", label: "ETFs", source: "fallback", ageSec: 3_000 },
+      { segment: "topStocks", label: "Stocks", source: "durable-cache", ageSec: 4_100 },
+      { segment: "topPrivateCompanies", label: "Private companies", source: "stale-cache", ageSec: 4_050 },
+    ]);
   });
 });

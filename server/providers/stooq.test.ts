@@ -34,8 +34,12 @@ describe("Stooq provider", () => {
     expect(stocks[0]).toMatchObject({
       symbol: "NVDA",
       priceUsd: 198.543,
-      // 198.543 × 24_410_000_000 shares outstanding (rounded)
-      marketCapUsd: Math.round(198.543 * 24_410_000_000),
+      marketCapUsd: 5_487_343_479_405,
+    });
+    expect(stocks[1]).toMatchObject({
+      symbol: "AAPL",
+      priceUsd: 276.873,
+      marketCapUsd: 4_185_443_512_606,
     });
   });
 
@@ -69,8 +73,7 @@ describe("Stooq provider", () => {
     expect(spy).toMatchObject({
       symbol: "SPY",
       priceUsd: 718.03,
-      // 718.03 × 800_000_000 units outstanding (rounded)
-      aumUsd: Math.round(718.03 * 800_000_000),
+      aumUsd: 574_424_000_000,
     });
   });
 

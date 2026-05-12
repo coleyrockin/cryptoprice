@@ -5,7 +5,7 @@ export type DashboardSource = {
   equityFundamentalsAsOf?: string;
 };
 
-export type DashboardSegmentKey = "topCryptos" | "topStocks" | "topEtfs" | "topCurrencies" | "night";
+export type DashboardSegmentKey = "topCryptos" | "topStocks" | "topEtfs" | "topCurrencies" | "topPrivateCompanies" | "night";
 
 export type DashboardSegmentSource = "live" | "fresh-cache" | "stale-cache" | "fallback" | "durable-cache";
 
@@ -45,6 +45,11 @@ export type DashboardEtf = DashboardEntryBase & {
   changePercent: number | null;
 };
 
+export type DashboardPrivateCompany = DashboardEntryBase & {
+  category: "Private Company";
+  marketCapUsd: number | null;
+};
+
 export type DashboardAsset = DashboardEntryBase & {
   category: "Stock" | "Crypto" | "Commodity";
   marketCapUsd: number | null;
@@ -81,6 +86,7 @@ export type DashboardPayload = {
   topStocks: DashboardStock[];
   topEtfs: DashboardEtf[];
   topCurrencies: DashboardCurrency[];
+  topPrivateCompanies: DashboardPrivateCompany[];
   topAssets: DashboardAsset[];
   night: DashboardNight | null;
   requestId?: string;

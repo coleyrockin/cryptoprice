@@ -5,11 +5,12 @@ import type {
   DashboardCurrency,
   DashboardEtf,
   DashboardNight,
+  DashboardPrivateCompany,
   DashboardPayload,
   DashboardStock,
 } from "../types/dashboard";
 
-export type DashboardEntry = DashboardAsset | DashboardCrypto | DashboardCurrency | DashboardEtf | DashboardStock;
+export type DashboardEntry = DashboardAsset | DashboardCrypto | DashboardCurrency | DashboardEtf | DashboardStock | DashboardPrivateCompany;
 
 export type DashboardSortMode = "rank" | "name" | "value" | "movement";
 
@@ -18,6 +19,32 @@ export type DashboardInsight = {
   value: string;
   detail: string;
   tone: "neutral" | "positive" | "warning" | "negative";
+};
+
+export type DashboardSegmentHealth = {
+  segment: keyof DashboardPayload["segmentMeta"];
+  label: string;
+  source: DashboardPayload["segmentMeta"][keyof DashboardPayload["segmentMeta"]]["source"];
+  ageSec: number;
+};
+
+type DashboardHealthMode = "degraded" | "fresh";
+
+const DEGRADE_RANK: Record<DashboardPayload["segmentMeta"][keyof DashboardPayload["segmentMeta"]]["source"], number> = {
+  live: 0,
+  "fresh-cache": 1,
+  "stale-cache": 2,
+  "durable-cache": 3,
+  fallback: 4,
+};
+
+const SEGMENT_LABELS: Record<keyof DashboardPayload["segmentMeta"], string> = {
+  topCryptos: "Cryptos",
+  topStocks: "Stocks",
+  topEtfs: "ETFs",
+  topCurrencies: "FX",
+  topPrivateCompanies: "Private companies",
+  night: "NIGHT",
 };
 
 function normalizedText(value: string): string {
@@ -82,6 +109,7 @@ function countTrackedMarkets(dashboard: DashboardPayload): number {
     dashboard.topStocks.length +
     dashboard.topEtfs.length +
     dashboard.topCurrencies.length +
+    dashboard.topPrivateCompanies.length +
     dashboard.topCryptos.length +
     (dashboard.night ? 1 : 0)
   );
@@ -89,6 +117,57 @@ function countTrackedMarkets(dashboard: DashboardPayload): number {
 
 function getFreshSegmentCount(dashboard: DashboardPayload): number {
   return Object.values(dashboard.segmentMeta).filter((meta) => meta.source === "live" || meta.source === "fresh-cache").length;
+}
+
+function formatDataHealthDetail(dashboard: DashboardPayload, mode: DashboardHealthMode): string {
+  const totalSegments = Object.keys(dashboard.segmentMeta).length;
+  const freshSegments = getFreshSegmentCount(dashboard);
+  if (mode === "fresh") {
+    return `${freshSegments} of ${totalSegments} segments live`;
+  }
+
+  const fallbackSegments = dashboard.degradedSegments.filter((segment) => dashboard.segmentMeta[segment].source === "fallback");
+  const degradedCount = dashboard.degradedSegments.length;
+  const staleCount = degradedCount - fallbackSegments.length;
+
+  if (fallbackSegments.length > 0 && staleCount > 0) {
+    return `Using degraded data: ${degradedCount} segments (${fallbackSegments.length} fallback)`;
+  }
+
+  if (fallbackSegments.length > 0) {
+    return `Using fallback for ${fallbackSegments.length} segment${fallbackSegments.length === 1 ? "" : "s"}`;
+  }
+
+  return `Using ${staleCount} stale segment${staleCount === 1 ? "" : "s"}`;
+}
+
+function rankDegradedSegment(health: DashboardSegmentHealth): number {
+  return DEGRADE_RANK[health.source] * 10_000 + health.ageSec;
+}
+
+export function getWorstSegmentHealthSummaries(
+  dashboard: DashboardPayload,
+  max = 3,
+): DashboardSegmentHealth[] {
+  const degraded = dashboard.degradedSegments
+    .map((segment) => {
+      const meta = dashboard.segmentMeta[segment];
+      return {
+        segment,
+        label: SEGMENT_LABELS[segment],
+        source: meta.source,
+        ageSec: meta.ageSec,
+      };
+    })
+    .sort((left, right) => {
+      if (rankDegradedSegment(right) !== rankDegradedSegment(left)) {
+        return rankDegradedSegment(right) - rankDegradedSegment(left);
+      }
+
+      return right.ageSec - left.ageSec;
+    });
+
+  return degraded.slice(0, max);
 }
 
 function getLargestMover(dashboard: DashboardPayload): DashboardInsight {
@@ -151,9 +230,9 @@ function getGlobalLeader(topAssets: readonly DashboardAsset[]): DashboardInsight
 
 export function buildDashboardInsights(dashboard: DashboardPayload): DashboardInsight[] {
   const totalSegments = Object.keys(dashboard.segmentMeta).length;
-  const freshSegments = getFreshSegmentCount(dashboard);
   const degradedCount = dashboard.degradedSegments.length;
   const isDegraded = dashboard.stale || dashboard.source.fallbackUsed || degradedCount > 0;
+  const healthMode: DashboardHealthMode = isDegraded ? "degraded" : "fresh";
 
   return [
     {
@@ -165,9 +244,7 @@ export function buildDashboardInsights(dashboard: DashboardPayload): DashboardIn
     {
       label: "Data health",
       value: isDegraded ? "Degraded" : "Live",
-      detail: isDegraded
-        ? `${degradedCount || 1} ${degradedCount === 1 ? "segment" : "segments"} using fallback data`
-        : `${freshSegments} of ${totalSegments} segments fresh`,
+      detail: formatDataHealthDetail(dashboard, healthMode),
       tone: isDegraded ? "warning" : "positive",
     },
     getLargestMover(dashboard),

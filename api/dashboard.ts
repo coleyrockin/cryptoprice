@@ -30,7 +30,7 @@ function durableSegmentMeta(payload: DashboardPayload, nowMs: number): Dashboard
   };
 }
 
-const ALL_SEGMENTS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "night"];
+const ALL_SEGMENTS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "topPrivateCompanies", "night"];
 
 function fallbackSegments(payload: DashboardPayload): DashboardSegmentKey[] {
   return ALL_SEGMENTS.filter((segment) => payload.segmentMeta[segment].source === "fallback");

@@ -60,7 +60,7 @@ function samplePayload(): DashboardPayload {
       equities: "stooq",
       crypto: "coinpaprika",
       fallbackUsed: false,
-      equityFundamentalsAsOf: "2026-05-04",
+      equityFundamentalsAsOf: "2026-05-11",
     },
     degradedSegments: [],
     segmentMeta: {
@@ -80,6 +80,10 @@ function samplePayload(): DashboardPayload {
         source: "live",
         ageSec: 0,
       },
+      topPrivateCompanies: {
+        source: "live",
+        ageSec: 0,
+      },
       night: {
         source: "live",
         ageSec: 0,
@@ -89,6 +93,7 @@ function samplePayload(): DashboardPayload {
     topStocks: [],
     topEtfs: [],
     topCurrencies: [],
+    topPrivateCompanies: [],
     topAssets: [],
     night: null,
   };
@@ -124,6 +129,47 @@ describe("GET /api/dashboard", () => {
     expect(body.requestId).toBeTruthy();
     expect(body.segmentMeta.topCryptos.source).toBe("live");
     expect(body.degradedSegments).toEqual([]);
+  });
+
+  it("returns stale and fallback headers when source is fallback", async () => {
+    const stalePayload = samplePayload();
+    stalePayload.stale = true;
+    stalePayload.source.fallbackUsed = true;
+    stalePayload.degradedSegments = ["topStocks"];
+    stalePayload.segmentMeta.topStocks.source = "fallback";
+
+    mockedBuildDashboardPayload.mockResolvedValue(stalePayload);
+    mockedWriteDurableDashboard.mockResolvedValue(false);
+
+    const { response, state } = createMockResponse();
+    await handler({ method: "GET" }, response);
+
+    expect(state.statusCode).toBe(200);
+    expect(state.headers["x-wap-stale"]).toBe("true");
+    expect(state.headers["x-wap-fallback"]).toBe("true");
+    const body = state.jsonBody as DashboardPayload;
+    expect(body.degradedSegments).toEqual(["topStocks"]);
+    expect(body.segmentMeta.topStocks.source).toBe("fallback");
+  });
+
+  it("returns stale header without fallback when using stale-cache entries", async () => {
+    const stalePayload = samplePayload();
+    stalePayload.stale = true;
+    stalePayload.source.fallbackUsed = false;
+    stalePayload.degradedSegments = ["topEtfs"];
+    stalePayload.segmentMeta.topEtfs.source = "stale-cache";
+
+    mockedBuildDashboardPayload.mockResolvedValue(stalePayload);
+
+    const { response, state } = createMockResponse();
+    await handler({ method: "GET" }, response);
+
+    expect(state.statusCode).toBe(200);
+    expect(state.headers["x-wap-stale"]).toBe("true");
+    expect(state.headers["x-wap-fallback"]).toBe("false");
+    const body = state.jsonBody as DashboardPayload;
+    expect(body.degradedSegments).toEqual(["topEtfs"]);
+    expect(body.segmentMeta.topEtfs.source).toBe("stale-cache");
   });
 
   it("uses durable payload for fallback segments", async () => {

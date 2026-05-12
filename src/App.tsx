@@ -11,6 +11,8 @@ import {
   buildDashboardInsights,
   dashboardEntryMatches,
   getEntryChange,
+  getWorstSegmentHealthSummaries,
+  type DashboardSegmentHealth,
   nightAsPinnedEntry,
   sortDashboardEntries,
   type DashboardEntry,
@@ -18,17 +20,34 @@ import {
 } from "./lib/dashboard-insights";
 import { formatCompactCurrency, formatCurrency, formatExactCurrency, formatExactNumber, formatPercent, trendClass } from "./lib/formatters";
 import { useTheme } from "./hooks/useTheme";
-import type { DashboardAsset, DashboardCrypto, DashboardCurrency, DashboardEtf, DashboardStock } from "./types/dashboard";
+import type {
+  DashboardAsset,
+  DashboardCrypto,
+  DashboardCurrency,
+  DashboardEtf,
+  DashboardPrivateCompany,
+  DashboardStock,
+} from "./types/dashboard";
 
-const SECTION_IDS = ["section-watchlist", "section-assets", "section-stocks", "section-etfs", "section-currencies", "section-cryptos", "section-night"] as const;
+const SECTION_IDS = [
+  "section-watchlist",
+  "section-assets",
+  "section-stocks",
+  "section-private-companies",
+  "section-etfs",
+  "section-currencies",
+  "section-cryptos",
+  "section-night",
+] as const;
 
-type SectionFilter = "all" | "assets" | "stocks" | "etfs" | "currencies" | "cryptos";
+type SectionFilter = "all" | "assets" | "stocks" | "private" | "etfs" | "currencies" | "cryptos";
 type DensityMode = "comfortable" | "compact";
 
 const SECTION_FILTERS: { value: SectionFilter; label: string }[] = [
   { value: "all", label: "All" },
   { value: "assets", label: "Assets" },
   { value: "stocks", label: "Stocks" },
+  { value: "private", label: "Private" },
   { value: "etfs", label: "ETFs" },
   { value: "currencies", label: "FX" },
   { value: "cryptos", label: "Crypto" },
@@ -45,11 +64,32 @@ const SECTION_LINKS: { id: (typeof SECTION_IDS)[number]; label: string; filter: 
   { id: "section-watchlist", label: "Watchlist", filter: "watchlist" },
   { id: "section-assets", label: "Global Assets", filter: "assets" },
   { id: "section-stocks", label: "Stocks", filter: "stocks" },
+  { id: "section-private-companies", label: "Private Companies", filter: "private" },
   { id: "section-etfs", label: "ETFs", filter: "etfs" },
   { id: "section-currencies", label: "Currencies", filter: "currencies" },
   { id: "section-cryptos", label: "Cryptos", filter: "cryptos" },
   { id: "section-night", label: "NIGHT", filter: "all" },
 ];
+
+const SOURCE_LABEL: Record<DashboardSegmentHealth["source"], string> = {
+  live: "Live",
+  "fresh-cache": "Live",
+  "stale-cache": "Stale cache",
+  "durable-cache": "Durable cache",
+  fallback: "Fallback",
+};
+
+function formatSegmentAge(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3_600) return `${Math.floor(seconds / 60)}m`;
+  return `${Math.floor(seconds / 3_600)}h`;
+}
+
+function sourceTone(source: DashboardSegmentHealth["source"]): "positive" | "warning" | "negative" {
+  if (source === "live" || source === "fresh-cache") return "positive";
+  if (source === "stale-cache" || source === "durable-cache") return "warning";
+  return "negative";
+}
 
 const SECTION_REVEAL = {
   initial: { opacity: 0, y: 28 },
@@ -62,7 +102,7 @@ const DEFAULT_REFRESH_SEC = 30;
 const PINNED_STORAGE_KEY = "wap.pinned-markets.v1";
 const PREFS_STORAGE_KEY = "wap.prefs.v1";
 
-const VALID_SECTION_FILTERS: SectionFilter[] = ["all", "assets", "stocks", "etfs", "currencies", "cryptos"];
+const VALID_SECTION_FILTERS: SectionFilter[] = ["all", "assets", "stocks", "private", "etfs", "currencies", "cryptos"];
 const VALID_SORT_MODES: DashboardSortMode[] = ["rank", "name", "value", "movement"];
 const VALID_DENSITY: DensityMode[] = ["comfortable", "compact"];
 
@@ -135,6 +175,7 @@ const EMPTY_STOCKS: DashboardStock[] = [];
 const EMPTY_ETFS: DashboardEtf[] = [];
 const EMPTY_CURRENCIES: DashboardCurrency[] = [];
 const EMPTY_ASSETS: DashboardAsset[] = [];
+const EMPTY_PRIVATE_COMPANIES: DashboardPrivateCompany[] = [];
 
 function SkeletonGrid({ count = 10 }: { count?: number }) {
   return (
@@ -203,6 +244,7 @@ function App() {
   const topStocks = dashboard?.topStocks ?? EMPTY_STOCKS;
   const topEtfs = dashboard?.topEtfs ?? EMPTY_ETFS;
   const topCurrencies = dashboard?.topCurrencies ?? EMPTY_CURRENCIES;
+  const topPrivateCompanies = dashboard?.topPrivateCompanies ?? EMPTY_PRIVATE_COMPANIES;
   const topAssets = dashboard?.topAssets ?? EMPTY_ASSETS;
   const night = dashboard?.night ?? null;
   const segmentMeta = dashboard?.segmentMeta;
@@ -269,6 +311,7 @@ function App() {
   }, []);
 
   const dashboardInsights = useMemo(() => (dashboard ? buildDashboardInsights(dashboard) : []), [dashboard]);
+  const segmentHealthSummaries = useMemo(() => (dashboard ? getWorstSegmentHealthSummaries(dashboard) : []), [dashboard]);
 
   const visibleTopAssets = useMemo(
     () => sortDashboardEntries(topAssets.filter((entry) => dashboardEntryMatches(entry, normalizedSearchTerm)), sortMode),
@@ -290,15 +333,23 @@ function App() {
     () => sortDashboardEntries(topCryptos.filter((entry) => dashboardEntryMatches(entry, normalizedSearchTerm)), sortMode),
     [normalizedSearchTerm, sortMode, topCryptos],
   );
+  const visibleTopPrivateCompanies = useMemo(
+    () =>
+      sortDashboardEntries(
+        topPrivateCompanies.filter((entry) => dashboardEntryMatches(entry, normalizedSearchTerm)),
+        sortMode,
+      ),
+    [normalizedSearchTerm, sortMode, topPrivateCompanies],
+  );
 
   const pinnedEntries = useMemo(() => {
     const byId = new Map<string, DashboardEntry>();
-    for (const entry of [...topStocks, ...topEtfs, ...topCurrencies, ...topCryptos, ...topAssets]) {
+    for (const entry of [...topStocks, ...topEtfs, ...topCurrencies, ...topCryptos, ...topPrivateCompanies, ...topAssets]) {
       byId.set(entry.id, entry);
     }
     if (night) byId.set(night.id, nightAsPinnedEntry(night));
     return pinnedIds.map((id) => byId.get(id)).filter((entry): entry is DashboardEntry => Boolean(entry));
-  }, [night, pinnedIds, topAssets, topCryptos, topCurrencies, topEtfs, topStocks]);
+  }, [night, pinnedIds, topAssets, topCryptos, topCurrencies, topEtfs, topPrivateCompanies, topStocks]);
 
   const navLinks = useMemo(
     () =>
@@ -326,19 +377,31 @@ function App() {
     const hasChange = changeText !== "—";
     const isCrypto = "sparkline7d" in entry;
     const isCurrency = "rateVsUsd" in entry;
+    const isPrivateCompany = entry.category === "Private Company";
     const isPricedAsset = "priceUsd" in entry;
 
-    const valueLabel = isCrypto ? undefined : isCurrency ? "Rate vs USD" : isPricedAsset ? "Price" : "Est. Market Cap";
+    const valueLabel = isCrypto
+      ? undefined
+      : isCurrency
+        ? "Rate vs USD"
+        : isPricedAsset
+          ? "Price"
+          : isPrivateCompany
+            ? "Est. Valuation"
+            : "Est. Market Cap";
     const value = isCurrency
       ? formatCurrency(entry.rateVsUsd)
       : isPricedAsset
         ? formatCurrency(entry.priceUsd)
         : formatCompactCurrency(entry.marketCapUsd);
-    const exactValue = isCurrency
-      ? formatExactCurrency(entry.rateVsUsd)
-      : isPricedAsset
-        ? formatExactCurrency(entry.priceUsd)
-        : formatExactNumber(entry.marketCapUsd);
+    const exactValue =
+      isCurrency
+        ? formatExactCurrency(entry.rateVsUsd)
+        : isPrivateCompany
+          ? formatExactCurrency(entry.marketCapUsd)
+          : isPricedAsset
+            ? formatExactCurrency(entry.priceUsd)
+            : formatExactNumber(entry.marketCapUsd);
 
     return (
       <MarketCard
@@ -350,8 +413,22 @@ function App() {
         meta={entry.category}
         valueLabel={valueLabel}
         value={value}
-        priceTitle={buildPriceTitle(exactValue, generatedAt, isCurrency ? "Exact rate" : isPricedAsset ? "Exact" : "Exact market cap (USD)")}
-        secondary={isCrypto ? changeText : hasChange ? changeText : isPricedAsset || isCurrency ? "—" : "Estimated market cap"}
+        priceTitle={buildPriceTitle(
+          exactValue,
+          generatedAt,
+          isCurrency ? "Exact rate" : isPricedAsset ? "Exact" : isPrivateCompany ? "Exact valuation (USD)" : "Exact market cap (USD)",
+        )}
+        secondary={
+          isCrypto
+            ? changeText
+            : hasChange
+              ? changeText
+              : isPricedAsset || isCurrency
+                ? "—"
+                : isPrivateCompany
+                  ? "Estimated valuation"
+                  : "Estimated market cap"
+        }
         secondaryClassName={isCrypto || hasChange ? clsx("coin-change", trendClass(change)) : "asset-note"}
         secondaryTitle={isCrypto ? "24h change" : hasChange ? "Daily change" : undefined}
         index={index}
@@ -393,6 +470,37 @@ function App() {
             active={coin.id === activeCryptoId}
             onClick={() => setActiveCryptoId(coin.id)}
             sparkline={coin.sparkline7d}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  const renderPrivateGrid = () => {
+    if (isBooting) return <SkeletonGrid />;
+    if (!topPrivateCompanies.length || !visibleTopPrivateCompanies.length) return renderEmptyState("private companies", topPrivateCompanies.length > 0);
+
+    return (
+      <div className="coin-grid">
+        {visibleTopPrivateCompanies.map((company, index) => (
+          <MarketCard
+            key={company.id}
+            id={company.id}
+            rank={company.rank}
+            name={company.name}
+            symbol={company.symbol}
+            meta={company.category}
+            valueLabel="Est. Valuation"
+            value={formatCompactCurrency(company.marketCapUsd)}
+            priceTitle={buildPriceTitle(formatExactNumber(company.marketCapUsd), generatedAt, "Exact valuation (USD)")}
+            secondary="Estimated valuation"
+            secondaryClassName="asset-note"
+            index={index}
+            logoUrl={company.logoUrl}
+            fallbackLogoUrls={company.fallbackLogoUrls}
+            pinned={pinnedIdSet.has(company.id)}
+            onTogglePin={() => togglePinned(company.id)}
+            assetStyle
           />
         ))}
       </div>
@@ -580,6 +688,23 @@ function App() {
               ))}
             </dl>
           ) : null}
+          {segmentHealthSummaries.length ? (
+            <div className="hero-segment-health" aria-label="Degraded segments">
+              {segmentHealthSummaries.map((segment) => (
+                <span
+                  key={segment.segment}
+                  className={clsx("hero-segment-health-item", `hero-segment-health-item--${sourceTone(segment.source)}`)}
+                  title={`Source: ${SOURCE_LABEL[segment.source]} · ${formatSegmentAge(segment.ageSec)} ago`}
+                >
+                  <span className="hero-segment-health-label">{segment.label}</span>
+                  <span className="hero-segment-health-sep" aria-hidden="true">·</span>
+                  <span className="hero-segment-health-source">{SOURCE_LABEL[segment.source]}</span>
+                  <span aria-hidden="true"> · </span>
+                  <span>{formatSegmentAge(segment.ageSec)} ago</span>
+                </span>
+              ))}
+            </div>
+          ) : null}
         </header>
 
         <section className="dashboard-toolbar" aria-label="Dashboard controls">
@@ -701,6 +826,18 @@ function App() {
               generatedAt={generatedAt}
             />
             {renderStockGrid()}
+          </motion.section>
+        ) : null}
+
+        {shouldShowSection("private") ? (
+          <motion.section id="section-private-companies" className="surface private-companies-surface" {...SECTION_REVEAL}>
+            <SectionHeader
+              title="Top 10 Private Companies"
+              subtitle="Estimated valuations"
+              meta={segmentMeta?.topPrivateCompanies}
+              generatedAt={generatedAt}
+            />
+            {renderPrivateGrid()}
           </motion.section>
         ) : null}
 

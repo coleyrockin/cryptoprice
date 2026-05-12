@@ -412,6 +412,65 @@ html:not(.dark) .hero-insight {
 
 html:not(.dark) .hero-insight--warning dd { color: #b45309; }
 
+.hero-segment-health {
+  margin-top: 0.52rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.hero-segment-health-item {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  color: var(--text-muted);
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+.hero-segment-health-item--positive {
+  border-color: rgba(80, 255, 176, 0.35);
+  color: var(--green);
+}
+
+.hero-segment-health-item--warning {
+  border-color: rgba(255, 183, 77, 0.35);
+  color: #ffc36e;
+}
+
+.hero-segment-health-item--negative {
+  border-color: rgba(255, 107, 138, 0.35);
+  color: var(--red);
+}
+
+.hero-segment-health-label {
+  font-weight: 700;
+}
+
+.hero-segment-health-source {
+  opacity: 0.9;
+}
+
+.hero-segment-health-sep {
+  opacity: 0.5;
+}
+
+html:not(.dark) .hero-segment-health-item {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.44));
+}
+
+html:not(.dark) .hero-segment-health-item--warning {
+  color: #b45309;
+  border-color: rgba(180, 83, 9, 0.3);
+}
+
 /* ── Dashboard Controls ── */
 .dashboard-toolbar {
   display: flex;
@@ -1588,6 +1647,7 @@ html:not(.dark) .night-ticker-stat { position: relative; z-index: 1; }
 /* ── Section-specific surface accents ── */
 .global-assets-surface { border-color: rgba(255, 122, 16, 0.35); }
 .stocks-surface { border-color: rgba(168, 85, 247, 0.32); }
+.private-companies-surface { border-color: rgba(250, 204, 21, 0.32); }
 .cryptos-surface { border-color: rgba(34, 192, 255, 0.32); }
 .etfs-surface { border-color: rgba(168, 85, 247, 0.32); }
 .currencies-surface { border-color: rgba(77, 240, 224, 0.32); }
@@ -1595,6 +1655,7 @@ html:not(.dark) .night-ticker-stat { position: relative; z-index: 1; }
 
 html:not(.dark) .global-assets-surface { border-color: rgba(234, 88, 12, 0.3); }
 html:not(.dark) .stocks-surface { border-color: rgba(124, 58, 237, 0.28); }
+html:not(.dark) .private-companies-surface { border-color: rgba(217, 119, 6, 0.28); }
 html:not(.dark) .cryptos-surface { border-color: rgba(99, 102, 241, 0.3); }
 html:not(.dark) .etfs-surface { border-color: rgba(109, 40, 217, 0.25); }
 html:not(.dark) .currencies-surface { border-color: rgba(8, 145, 178, 0.28); }
@@ -1631,6 +1692,23 @@ html:not(.dark) .watchlist-surface {
   background:
     linear-gradient(138deg, rgba(77, 240, 224, 0.28), rgba(34, 211, 200, 0.22) 45%, rgba(120, 250, 240, 0.2)) padding-box,
     linear-gradient(135deg, rgba(100, 245, 230, 0.65), rgba(50, 220, 210, 0.55), rgba(140, 255, 245, 0.45)) border-box;
+}
+
+/* Private companies: amber/amber-hover glow */
+.private-companies-surface .coin-card {
+  --hover-blue: 250, 204, 21;
+  --hover-green: 245, 158, 11;
+  --hover-pink: 253, 224, 71;
+  --hover-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.6),
+    0 0 50px rgba(250, 204, 21, 0.22),
+    0 0 100px rgba(245, 158, 11, 0.08);
+}
+.private-companies-surface .coin-card:hover,
+.private-companies-surface .coin-card:focus-visible {
+  background:
+    linear-gradient(138deg, rgba(250, 204, 21, 0.22), rgba(245, 158, 11, 0.17) 45%, rgba(253, 224, 71, 0.15)) padding-box,
+    linear-gradient(135deg, rgba(252, 211, 77, 0.52), rgba(251, 191, 36, 0.42), rgba(253, 224, 71, 0.35)) border-box;
 }
 
 /* ETFs: purple hover glow */

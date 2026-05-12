@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryCache } from "./cache";
 
 vi.mock("./providers/stooq", () => ({
-  EQUITY_FUNDAMENTALS_AS_OF: "2026-05-04",
+  EQUITY_FUNDAMENTALS_AS_OF: "2026-05-11",
   fetchTopStocksFromStooq: vi.fn(),
   fetchTopEtfsFromStooq: vi.fn(),
 }));
@@ -261,7 +261,7 @@ describe("buildDashboardPayload", () => {
     expect(payload.topEtfs).toHaveLength(2);
     expect(payload.topEtfs[0]?.symbol).toBe("SPY");
     expect(payload.segmentMeta.topEtfs.source).toBe("live");
-    expect(payload.source.equityFundamentalsAsOf).toBe("2026-05-04");
+    expect(payload.source.equityFundamentalsAsOf).toBe("2026-05-11");
   });
 
   it("marks topEtfs as degraded and uses fallback when ETF provider fails", async () => {
@@ -322,5 +322,93 @@ describe("buildDashboardPayload", () => {
 
     expect(payload.topStocks).toEqual([]);
     expect(payload.topCryptos[0]?.symbol).toBe("BTC");
+  });
+
+  it("tracks a segment through stale-cache, fallback, and live recovery", async () => {
+    const cache = new MemoryCache();
+    let now = 1_000_000;
+
+    mockedFetchTopStocksFromStooq.mockResolvedValue(sampleStocks);
+    mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
+    mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
+    mockedFetchTopEtfsFromStooq.mockResolvedValue(sampleEtfs);
+    mockedFetchTopCurrenciesFromFrankfurter.mockResolvedValue(sampleCurrencies);
+
+    const seeded = await buildDashboardPayload({ cache, now: () => now, cacheTtlSec: 60, fallbackTtlSec: 600, logger });
+    expect(seeded.stale).toBe(false);
+    expect(seeded.degradedSegments).toEqual([]);
+
+    now += 70_000;
+    mockedFetchTopStocksFromStooq.mockRejectedValue(new Error("stooq transient"));
+    const staleCachePayload = await buildDashboardPayload({
+      cache,
+      now: () => now,
+      cacheTtlSec: 60,
+      fallbackTtlSec: 600,
+      logger,
+    });
+    expect(staleCachePayload.stale).toBe(true);
+    expect(staleCachePayload.source.fallbackUsed).toBe(false);
+    expect(staleCachePayload.degradedSegments).toEqual(["topStocks"]);
+    expect(staleCachePayload.segmentMeta.topStocks.source).toBe("stale-cache");
+
+    now += 700_000;
+    mockedFetchTopStocksFromStooq.mockRejectedValue(new Error("stooq down"));
+    const fallbackPayload = await buildDashboardPayload({
+      cache,
+      now: () => now,
+      cacheTtlSec: 60,
+      fallbackTtlSec: 600,
+      logger,
+    });
+    expect(fallbackPayload.stale).toBe(true);
+    expect(fallbackPayload.source.fallbackUsed).toBe(true);
+    expect(fallbackPayload.degradedSegments).toEqual(["topStocks"]);
+    expect(fallbackPayload.segmentMeta.topStocks.source).toBe("fallback");
+
+    now += 5_000;
+    mockedFetchTopStocksFromStooq.mockResolvedValue(sampleStocks);
+    const recovered = await buildDashboardPayload({ cache, now: () => now, cacheTtlSec: 60, fallbackTtlSec: 600, logger });
+    expect(recovered.stale).toBe(false);
+    expect(recovered.source.fallbackUsed).toBe(false);
+    expect(recovered.degradedSegments).toEqual([]);
+    expect(recovered.segmentMeta.topStocks.source).toBe("live");
+  });
+
+  it("reconciles outlier stock and ETF valuation jumps against cached values", async () => {
+    const cache = new MemoryCache();
+    let now = 2_500_000;
+
+    mockedFetchTopStocksFromStooq.mockResolvedValue(sampleStocks);
+    mockedFetchTopCryptosFromCoinpaprika.mockResolvedValue(sampleCryptos);
+    mockedFetchNightFromCoinpaprika.mockResolvedValue(sampleNight);
+    mockedFetchTopEtfsFromStooq.mockResolvedValue(sampleEtfs);
+    mockedFetchTopCurrenciesFromFrankfurter.mockResolvedValue(sampleCurrencies);
+
+    const seeded = await buildDashboardPayload({ cache, now: () => now, cacheTtlSec: 60, fallbackTtlSec: 600, logger });
+    expect(seeded.segmentMeta.topStocks.source).toBe("live");
+    expect(seeded.segmentMeta.topEtfs.source).toBe("live");
+
+    now += 70_000;
+    mockedFetchTopStocksFromStooq.mockResolvedValue([
+      {
+        ...sampleStocks[0],
+        priceUsd: 3900,
+        marketCapUsd: 8_999_000_000_000,
+      },
+    ]);
+    mockedFetchTopEtfsFromStooq.mockResolvedValue([
+      {
+        ...sampleEtfs[0],
+        priceUsd: 3900,
+        aumUsd: 2_000_000_000_000,
+      },
+    ]);
+    const reconciled = await buildDashboardPayload({ cache, now: () => now, cacheTtlSec: 60, fallbackTtlSec: 600, logger });
+    expect(reconciled.stale).toBe(true);
+    expect(reconciled.segmentMeta.topStocks.source).toBe("stale-cache");
+    expect(reconciled.segmentMeta.topEtfs.source).toBe("stale-cache");
+    expect(reconciled.topStocks[0]?.marketCapUsd).toBe(sampleStocks[0]?.marketCapUsd);
+    expect(reconciled.topEtfs[0]?.aumUsd).toBe(sampleEtfs[0]?.aumUsd);
   });
 });

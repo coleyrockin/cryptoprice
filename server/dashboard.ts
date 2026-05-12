@@ -6,12 +6,14 @@ import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./pro
 import { fetchTopCurrenciesFromFrankfurter } from "./providers/frankfurter.js";
 import { EQUITY_FUNDAMENTALS_AS_OF, fetchTopEtfsFromStooq, fetchTopStocksFromStooq } from "./providers/stooq.js";
 import { toFiniteNumber } from "./sanitize.js";
+import { isDashboardPayload } from "./dashboard-schema.js";
 import type {
   DashboardAsset,
   DashboardCrypto,
   DashboardCurrency,
   DashboardEtf,
   DashboardNight,
+  DashboardPrivateCompany,
   DashboardPayload,
   DashboardSegmentKey,
   DashboardSegmentSource,
@@ -39,10 +41,22 @@ export type DashboardBuildOptions = {
   coinpaprikaBaseUrl?: string;
 };
 
-const FALLBACK_PAYLOAD = fallbackPayloadJson as DashboardPayload;
+function loadFallbackPayload(): DashboardPayload {
+  const payload = fallbackPayloadJson as unknown;
+  if (!isDashboardPayload(payload)) {
+    throw new Error("Invalid bundled fallback dashboard payload");
+  }
+
+  return payload;
+}
+
+const FALLBACK_PAYLOAD = loadFallbackPayload();
 const FALLBACK_GENERATED_AT_MS = Date.parse(FALLBACK_PAYLOAD.generatedAt);
 
-const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "night"];
+const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "topPrivateCompanies", "night"];
+const CACHE_KEY_STOCKS = "stooq:top-stocks";
+const CACHE_KEY_ETFS = "stooq:top-etfs";
+const OUTLIER_JUMP_RATIO = 2.6;
 
 type StaleAlertGlobal = typeof globalThis & {
   __WAP_STALE_ALERTS__?: Map<DashboardSegmentKey, number>;
@@ -150,6 +164,103 @@ function normalizeEtfs(etfs: unknown): DashboardEtf[] {
     aumUsd: toFiniteNumber(etf.aumUsd),
     priceUsd: toFiniteNumber(etf.priceUsd),
     changePercent: toFiniteNumber(etf.changePercent),
+  }));
+}
+
+function isOutlierEstimate(currentValue: number | null, priorValue: number | null): boolean {
+  if (currentValue === null || priorValue === null) {
+    return false;
+  }
+
+  if (!Number.isFinite(currentValue) || !Number.isFinite(priorValue)) {
+    return false;
+  }
+
+  if (currentValue <= 0 || priorValue <= 0) {
+    return false;
+  }
+
+  const ratio = currentValue / priorValue;
+  return ratio >= OUTLIER_JUMP_RATIO || ratio <= 1 / OUTLIER_JUMP_RATIO;
+}
+
+function reconcileStockValuations(
+  current: DashboardStock[],
+  prior: DashboardStock[] | null,
+): { data: DashboardStock[]; adjusted: boolean } {
+  if (!prior?.length) {
+    return { data: current, adjusted: false };
+  }
+
+  const priorBySymbol = new Map(current.map((entry) => [entry.symbol, null as number | null]));
+  for (const entry of prior) {
+    priorBySymbol.set(entry.symbol, toFiniteNumber(entry.marketCapUsd));
+  }
+
+  let adjusted = false;
+  const values = current.map((entry) => {
+    const priorValue = priorBySymbol.get(entry.symbol) ?? null;
+    const currentValue = toFiniteNumber(entry.marketCapUsd);
+    if (isOutlierEstimate(currentValue, priorValue)) {
+      adjusted = true;
+      return {
+        ...entry,
+        marketCapUsd: priorValue,
+      };
+    }
+
+    return entry;
+  });
+
+  return {
+    data: values,
+    adjusted,
+  };
+}
+
+function reconcileEtfValuations(
+  current: DashboardEtf[],
+  prior: DashboardEtf[] | null,
+): { data: DashboardEtf[]; adjusted: boolean } {
+  if (!prior?.length) {
+    return { data: current, adjusted: false };
+  }
+
+  const priorBySymbol = new Map(current.map((entry) => [entry.symbol, null as number | null]));
+  for (const entry of prior) {
+    priorBySymbol.set(entry.symbol, toFiniteNumber(entry.aumUsd));
+  }
+
+  let adjusted = false;
+  const values = current.map((entry) => {
+    const priorValue = priorBySymbol.get(entry.symbol) ?? null;
+    const currentValue = toFiniteNumber(entry.aumUsd);
+    if (isOutlierEstimate(currentValue, priorValue)) {
+      adjusted = true;
+      return {
+        ...entry,
+        aumUsd: priorValue,
+      };
+    }
+
+    return entry;
+  });
+
+  return {
+    data: values,
+    adjusted,
+  };
+}
+
+function normalizePrivateCompanies(privateCompanies: unknown): DashboardPrivateCompany[] {
+  if (!Array.isArray(privateCompanies)) {
+    return [];
+  }
+
+  return privateCompanies.map((company, index) => ({
+    ...company,
+    rank: index + 1,
+    marketCapUsd: toFiniteNumber(company.marketCapUsd),
   }));
 }
 
@@ -308,6 +419,8 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
   const timeoutMs = options.timeoutMs ?? 4_500;
   const retries = options.retries ?? 1;
   const fallbackUpdatedAtMs = Number.isFinite(FALLBACK_GENERATED_AT_MS) ? FALLBACK_GENERATED_AT_MS : nowMs;
+  const priorStocksCache = cache.getStaleEntry<DashboardStock[]>(CACHE_KEY_STOCKS, fallbackTtlSec, nowMs);
+  const priorEtfsCache = cache.getStaleEntry<DashboardEtf[]>(CACHE_KEY_ETFS, fallbackTtlSec, nowMs);
 
   const [cryptosResult, stocksResult, etfsResult, currenciesResult, nightResult] = await Promise.all([
     resolveSegment<DashboardCrypto[]>({
@@ -330,7 +443,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
         }),
     }),
     resolveSegment<DashboardStock[]>({
-      key: "stooq:top-stocks",
+      key: CACHE_KEY_STOCKS,
       metricKey: "topStocks",
       label: "topStocks",
       fallbackValue: FALLBACK_PAYLOAD.topStocks,
@@ -346,7 +459,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
         }),
     }),
     resolveSegment<DashboardEtf[]>({
-      key: "stooq:top-etfs",
+      key: CACHE_KEY_ETFS,
       metricKey: "topEtfs",
       label: "topEtfs",
       fallbackValue: FALLBACK_PAYLOAD.topEtfs,
@@ -398,15 +511,47 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
     }),
   ]);
 
+  let topStocks = normalizeStocks(stocksResult.data);
+  let stocksMeta = stocksResult;
+
+  let topEtfs = normalizeEtfs(etfsResult.data);
+  let etfsMeta = etfsResult;
+
+  if (stocksResult.source === "live" && priorStocksCache) {
+    const stabilized = reconcileStockValuations(topStocks, normalizeStocks(priorStocksCache.value));
+    if (stabilized.adjusted) {
+      topStocks = stabilized.data;
+      stocksMeta = {
+        ...stocksResult,
+        stale: true,
+        source: "stale-cache",
+        updatedAtMs: priorStocksCache.updatedAt,
+      };
+    }
+  }
+
+  if (etfsResult.source === "live" && priorEtfsCache) {
+    const stabilized = reconcileEtfValuations(topEtfs, normalizeEtfs(priorEtfsCache.value));
+    if (stabilized.adjusted) {
+      topEtfs = stabilized.data;
+      etfsMeta = {
+        ...etfsResult,
+        stale: true,
+        source: "stale-cache",
+        updatedAtMs: priorEtfsCache.updatedAt,
+      };
+    }
+  }
+
   const topCryptos = normalizeCryptos(cryptosResult.data);
-  const topStocks = normalizeStocks(stocksResult.data);
-  const topEtfs = normalizeEtfs(etfsResult.data);
   const topCurrencies = normalizeCurrencies(currenciesResult.data);
+  const topPrivateCompanies = normalizePrivateCompanies(FALLBACK_PAYLOAD.topPrivateCompanies);
   const topAssets = buildTopAssets(topStocks, topCryptos);
   const night = normalizeNight(nightResult.data);
 
-  const stale = cryptosResult.stale || stocksResult.stale || etfsResult.stale || currenciesResult.stale || nightResult.stale;
-  const fallbackUsed = cryptosResult.fallbackUsed || stocksResult.fallbackUsed || etfsResult.fallbackUsed || currenciesResult.fallbackUsed || nightResult.fallbackUsed;
+  const stale = cryptosResult.stale || stocksMeta.stale || etfsMeta.stale || currenciesResult.stale || nightResult.stale;
+  const fallbackUsed =
+    cryptosResult.fallbackUsed || stocksMeta.fallbackUsed || etfsMeta.fallbackUsed || currenciesResult.fallbackUsed || nightResult.fallbackUsed;
 
   const segmentMeta = {
     topCryptos: {
@@ -414,16 +559,20 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       ageSec: Math.max(0, Math.floor((nowMs - cryptosResult.updatedAtMs) / 1_000)),
     },
     topStocks: {
-      source: stocksResult.source,
-      ageSec: Math.max(0, Math.floor((nowMs - stocksResult.updatedAtMs) / 1_000)),
+      source: stocksMeta.source,
+      ageSec: Math.max(0, Math.floor((nowMs - stocksMeta.updatedAtMs) / 1_000)),
     },
     topEtfs: {
-      source: etfsResult.source,
-      ageSec: Math.max(0, Math.floor((nowMs - etfsResult.updatedAtMs) / 1_000)),
+      source: etfsMeta.source,
+      ageSec: Math.max(0, Math.floor((nowMs - etfsMeta.updatedAtMs) / 1_000)),
     },
     topCurrencies: {
       source: currenciesResult.source,
       ageSec: Math.max(0, Math.floor((nowMs - currenciesResult.updatedAtMs) / 1_000)),
+    },
+    topPrivateCompanies: {
+      source: "live",
+      ageSec: 0,
     },
     night: {
       source: nightResult.source,
@@ -465,6 +614,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
     topStocks,
     topEtfs,
     topCurrencies,
+    topPrivateCompanies,
     topAssets,
     night,
   };

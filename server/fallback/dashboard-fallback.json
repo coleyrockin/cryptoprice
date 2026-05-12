@@ -167,9 +167,9 @@
       "name": "NVIDIA",
       "symbol": "NVDA",
       "category": "Stock",
-      "marketCapUsd": 5327000000000,
-      "priceUsd": 218.24,
-      "changePercent": -0.14,
+      "marketCapUsd": 5330000000000,
+      "priceUsd": 192.85,
+      "changePercent": 0.68,
       "logoUrl": "https://financialmodelingprep.com/image-stock/NVDA.png",
       "fallbackLogoUrls": [
         "https://images.financialmodelingprep.com/symbol/NVDA.png"
@@ -329,7 +329,7 @@
       "name": "NVIDIA",
       "symbol": "NVDA",
       "category": "Stock",
-      "marketCapUsd": 5327000000000,
+      "marketCapUsd": 5330000000000,
       "logoUrl": "https://financialmodelingprep.com/image-stock/NVDA.png",
       "fallbackLogoUrls": [
         "https://images.financialmodelingprep.com/symbol/NVDA.png"
@@ -419,6 +419,108 @@
         "https://cryptoicons.org/api/icon/btc/200",
         "https://cryptoicon-api.pages.dev/api/icon/btc"
       ]
+    }
+  ],
+  "topPrivateCompanies": [
+    {
+      "id": "private-spacex",
+      "rank": 1,
+      "name": "SpaceX",
+      "symbol": "SPACEX",
+      "category": "Private Company",
+      "marketCapUsd": 1750000000000,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "private-bytedance",
+      "rank": 2,
+      "name": "ByteDance",
+      "symbol": "BYTEDANCE",
+      "category": "Private Company",
+      "marketCapUsd": 500000000000,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "private-openai",
+      "rank": 3,
+      "name": "OpenAI",
+      "symbol": "OPENAI",
+      "category": "Private Company",
+      "marketCapUsd": 160000000000,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "private-stripe",
+      "rank": 4,
+      "name": "Stripe",
+      "symbol": "STRIPE",
+      "category": "Private Company",
+      "marketCapUsd": 95000000000,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "private-shein",
+      "rank": 5,
+      "name": "Shein",
+      "symbol": "SHEIN",
+      "category": "Private Company",
+      "marketCapUsd": 65000000000,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "private-instacart",
+      "rank": 6,
+      "name": "Instacart",
+      "symbol": "INSTACART",
+      "category": "Private Company",
+      "marketCapUsd": 39000000000,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "private-klarna",
+      "rank": 7,
+      "name": "Klarna",
+      "symbol": "KLARNA",
+      "category": "Private Company",
+      "marketCapUsd": 28000000000,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "private-databricks",
+      "rank": 8,
+      "name": "Databricks",
+      "symbol": "DATABRICKS",
+      "category": "Private Company",
+      "marketCapUsd": 25000000000,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "private-canva",
+      "rank": 9,
+      "name": "Canva",
+      "symbol": "CANVA",
+      "category": "Private Company",
+      "marketCapUsd": 15000000000,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "private-epic-games",
+      "rank": 10,
+      "name": "Epic Games",
+      "symbol": "EPIC",
+      "category": "Private Company",
+      "marketCapUsd": 13000000000,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
     }
   ],
   "night": {
@@ -605,6 +707,10 @@
       "ageSec": 0
     },
     "topCurrencies": {
+      "source": "fallback",
+      "ageSec": 0
+    },
+    "topPrivateCompanies": {
       "source": "fallback",
       "ageSec": 0
     },

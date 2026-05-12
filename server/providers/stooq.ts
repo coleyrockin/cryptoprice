@@ -3,51 +3,96 @@ import { readResponseTextWithLimit } from "../request.js";
 import { resolveProviderBaseUrl } from "./base-url.js";
 import type { DashboardEtf, DashboardStock } from "../types.js";
 
+import fallbackPayloadJson from "../fallback/dashboard-fallback.json" with { type: "json" };
+
 const STOOQ_BASE_URL = "https://stooq.com";
 const STOOQ_MAX_RESPONSE_BYTES = 64_000;
-
-// Date the share/unit counts below were last reconciled against the most
-// recent company filings and ETF fact sheets. Bump this whenever the maps
-// are refreshed so the UI can disclose the as-of date for fundamentals.
 export const EQUITY_FUNDAMENTALS_AS_OF = "2026-05-12";
 
 // Lists ordered by current market cap / AUM. Ranking is positional —
 // Stooq does not expose those values, so we derive them from the static
 // share/unit counts below multiplied by the live close price.
 const TOP_STOCK_SYMBOLS = ["NVDA", "GOOGL", "AAPL", "MSFT", "AMZN", "TSM", "AVGO", "META", "BRK-B", "LLY"];
-const TOP_ETF_SYMBOLS   = ["VOO",  "SPY",   "IVV",  "VTI",  "QQQ",  "VUG", "BND",  "AGG",  "GLD",   "VXUS"];
+const TOP_ETF_SYMBOLS = ["VOO", "SPY", "IVV", "VTI", "QQQ", "VUG", "BND", "AGG", "GLD", "VXUS"];
 
-// Shares outstanding (basic). Sources: most recent 10-Q/10-K filings.
-// For TSM the figure is converted to ADR-equivalents (1 ADR = 5 ordinary).
-// For Alphabet the figure represents the combined Class A + B + C float.
-// For Berkshire the figure is converted to Class-B-equivalents (1 A = 1500 B).
-const STOCK_SHARES_OUTSTANDING: Record<string, number> = {
-  NVDA: 24_410_000_000,
-  GOOGL: 12_177_960_000,
-  AAPL: 15_115_823_000,
-  MSFT: 7_433_490_000,
-  AMZN: 10_632_550_000,
-  TSM: 5_186_550_000,
-  AVGO: 4_731_140_000,
-  META: 2_551_300_000,
-  "BRK-B": 2_158_300_000,
-  LLY: 898_290_000,
+type FallbackStockRow = {
+  symbol?: string;
+  marketCapUsd?: number | null;
+  priceUsd?: number | null;
 };
 
-// ETF units outstanding (creation units × shares per CU). Sources: issuer
-// fact sheets. AUM = units × NAV ≈ units × close price.
-const ETF_UNITS_OUTSTANDING: Record<string, number> = {
-  VOO: 1_600_000_000,
-  SPY: 800_000_000,
-  IVV: 700_000_000,
-  VTI: 1_400_000_000,
-  QQQ: 450_000_000,
-  VUG: 1_965_000_000,
-  BND: 1_750_000_000,
-  AGG: 1_210_000_000,
-  GLD: 215_000_000,
-  VXUS: 1_100_000_000,
+type FallbackEtfRow = {
+  symbol?: string;
+  aumUsd?: number | null;
+  priceUsd?: number | null;
 };
+
+function normalizeFallbackSymbol(symbol: string): string {
+  return symbol.trim().toUpperCase().replace("BRK.B", "BRK-B");
+}
+
+function fallbackUnitsFromRows(rows: unknown[], valueKey: "marketCapUsd" | "aumUsd"): Record<string, number> {
+  const units: Record<string, number> = {};
+
+  for (const row of rows) {
+    if (!row || typeof row !== "object") continue;
+
+    const candidate = row as Partial<FallbackStockRow & FallbackEtfRow>;
+    const symbolRaw = typeof candidate.symbol === "string" ? candidate.symbol : "";
+    const symbol = normalizeFallbackSymbol(symbolRaw);
+    if (!symbol) continue;
+
+    const value = toFiniteNumber(candidate[valueKey]);
+    const price = toFiniteNumber(candidate.priceUsd);
+    if (value === null || price === null || !Number.isFinite(value) || !Number.isFinite(price) || price <= 0 || value <= 0) {
+      continue;
+    }
+
+    const computedUnits = value / price;
+    if (!Number.isFinite(computedUnits) || computedUnits <= 0) continue;
+    units[symbol] = Math.round(computedUnits);
+  }
+
+  return units;
+}
+
+const FALLBACK_STOCK_UNITS = fallbackUnitsFromRows((fallbackPayloadJson as { topStocks?: unknown[] }).topStocks ?? [], "marketCapUsd");
+const FALLBACK_ETF_UNITS = fallbackUnitsFromRows((fallbackPayloadJson as { topEtfs?: unknown[] }).topEtfs ?? [], "aumUsd");
+
+// Share and unit estimates are snapshot values used to derive live mcap/AUM from close prices.
+const STOCK_SHARES_ESTIMATE: Record<string, number> = {
+  NVDA: 27_638_060_669,
+  AAPL: 14_698_317_043,
+  MSFT: 6_635_288_715,
+  GOOGL: 21_154_495_330,
+  AMZN: 9_779_097_180,
+  TSM: 8_917_336_835,
+  META: 2_817_930_387,
+  AVGO: 7_603_811_781,
+  "BRK-B": 1_816_083_370,
+  LLY: 1_336_051_648,
+};
+
+const ETF_UNITS_ESTIMATE: Record<string, number> = {
+  SPY: 1_107_011_070,
+  IVV: 962_046_329,
+  VOO: 994_606_566,
+  VTI: 1_613_693_929,
+  QQQ: 641_307_213,
+  VUG: 376_313_334,
+  BND: 1_607_191_501,
+  AGG: 1_099_813_239,
+  VXUS: 1_183_431_953,
+  GLD: 280_875_325,
+};
+
+function resolveStockShares(symbol: string): number {
+  return FALLBACK_STOCK_UNITS[symbol] ?? STOCK_SHARES_ESTIMATE[symbol] ?? 0;
+}
+
+function resolveEtfUnits(symbol: string): number {
+  return FALLBACK_ETF_UNITS[symbol] ?? ETF_UNITS_ESTIMATE[symbol] ?? 0;
+}
 
 // Human-readable names (Stooq doesn't return full names)
 const STOCK_NAMES: Record<string, string> = {
@@ -175,7 +220,7 @@ export async function fetchTopStocksFromStooq(
         name: toSafeString(STOCK_NAMES[symbol], symbol),
         symbol,
         category: "Stock" as const,
-        marketCapUsd: calcEstimatedValue(q.close, STOCK_SHARES_OUTSTANDING[symbol] ?? 0),
+        marketCapUsd: calcEstimatedValue(q.close, resolveStockShares(symbol)),
         priceUsd: q.close,
         changePercent: calcChangePercent(q.open, q.close),
         logoUrl: `https://financialmodelingprep.com/image-stock/${symbol}.png`,
@@ -205,7 +250,7 @@ export async function fetchTopEtfsFromStooq(
         name: toSafeString(ETF_NAMES[symbol], symbol),
         symbol,
         category: "ETF" as const,
-        aumUsd: calcEstimatedValue(q.close, ETF_UNITS_OUTSTANDING[symbol] ?? 0),
+        aumUsd: calcEstimatedValue(q.close, resolveEtfUnits(symbol)),
         priceUsd: q.close,
         changePercent: calcChangePercent(q.open, q.close),
         logoUrl: `https://financialmodelingprep.com/image-stock/${symbol}.png`,
