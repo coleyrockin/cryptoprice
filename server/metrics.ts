@@ -9,6 +9,7 @@ type ProviderMetric = {
   lastLatencyMs: number | null;
   lastSuccessAt: string | null;
   lastFailureAt: string | null;
+  lastFallbackAt: string | null;
 };
 
 type MetricsState = {
@@ -16,6 +17,7 @@ type MetricsState = {
   dashboardRequests: number;
   dashboardErrors: number;
   fallbackServes: number;
+  lastFallbackServeAt: string | null;
   durableCacheHits: number;
   durableCacheWrites: number;
   logoProxyRequests: number;
@@ -34,6 +36,7 @@ function createProviderMetric(): ProviderMetric {
     lastLatencyMs: null,
     lastSuccessAt: null,
     lastFailureAt: null,
+    lastFallbackAt: null,
   };
 }
 
@@ -43,6 +46,7 @@ function createMetricsState(): MetricsState {
     dashboardRequests: 0,
     dashboardErrors: 0,
     fallbackServes: 0,
+    lastFallbackServeAt: null,
     durableCacheHits: 0,
     durableCacheWrites: 0,
     logoProxyRequests: 0,
@@ -76,6 +80,7 @@ export function recordDashboardError(): void {
 
 export function recordFallbackServe(): void {
   metricsState.fallbackServes += 1;
+  metricsState.lastFallbackServeAt = new Date().toISOString();
 }
 
 export function recordDurableCacheHit(): void {
@@ -118,7 +123,9 @@ export function recordProviderFailure(key: ProviderMetricKey): void {
 }
 
 export function recordProviderFallback(key: ProviderMetricKey): void {
-  metricsState.provider[key].fallbacks += 1;
+  const metric = metricsState.provider[key];
+  metric.fallbacks += 1;
+  metric.lastFallbackAt = new Date().toISOString();
 }
 
 export function getMetricsSnapshot() {
@@ -131,6 +138,7 @@ export function resetMetrics(): void {
   metricsState.dashboardRequests = next.dashboardRequests;
   metricsState.dashboardErrors = next.dashboardErrors;
   metricsState.fallbackServes = next.fallbackServes;
+  metricsState.lastFallbackServeAt = next.lastFallbackServeAt;
   metricsState.durableCacheHits = next.durableCacheHits;
   metricsState.durableCacheWrites = next.durableCacheWrites;
   metricsState.logoProxyRequests = next.logoProxyRequests;

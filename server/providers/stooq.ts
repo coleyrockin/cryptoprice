@@ -5,6 +5,7 @@ import type { DashboardEtf, DashboardStock } from "../types.js";
 
 const STOOQ_BASE_URL = "https://stooq.com";
 const STOOQ_MAX_RESPONSE_BYTES = 64_000;
+export const EQUITY_FUNDAMENTALS_AS_OF = "2026-05-04";
 
 // Date the share/unit counts below were last reconciled against the most
 // recent company filings and ETF fact sheets. Bump this whenever the maps

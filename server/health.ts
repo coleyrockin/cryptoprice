@@ -5,16 +5,35 @@ import { getMetricsSnapshot } from "./metrics.js";
 export type Readiness = "ready" | "degraded" | "down";
 
 function providerCheck(metrics: ReturnType<typeof getMetricsSnapshot>): "ok" | "degraded" {
-  const hasFailures = Object.values(metrics.provider).some((entry) => entry.failures > 0 || entry.fallbacks > 0);
-  return hasFailures ? "degraded" : "ok";
+  const hasCurrentFailures = Object.values(metrics.provider).some((entry) => {
+    const lastSuccessMs = timestampMs(entry.lastSuccessAt);
+    const lastFailureMs = timestampMs(entry.lastFailureAt);
+    const lastFallbackMs = timestampMs(entry.lastFallbackAt);
+    return Math.max(lastFailureMs, lastFallbackMs) > lastSuccessMs;
+  });
+  return hasCurrentFailures ? "degraded" : "ok";
 }
 
 function fallbackCheck(metrics: ReturnType<typeof getMetricsSnapshot>): "standby" | "in-use" {
-  return metrics.fallbackServes > 0 ? "in-use" : "standby";
+  const latestSuccessMs = Math.max(...Object.values(metrics.provider).map((entry) => timestampMs(entry.lastSuccessAt)));
+  const latestFallbackServeMs = timestampMs(metrics.lastFallbackServeAt);
+  const providerFallbackActive = Object.values(metrics.provider).some(
+    (entry) => timestampMs(entry.lastFallbackAt) > timestampMs(entry.lastSuccessAt),
+  );
+  return latestFallbackServeMs > latestSuccessMs || providerFallbackActive ? "in-use" : "standby";
 }
 
 function cacheCheck(durableConfigured: boolean): "durable+memory" | "memory-only" {
   return durableConfigured ? "durable+memory" : "memory-only";
+}
+
+function timestampMs(value: string | null): number {
+  if (!value) {
+    return 0;
+  }
+
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 export function buildHealthPayload(requestId: string) {

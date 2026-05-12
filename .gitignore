@@ -30,4 +30,5 @@ vite.config.d.ts
 
 # Local Claude / Playwright MCP artifacts
 .claude/
+.playwright-cli/
 .playwright-mcp/

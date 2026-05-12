@@ -4,7 +4,7 @@ import fallbackPayloadJson from "./fallback/dashboard-fallback.json" with { type
 import { recordProviderFailure, recordProviderFallback, recordProviderSuccess, type ProviderMetricKey } from "./metrics.js";
 import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./providers/coinpaprika.js";
 import { fetchTopCurrenciesFromFrankfurter } from "./providers/frankfurter.js";
-import { fetchTopEtfsFromStooq, fetchTopStocksFromStooq } from "./providers/stooq.js";
+import { EQUITY_FUNDAMENTALS_AS_OF, fetchTopEtfsFromStooq, fetchTopStocksFromStooq } from "./providers/stooq.js";
 import { toFiniteNumber } from "./sanitize.js";
 import type {
   DashboardAsset,
@@ -184,7 +184,7 @@ function getCommodityAssets(): DashboardAsset[] {
     }));
 }
 
-function buildTopAssets(topStocks: DashboardStock[], topCryptos: DashboardCrypto[]): DashboardAsset[] {
+export function buildTopAssets(topStocks: DashboardStock[], topCryptos: DashboardCrypto[]): DashboardAsset[] {
   // Pre-allocate Map for deduplication
   const commodityAssets = getCommodityAssets();
   const deduped = new Map<string, DashboardAsset>();
@@ -457,6 +457,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       equities: "stooq",
       crypto: "coinpaprika",
       fallbackUsed,
+      equityFundamentalsAsOf: EQUITY_FUNDAMENTALS_AS_OF,
     },
     degradedSegments,
     segmentMeta,

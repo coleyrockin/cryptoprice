@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryCache } from "./cache";
 
 vi.mock("./providers/stooq", () => ({
+  EQUITY_FUNDAMENTALS_AS_OF: "2026-05-04",
   fetchTopStocksFromStooq: vi.fn(),
   fetchTopEtfsFromStooq: vi.fn(),
 }));
@@ -260,6 +261,7 @@ describe("buildDashboardPayload", () => {
     expect(payload.topEtfs).toHaveLength(2);
     expect(payload.topEtfs[0]?.symbol).toBe("SPY");
     expect(payload.segmentMeta.topEtfs.source).toBe("live");
+    expect(payload.source.equityFundamentalsAsOf).toBe("2026-05-04");
   });
 
   it("marks topEtfs as degraded and uses fallback when ETF provider fails", async () => {
