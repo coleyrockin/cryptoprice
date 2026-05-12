@@ -29,12 +29,13 @@ describe("Stooq provider", () => {
 
     expect(fetchMock).toHaveBeenCalledOnce();
     const requestUrl = String((fetchMock.mock.calls[0] as unknown[])[0]);
-    expect(requestUrl).toContain("s=nvda.us+aapl.us+msft.us");
+    expect(requestUrl).toContain("s=nvda.us+googl.us+aapl.us");
     expect(stocks).toHaveLength(2);
     expect(stocks[0]).toMatchObject({
       symbol: "NVDA",
       priceUsd: 198.543,
-      marketCapUsd: 4_690_000_000_000,
+      // 198.543 × 24_410_000_000 shares outstanding (rounded)
+      marketCapUsd: Math.round(198.543 * 24_410_000_000),
     });
   });
 
@@ -60,12 +61,16 @@ describe("Stooq provider", () => {
 
     expect(fetchMock).toHaveBeenCalledOnce();
     const requestUrl = String((fetchMock.mock.calls[0] as unknown[])[0]);
-    expect(requestUrl).toContain("s=spy.us+ivv.us+voo.us");
+    expect(requestUrl).toContain("s=voo.us+spy.us+ivv.us");
     expect(etfs).toHaveLength(2);
-    expect(etfs[0]).toMatchObject({
+    // CSV row order is independent of TOP_ETF_SYMBOLS rank order;
+    // SPY rank is 2 in the canonical list.
+    const spy = etfs.find((etf) => etf.symbol === "SPY");
+    expect(spy).toMatchObject({
       symbol: "SPY",
       priceUsd: 718.03,
-      aumUsd: 585_000_000_000,
+      // 718.03 × 800_000_000 units outstanding (rounded)
+      aumUsd: Math.round(718.03 * 800_000_000),
     });
   });
 

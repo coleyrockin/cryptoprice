@@ -6,35 +6,47 @@ import type { DashboardEtf, DashboardStock } from "../types.js";
 const STOOQ_BASE_URL = "https://stooq.com";
 const STOOQ_MAX_RESPONSE_BYTES = 64_000;
 
-// Fixed lists ordered by approximate market cap / AUM.
-// Rank is positional — Stooq does not provide market cap or AUM.
-const TOP_STOCK_SYMBOLS = ["NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "TSM", "META", "AVGO", "BRK-B", "LLY"];
-const TOP_ETF_SYMBOLS   = ["SPY",  "IVV",  "VOO",  "VTI",  "QQQ",  "VUG", "BND",  "AGG",  "VXUS",  "GLD"];
+// Date the share/unit counts below were last reconciled against the most
+// recent company filings and ETF fact sheets. Bump this whenever the maps
+// are refreshed so the UI can disclose the as-of date for fundamentals.
+export const EQUITY_FUNDAMENTALS_AS_OF = "2026-05-12";
 
-const STOCK_MARKET_CAP_USD: Record<string, number> = {
-  NVDA: 4_690_000_000_000,
-  AAPL: 4_000_000_000_000,
-  MSFT: 2_890_000_000_000,
-  GOOGL: 3_760_000_000_000,
-  AMZN: 2_240_000_000_000,
-  TSM: 1_630_000_000_000,
-  META: 1_620_000_000_000,
-  AVGO: 1_540_000_000_000,
-  "BRK-B": 1_070_000_000_000,
-  LLY: 983_000_000_000,
+// Lists ordered by current market cap / AUM. Ranking is positional —
+// Stooq does not expose those values, so we derive them from the static
+// share/unit counts below multiplied by the live close price.
+const TOP_STOCK_SYMBOLS = ["NVDA", "GOOGL", "AAPL", "MSFT", "AMZN", "TSM", "AVGO", "META", "BRK-B", "LLY"];
+const TOP_ETF_SYMBOLS   = ["VOO",  "SPY",   "IVV",  "VTI",  "QQQ",  "VUG", "BND",  "AGG",  "GLD",   "VXUS"];
+
+// Shares outstanding (basic). Sources: most recent 10-Q/10-K filings.
+// For TSM the figure is converted to ADR-equivalents (1 ADR = 5 ordinary).
+// For Alphabet the figure represents the combined Class A + B + C float.
+// For Berkshire the figure is converted to Class-B-equivalents (1 A = 1500 B).
+const STOCK_SHARES_OUTSTANDING: Record<string, number> = {
+  NVDA: 24_410_000_000,
+  GOOGL: 12_177_960_000,
+  AAPL: 15_115_823_000,
+  MSFT: 7_433_490_000,
+  AMZN: 10_632_550_000,
+  TSM: 5_186_550_000,
+  AVGO: 4_731_140_000,
+  META: 2_551_300_000,
+  "BRK-B": 2_158_300_000,
+  LLY: 898_290_000,
 };
 
-const ETF_AUM_USD: Record<string, number> = {
-  SPY: 585_000_000_000,
-  IVV: 510_000_000_000,
-  VOO: 485_000_000_000,
-  VTI: 395_000_000_000,
-  QQQ: 292_000_000_000,
-  VUG: 125_000_000_000,
-  BND: 118_000_000_000,
-  AGG: 106_000_000_000,
-  VXUS: 72_000_000_000,
-  GLD: 67_000_000_000,
+// ETF units outstanding (creation units × shares per CU). Sources: issuer
+// fact sheets. AUM = units × NAV ≈ units × close price.
+const ETF_UNITS_OUTSTANDING: Record<string, number> = {
+  VOO: 1_600_000_000,
+  SPY: 800_000_000,
+  IVV: 700_000_000,
+  VTI: 1_400_000_000,
+  QQQ: 450_000_000,
+  VUG: 1_965_000_000,
+  BND: 1_750_000_000,
+  AGG: 1_210_000_000,
+  GLD: 215_000_000,
+  VXUS: 1_100_000_000,
 };
 
 // Human-readable names (Stooq doesn't return full names)
@@ -135,6 +147,14 @@ function calcChangePercent(open: number | null, close: number | null): number | 
   return ((close - open) / open) * 100;
 }
 
+function calcEstimatedValue(priceUsd: number | null, unitCount: number): number | null {
+  if (priceUsd === null || !Number.isFinite(priceUsd) || !Number.isFinite(unitCount) || unitCount <= 0) {
+    return null;
+  }
+
+  return Math.round(priceUsd * unitCount);
+}
+
 export async function fetchTopStocksFromStooq(
   options: FetchStooqOptions = {},
 ): Promise<DashboardStock[]> {
@@ -155,7 +175,7 @@ export async function fetchTopStocksFromStooq(
         name: toSafeString(STOCK_NAMES[symbol], symbol),
         symbol,
         category: "Stock" as const,
-        marketCapUsd: STOCK_MARKET_CAP_USD[symbol] ?? null,
+        marketCapUsd: calcEstimatedValue(q.close, STOCK_SHARES_OUTSTANDING[symbol] ?? 0),
         priceUsd: q.close,
         changePercent: calcChangePercent(q.open, q.close),
         logoUrl: `https://financialmodelingprep.com/image-stock/${symbol}.png`,
@@ -185,7 +205,7 @@ export async function fetchTopEtfsFromStooq(
         name: toSafeString(ETF_NAMES[symbol], symbol),
         symbol,
         category: "ETF" as const,
-        aumUsd: ETF_AUM_USD[symbol] ?? null,
+        aumUsd: calcEstimatedValue(q.close, ETF_UNITS_OUTSTANDING[symbol] ?? 0),
         priceUsd: q.close,
         changePercent: calcChangePercent(q.open, q.close),
         logoUrl: `https://financialmodelingprep.com/image-stock/${symbol}.png`,
