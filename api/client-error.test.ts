@@ -80,6 +80,25 @@ describe("POST /api/client-error", () => {
     expect(state.statusCode).toBe(413);
   });
 
+  it("returns 413 for oversized bodies without content-length", () => {
+    process.env.CLIENT_ERROR_MAX_BYTES = "64";
+
+    const { response, state } = createMockResponse();
+
+    handler(
+      {
+        method: "POST",
+        body: {
+          source: "window-error",
+          message: "x".repeat(1_000),
+        },
+      },
+      response,
+    );
+
+    expect(state.statusCode).toBe(413);
+  });
+
   it("returns 429 when rate limited", () => {
     process.env.CLIENT_ERROR_RATE_LIMIT_PER_MIN = "1";
 

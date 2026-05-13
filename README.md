@@ -68,7 +68,8 @@ Recovery is immediate for each segment when it returns to `live` / `fresh-cache`
 
 ## Private companies section notes
 
-- The private companies list is currently sourced from `dashboard-fallback.json` and treated as a separate top-level section with its own `segmentMeta` tracking.
+- The private companies list is currently an operator-curated bundled dataset in `dashboard-fallback.json`; it does not depend on an external provider today.
+- It is treated as a separate top-level section with its own `segmentMeta` tracking, so future provider-backed private data can degrade independently.
 - If you add a private-company data provider later, wire it through the same segment contract (`source`, `ageSec`, `segmentMeta`, and degraded markers) so it participates in `Data health`.
 - If other providers degrade, unaffected sections keep refreshing and stay isolated from the private section’s stale/fallback state.
 

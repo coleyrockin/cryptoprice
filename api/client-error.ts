@@ -57,6 +57,22 @@ function parseBody(body: unknown): Record<string, unknown> | null {
   return null;
 }
 
+function estimateBodyBytes(body: unknown): number | null {
+  if (typeof body === "string") {
+    return Buffer.byteLength(body, "utf8");
+  }
+
+  if (typeof body === "object" && body) {
+    try {
+      return Buffer.byteLength(JSON.stringify(body), "utf8");
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
 function toTrimmedString(value: unknown, maxLength: number): string | null {
   if (typeof value !== "string") {
     return null;
@@ -132,6 +148,13 @@ export default function handler(request: ApiRequest, response: ApiResponse): voi
   const maxBytes = envInt("CLIENT_ERROR_MAX_BYTES", 8_192, 512, 65_536);
   const contentLength = getContentLength(request);
   if (contentLength !== null && contentLength > maxBytes) {
+    response.setHeader("X-Wap-Request-Id", requestId);
+    response.status(413).json({ error: "Payload too large", requestId });
+    return;
+  }
+
+  const bodyBytes = estimateBodyBytes(request.body);
+  if (bodyBytes !== null && bodyBytes > maxBytes) {
     response.setHeader("X-Wap-Request-Id", requestId);
     response.status(413).json({ error: "Payload too large", requestId });
     return;
