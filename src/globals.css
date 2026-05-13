@@ -191,6 +191,10 @@ html:not(.dark) .section-nav {
 }
 
 .section-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.125rem;
   text-decoration: none;
   color: var(--text-muted);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -299,9 +303,9 @@ html:not(.dark) .hero::after {
 h1 {
   margin-top: 0.4rem;
   font-size: clamp(1.8rem, 5.2vw, 3.4rem);
-  line-height: 1.02;
+  line-height: 1.08;
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   background: linear-gradient(110deg, #fff 0%, #22c0ff 18%, #a855f7 38%, #ff28cc 58%, #ff7a10 78%, #22c0ff 100%);
   background-size: 220% auto;
   -webkit-background-clip: text;
@@ -391,7 +395,7 @@ html:not(.dark) .hero-insight {
   font-family: "Sora", sans-serif;
   font-size: 1.04rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   color: var(--text);
 }
 
@@ -515,6 +519,7 @@ html:not(.dark) .hero-segment-health-item--warning {
 .market-search input,
 .market-select select {
   width: 100%;
+  min-height: 2.125rem;
   min-width: 0;
   border: 0;
   outline: none;
@@ -557,7 +562,8 @@ html:not(.dark) .hero-segment-health-item--warning {
   font-size: 0.72rem;
   font-weight: 700;
   line-height: 1;
-  min-height: 1.85rem;
+  min-height: 2.125rem;
+  min-width: 2.125rem;
   padding: 0.45rem 0.64rem;
   white-space: nowrap;
   transition: color 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
@@ -1211,6 +1217,17 @@ html:not(.dark) .asset-category[data-category="etf"] {
   border-color: rgba(109, 40, 217, 0.22);
 }
 
+.asset-category[data-category="private company"] {
+  color: #fde047;
+  background: rgba(250, 204, 21, 0.1);
+  border-color: rgba(250, 204, 21, 0.24);
+}
+html:not(.dark) .asset-category[data-category="private company"] {
+  color: #a16207;
+  background: rgba(217, 119, 6, 0.07);
+  border-color: rgba(217, 119, 6, 0.22);
+}
+
 .coin-title-row {
   margin-top: 0.42rem;
   display: flex;
@@ -1230,9 +1247,9 @@ html:not(.dark) .asset-category[data-category="etf"] {
   font-size: 0.95rem;
   font-weight: 700;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.16;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 /* ── Symbol Pill ── */
@@ -1294,7 +1311,7 @@ html:not(.dark) .coin-card:focus-visible .symbol-pill {
   font-weight: 700;
   font-family: "Sora", sans-serif;
   color: var(--text);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .coin-change {
@@ -1378,7 +1395,9 @@ html:not(.dark) .filter-empty {
   font: inherit;
   font-size: 0.67rem;
   font-weight: 500;
-  padding: 0.22rem 0.5rem;
+  min-height: 2rem;
+  min-width: 2.75rem;
+  padding: 0.34rem 0.64rem;
   cursor: pointer;
   transition: all 180ms ease;
   line-height: 1;
@@ -1604,7 +1623,7 @@ html:not(.dark) .night-ticker-stat { position: relative; z-index: 1; }
   font-weight: 700;
   font-size: 0.82rem;
   color: var(--text);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .night-ticker-change {
@@ -1624,7 +1643,7 @@ html:not(.dark) .night-ticker-stat { position: relative; z-index: 1; }
   color: var(--text-dim);
   font-family: "Sora", sans-serif;
   font-weight: 500;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .night-ticker-stat span {
@@ -1991,7 +2010,7 @@ html:not(.dark) .footer-glow {
   .coin-title-row h3 { font-size: 0.82rem; }
   .symbol-pill { font-size: 0.62rem; padding: 0.12rem 0.4rem; }
   .card-sparkline { height: 18px; }
-  .card-chip { font-size: 0.62rem; padding: 0.16rem 0.42rem; }
+  .card-chip { font-size: 0.62rem; padding: 0.26rem 0.5rem; }
 
   .section-nav a { padding: 0.26rem 0.52rem; font-size: 0.7rem; }
   .segmented-button,

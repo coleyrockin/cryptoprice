@@ -2,7 +2,7 @@
   "name": "world-asset-prices",
   "private": true,
   "version": "1.0.0",
-  "description": "Live financial dashboard tracking the top 10 stocks, ETFs, fiat currencies, and cryptocurrencies side-by-side, plus a dedicated Midnight Token panel. Zero API keys required — powered by Stooq, Frankfurter, and CoinPaprika behind a tiered cache with bundled fallback.",
+  "description": "Live financial dashboard tracking top stocks, private companies, ETFs, fiat currencies, cryptocurrencies, and the Midnight Token side-by-side. Zero API keys required; powered by Stooq, Frankfurter, and CoinPaprika behind a tiered cache with bundled fallback.",
   "author": "Boyd Roberts",
   "license": "MIT",
   "keywords": [

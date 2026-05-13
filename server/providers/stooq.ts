@@ -59,18 +59,18 @@ function fallbackUnitsFromRows(rows: unknown[], valueKey: "marketCapUsd" | "aumU
 const FALLBACK_STOCK_UNITS = fallbackUnitsFromRows((fallbackPayloadJson as { topStocks?: unknown[] }).topStocks ?? [], "marketCapUsd");
 const FALLBACK_ETF_UNITS = fallbackUnitsFromRows((fallbackPayloadJson as { topEtfs?: unknown[] }).topEtfs ?? [], "aumUsd");
 
-// Share and unit estimates are snapshot values used to derive live mcap/AUM from close prices.
+// Share estimates are May 2026 public share counts used to derive live mcap from close prices.
 const STOCK_SHARES_ESTIMATE: Record<string, number> = {
-  NVDA: 27_638_060_669,
-  AAPL: 14_698_317_043,
-  MSFT: 6_635_288_715,
-  GOOGL: 21_154_495_330,
-  AMZN: 9_779_097_180,
-  TSM: 8_917_336_835,
-  META: 2_817_930_387,
-  AVGO: 7_603_811_781,
-  "BRK-B": 1_816_083_370,
-  LLY: 1_336_051_648,
+  NVDA: 24_300_000_000,
+  AAPL: 14_690_000_000,
+  MSFT: 7_430_000_000,
+  GOOGL: 12_120_000_000,
+  AMZN: 10_750_000_000,
+  TSM: 4_615_000_000,
+  META: 2_530_000_000,
+  AVGO: 4_730_000_000,
+  "BRK-B": 2_160_000_000,
+  LLY: 891_740_000,
 };
 
 const ETF_UNITS_ESTIMATE: Record<string, number> = {
@@ -87,7 +87,7 @@ const ETF_UNITS_ESTIMATE: Record<string, number> = {
 };
 
 function resolveStockShares(symbol: string): number {
-  return FALLBACK_STOCK_UNITS[symbol] ?? STOCK_SHARES_ESTIMATE[symbol] ?? 0;
+  return STOCK_SHARES_ESTIMATE[symbol] ?? FALLBACK_STOCK_UNITS[symbol] ?? 0;
 }
 
 function resolveEtfUnits(symbol: string): number {

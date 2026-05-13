@@ -92,7 +92,7 @@ function sourceTone(source: DashboardSegmentHealth["source"]): "positive" | "war
 }
 
 const SECTION_REVEAL = {
-  initial: { opacity: 0, y: 28 },
+  initial: { opacity: 1, y: 0 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, amount: 0.12 as const },
   transition: { duration: 0.5, ease: "easeOut" as const },
@@ -914,7 +914,7 @@ function App() {
                 <span className="footer-col-title">Built With</span>
                 <span>React + TypeScript</span>
                 <span>Vite + Tailwind</span>
-                <span>Vercel Edge</span>
+                <span>Vercel Functions</span>
               </div>
             </div>
           </div>

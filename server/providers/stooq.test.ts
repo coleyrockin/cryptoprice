@@ -34,12 +34,12 @@ describe("Stooq provider", () => {
     expect(stocks[0]).toMatchObject({
       symbol: "NVDA",
       priceUsd: 198.543,
-      marketCapUsd: 5_487_343_479_405,
+      marketCapUsd: 4_824_594_900_000,
     });
     expect(stocks[1]).toMatchObject({
       symbol: "AAPL",
       priceUsd: 276.873,
-      marketCapUsd: 4_185_443_512_606,
+      marketCapUsd: 4_067_264_370_000,
     });
   });
 

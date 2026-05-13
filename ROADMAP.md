@@ -1,26 +1,30 @@
-# Roadmap
+# World Asset Prices Roadmap
 
-This file outlines planned features and improvements for World Asset Prices.
+This roadmap separates what is already shipped from the realistic next product slices. It intentionally avoids promising paid data feeds or account systems until the free-provider MVP is fully stable.
 
-## Near-term
+## Shipped
 
-- **OHLC / candlestick charts** — Add sparkline or mini candlestick charts to each `MarketCard` so users can see short-term price history at a glance.
-- **Currency selector** — Allow users to switch the display currency (USD, EUR, GBP, JPY) using exchange-rate conversion on the frontend.
-- **Expanded asset coverage** — Add commodities (gold, silver, oil) and bond indices to the existing crypto/stock/global-assets sections.
-- **Persistent watchlist sync** — Optionally sync the watchlist to a backend so it is preserved across devices (e.g., via Vercel KV or a lightweight user account).
+- **Unified market dashboard** - Global assets, stocks, private companies, ETFs, fiat currencies, cryptocurrencies, and the Midnight Token panel.
+- **Resilient data pipeline** - Live provider data, fresh cache, stale cache, optional durable KV cache, and bundled fallback data.
+- **Data-health transparency** - Segment source labels, degraded-count summary, and per-section freshness badges.
+- **Price-derived public-market valuations** - Stock market caps and ETF AUM estimates scale from baseline share/unit snapshots using live prices.
+- **Private-company section** - Curated private-company valuations with grid parity for filtering, sorting, pinning, compact mode, and empty states.
+- **Security hardening** - Logo proxy validation, trusted-proxy rate-limit keys, provider origin validation, CSP headers, and bounded client-error logging.
+- **Release gates** - Lint, typecheck, unit tests, route tests, production build, bundle budget, E2E smoke tests, and dependency audit.
 
-## Mid-term
+## Next
 
-- **Server-Sent Events (SSE) price stream** — Replace the polling model with a push-based SSE endpoint so prices update in real time without repeated HTTP round-trips.
-- **Portfolio tracker** — Let users enter holdings and quantities; compute and display a personal portfolio value alongside the market dashboard.
-- **Provider redundancy** — Add a secondary data provider for each segment so the dashboard can automatically fall back during a primary outage without serving stale data.
-- **Notifications** — Browser-native price-change notifications for watched assets (e.g., alert when BTC moves ±5% in 24 h).
-- **Internationalisation (i18n)** — Add locale-aware number and currency formatting; lay groundwork for translating UI strings.
+- **Provider redundancy** - Add secondary stock/ETF fundamentals coverage so public-market values can recover without falling back to stale snapshots.
+- **Historical chart detail** - Add an asset detail view with 1D, 7D, 30D, and 1Y ranges backed by cached historical provider data.
+- **Currency selector** - Let users view dashboard values in USD, EUR, GBP, and JPY using cached exchange-rate conversion.
+- **Portfolio tracker** - Allow users to enter holdings and quantities, then compute personal portfolio value and allocation.
+- **Watchlist sync** - Optionally sync pinned assets through a lightweight backend store while keeping local-only mode available.
 
-## Long-term
+## Later
 
-- **Mobile app shell** — Package the frontend as a Progressive Web App (PWA) with an offline-capable service worker.
-- **Historical data view** — Provide a dedicated chart page with selectable time ranges (1 D, 7 D, 30 D, 1 Y) powered by a cached historical-data endpoint.
-- **Public API** — Expose the aggregated `/api/dashboard` and `/api/health` endpoints as a documented public API with API-key authentication and usage quotas.
-- **Test coverage expansion** — Reach ≥ 80 % branch coverage across server and frontend; add visual regression tests for `MarketCard` states.
-- **Performance budget enforcement** — Extend `check:bundle` to cover per-chunk limits and track bundle size trends over time in CI.
+- **SSE price stream** - Replace periodic polling with a server-sent event stream for lower-latency updates.
+- **Notifications** - Browser-native alerts for large moves in watched assets.
+- **Internationalization** - Locale-aware formatting and translatable interface copy.
+- **PWA shell** - Offline-capable app install flow for mobile and desktop.
+- **Visual regression coverage** - Snapshot key dashboard states across responsive breakpoints and themes.
+- **Public API mode** - Documented API access with authentication, quotas, and explicit stability guarantees.
