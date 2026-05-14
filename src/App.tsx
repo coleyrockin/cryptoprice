@@ -3,9 +3,11 @@ import clsx from "clsx";
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { fetchDashboard } from "./api";
+import { fetchAssetDetail, fetchDashboard } from "./api";
+import { AssetDetailDrawer } from "./components/AssetDetailDrawer";
 import { LogoMark } from "./components/LogoMark";
 import { MarketCard } from "./components/MarketCard";
+import { PortfolioLab } from "./components/PortfolioLab";
 import { SectionHeader } from "./components/SectionHeader";
 import {
   buildDashboardInsights,
@@ -19,6 +21,7 @@ import {
   type DashboardSortMode,
 } from "./lib/dashboard-insights";
 import { formatCompactCurrency, formatCurrency, formatExactCurrency, formatExactNumber, formatPercent, trendClass } from "./lib/formatters";
+import { isTradablePortfolioAsset, parseStoredHoldings, type PortfolioEntry } from "./lib/portfolio";
 import { useTheme } from "./hooks/useTheme";
 import type {
   DashboardAsset,
@@ -27,10 +30,13 @@ import type {
   DashboardEtf,
   DashboardPrivateCompany,
   DashboardStock,
+  HistoricalRange,
+  LocalHolding,
 } from "./types/dashboard";
 
 const SECTION_IDS = [
   "section-watchlist",
+  "section-portfolio",
   "section-assets",
   "section-stocks",
   "section-private-companies",
@@ -60,8 +66,9 @@ const SORT_OPTIONS: { value: DashboardSortMode; label: string }[] = [
   { value: "movement", label: "Move" },
 ];
 
-const SECTION_LINKS: { id: (typeof SECTION_IDS)[number]; label: string; filter: SectionFilter | "watchlist" }[] = [
+const SECTION_LINKS: { id: (typeof SECTION_IDS)[number]; label: string; filter: SectionFilter | "watchlist" | "portfolio" }[] = [
   { id: "section-watchlist", label: "Watchlist", filter: "watchlist" },
+  { id: "section-portfolio", label: "Portfolio", filter: "portfolio" },
   { id: "section-assets", label: "Global Assets", filter: "assets" },
   { id: "section-stocks", label: "Stocks", filter: "stocks" },
   { id: "section-private-companies", label: "Private Companies", filter: "private" },
@@ -101,6 +108,7 @@ const SECTION_REVEAL = {
 const DEFAULT_REFRESH_SEC = 30;
 const PINNED_STORAGE_KEY = "wap.pinned-markets.v1";
 const PREFS_STORAGE_KEY = "wap.prefs.v1";
+const PORTFOLIO_STORAGE_KEY = "wap.portfolio.v1";
 
 const VALID_SECTION_FILTERS: SectionFilter[] = ["all", "assets", "stocks", "private", "etfs", "currencies", "cryptos"];
 const VALID_SORT_MODES: DashboardSortMode[] = ["rank", "name", "value", "movement"];
@@ -157,6 +165,22 @@ function writeStoredPrefs(prefs: StoredPrefs) {
   }
 }
 
+function readStoredHoldings(): LocalHolding[] {
+  try {
+    return parseStoredHoldings(localStorage.getItem(PORTFOLIO_STORAGE_KEY));
+  } catch {
+    return [];
+  }
+}
+
+function writeStoredHoldings(holdings: readonly LocalHolding[]) {
+  try {
+    localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(holdings));
+  } catch {
+    // Ignore private browsing / quota failures.
+  }
+}
+
 function formatRelativeTime(fromIso: string | undefined, now: number): string {
   if (!fromIso) return "—";
   const then = new Date(fromIso).getTime();
@@ -202,6 +226,9 @@ function App() {
   const [sortMode, setSortMode] = useState<DashboardSortMode>(initialPrefs.sortMode ?? "rank");
   const [density, setDensity] = useState<DensityMode>(initialPrefs.density ?? "comfortable");
   const [pinnedIds, setPinnedIds] = useState<string[]>(readStoredPinnedIds);
+  const [holdings, setHoldings] = useState<LocalHolding[]>(readStoredHoldings);
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [detailRange, setDetailRange] = useState<HistoricalRange>("30D");
   const [now, setNow] = useState<number>(() => Date.now());
   const observerRef = useRef<IntersectionObserver | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -240,6 +267,11 @@ function App() {
   });
 
   const dashboard = dashboardQuery.data;
+  const assetDetailQuery = useQuery({
+    queryKey: ["asset-detail", selectedAssetId, detailRange],
+    queryFn: () => fetchAssetDetail(selectedAssetId ?? "", detailRange),
+    enabled: Boolean(selectedAssetId),
+  });
   const topCryptos = dashboard?.topCryptos ?? EMPTY_CRYPTOS;
   const topStocks = dashboard?.topStocks ?? EMPTY_STOCKS;
   const topEtfs = dashboard?.topEtfs ?? EMPTY_ETFS;
@@ -270,6 +302,10 @@ function App() {
   }, [pinnedIds]);
 
   useEffect(() => {
+    writeStoredHoldings(holdings);
+  }, [holdings]);
+
+  useEffect(() => {
     writeStoredPrefs({ sectionFilter, sortMode, density });
   }, [sectionFilter, sortMode, density]);
 
@@ -291,6 +327,11 @@ function App() {
         searchInputRef.current?.select();
         return;
       }
+      if (event.key === "Escape" && selectedAssetId) {
+        event.preventDefault();
+        setSelectedAssetId(null);
+        return;
+      }
       if (event.key === "Escape" && document.activeElement === searchInputRef.current) {
         if (searchTerm) {
           event.preventDefault();
@@ -302,12 +343,20 @@ function App() {
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [searchTerm]);
+  }, [searchTerm, selectedAssetId]);
 
   const pinnedIdSet = useMemo(() => new Set(pinnedIds), [pinnedIds]);
 
   const togglePinned = useCallback((id: string) => {
     setPinnedIds((current) => (current.includes(id) ? current.filter((pinnedId) => pinnedId !== id) : [id, ...current].slice(0, 12)));
+  }, []);
+
+  const openAssetDetail = useCallback((id: string) => {
+    setSelectedAssetId(id);
+  }, []);
+
+  const closeAssetDetail = useCallback(() => {
+    setSelectedAssetId(null);
   }, []);
 
   const dashboardInsights = useMemo(() => (dashboard ? buildDashboardInsights(dashboard) : []), [dashboard]);
@@ -351,10 +400,23 @@ function App() {
     return pinnedIds.map((id) => byId.get(id)).filter((entry): entry is DashboardEntry => Boolean(entry));
   }, [night, pinnedIds, topAssets, topCryptos, topCurrencies, topEtfs, topPrivateCompanies, topStocks]);
 
+  const portfolioCandidates = useMemo(() => {
+    const entries: PortfolioEntry[] = [...topStocks, ...topEtfs, ...topCryptos];
+    if (night) {
+      entries.push({
+        ...night,
+        category: "NIGHT",
+        rank: 1,
+      });
+    }
+    return entries.filter(isTradablePortfolioAsset);
+  }, [night, topCryptos, topEtfs, topStocks]);
+
   const navLinks = useMemo(
     () =>
       SECTION_LINKS.filter((link) => {
         if (link.filter === "watchlist") return pinnedEntries.length > 0;
+        if (link.filter === "portfolio") return sectionFilter === "all";
         if (link.id === "section-night") return sectionFilter === "all";
         return sectionFilter === "all" || link.filter === sectionFilter;
       }),
@@ -438,6 +500,9 @@ function App() {
         onTogglePin={() => togglePinned(entry.id)}
         sparkline={isCrypto ? entry.sparkline7d : undefined}
         assetStyle={!isCrypto}
+        interactive
+        active={entry.id === selectedAssetId}
+        onClick={() => openAssetDetail(entry.id)}
       />
     );
   };
@@ -467,8 +532,11 @@ function App() {
             pinned={pinnedIdSet.has(coin.id)}
             onTogglePin={() => togglePinned(coin.id)}
             interactive
-            active={coin.id === activeCryptoId}
-            onClick={() => setActiveCryptoId(coin.id)}
+            active={coin.id === activeCryptoId || coin.id === selectedAssetId}
+            onClick={() => {
+              setActiveCryptoId(coin.id);
+              openAssetDetail(coin.id);
+            }}
             sparkline={coin.sparkline7d}
           />
         ))}
@@ -501,6 +569,9 @@ function App() {
             pinned={pinnedIdSet.has(company.id)}
             onTogglePin={() => togglePinned(company.id)}
             assetStyle
+            interactive
+            active={company.id === selectedAssetId}
+            onClick={() => openAssetDetail(company.id)}
           />
         ))}
       </div>
@@ -537,6 +608,9 @@ function App() {
               pinned={pinnedIdSet.has(stock.id)}
               onTogglePin={() => togglePinned(stock.id)}
               assetStyle
+              interactive
+              active={stock.id === selectedAssetId}
+              onClick={() => openAssetDetail(stock.id)}
             />
           );
         })}
@@ -574,6 +648,9 @@ function App() {
               pinned={pinnedIdSet.has(etf.id)}
               onTogglePin={() => togglePinned(etf.id)}
               assetStyle
+              interactive
+              active={etf.id === selectedAssetId}
+              onClick={() => openAssetDetail(etf.id)}
             />
           );
         })}
@@ -607,6 +684,9 @@ function App() {
             pinned={pinnedIdSet.has(currency.id)}
             onTogglePin={() => togglePinned(currency.id)}
             assetStyle
+            interactive
+            active={currency.id === selectedAssetId}
+            onClick={() => openAssetDetail(currency.id)}
           />
         ))}
       </div>
@@ -638,6 +718,9 @@ function App() {
             pinned={pinnedIdSet.has(asset.id)}
             onTogglePin={() => togglePinned(asset.id)}
             assetStyle
+            interactive
+            active={asset.id === selectedAssetId}
+            onClick={() => openAssetDetail(asset.id)}
           />
         ))}
       </div>
@@ -804,6 +887,10 @@ function App() {
           </motion.section>
         ) : null}
 
+        {sectionFilter === "all" ? (
+          <PortfolioLab candidates={portfolioCandidates} holdings={holdings} onChange={setHoldings} />
+        ) : null}
+
         {shouldShowSection("assets") ? (
           <motion.section id="section-assets" className="surface global-assets-surface" {...SECTION_REVEAL}>
             <SectionHeader
@@ -890,6 +977,7 @@ function App() {
                 <span className="night-ticker-stat" title={`Exact 24h volume: ${formatExactNumber(night.volume24hUsd)} USD`}><span>Vol</span> {formatCompactCurrency(night.volume24hUsd)}</span>
                 <span className="night-ticker-stat" title={`Exact ATH: ${formatExactCurrency(night.athPriceUsd)}`}><span>ATH</span> {formatCurrency(night.athPriceUsd)}</span>
                 <span className={clsx("night-ticker-stat", trendClass(night.percentFromAth))} title="Percent from all-time high"><span>From ATH</span> {formatPercent(night.percentFromAth)}</span>
+                <button type="button" className="night-detail-button" onClick={() => openAssetDetail(night.id)}>Details</button>
               </div>
             ) : (
               <p className="muted" style={{ margin: 0, fontSize: "0.72rem" }}>Waiting for NIGHT feed...</p>
@@ -925,6 +1013,16 @@ function App() {
           </div>
         </footer>
       </main>
+      {selectedAssetId ? (
+        <AssetDetailDrawer
+          detail={assetDetailQuery.data}
+          isLoading={assetDetailQuery.isLoading}
+          error={assetDetailQuery.error instanceof Error ? assetDetailQuery.error : null}
+          range={detailRange}
+          onRangeChange={setDetailRange}
+          onClose={closeAssetDetail}
+        />
+      ) : null}
     </>
   );
 }

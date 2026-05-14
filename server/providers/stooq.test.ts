@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { fetchTopEtfsFromStooq, fetchTopStocksFromStooq } from "./stooq";
+import { fetchHistoricalPricesFromStooq, fetchTopEtfsFromStooq, fetchTopStocksFromStooq } from "./stooq";
 
 describe("Stooq provider", () => {
   afterEach(() => {
@@ -65,15 +65,15 @@ describe("Stooq provider", () => {
 
     expect(fetchMock).toHaveBeenCalledOnce();
     const requestUrl = String((fetchMock.mock.calls[0] as unknown[])[0]);
-    expect(requestUrl).toContain("s=voo.us+spy.us+ivv.us");
+    expect(requestUrl).toContain("s=voo.us+ivv.us+spy.us");
     expect(etfs).toHaveLength(2);
     // CSV row order is independent of TOP_ETF_SYMBOLS rank order;
-    // SPY rank is 2 in the canonical list.
+    // SPY rank is 3 in the canonical list.
     const spy = etfs.find((etf) => etf.symbol === "SPY");
     expect(spy).toMatchObject({
       symbol: "SPY",
       priceUsd: 718.03,
-      aumUsd: 574_424_000_000,
+      aumUsd: 729_518_480_000,
     });
   });
 
@@ -109,5 +109,32 @@ describe("Stooq provider", () => {
       }),
     ).rejects.toThrow("Invalid Stooq base URL");
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("normalizes historical daily prices from Stooq", async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        [
+          "Date,Open,High,Low,Close,Volume",
+          "2026-05-01,200,205,199,204.5,1234",
+          "2026-05-04,204,208,203,207.25,4567",
+        ].join("\n"),
+        {
+          status: 200,
+          headers: {
+            "content-type": "text/csv",
+          },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const points = await fetchHistoricalPricesFromStooq("NVDA", "30D", { timeoutMs: 1000 });
+
+    expect(String((fetchMock.mock.calls[0] as unknown[])[0])).toContain("/q/d/l/?s=nvda.us");
+    expect(points).toEqual([
+      { t: "2026-05-01T00:00:00.000Z", value: 204.5 },
+      { t: "2026-05-04T00:00:00.000Z", value: 207.25 },
+    ]);
   });
 });

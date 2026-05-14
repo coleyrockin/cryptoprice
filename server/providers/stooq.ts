@@ -1,19 +1,20 @@
 import { toFiniteNumber, toSafeString } from "../sanitize.js";
 import { readResponseTextWithLimit } from "../request.js";
 import { resolveProviderBaseUrl } from "./base-url.js";
-import type { DashboardEtf, DashboardStock } from "../types.js";
+import type { DashboardEtf, DashboardStock, HistoricalPoint, HistoricalRange } from "../types.js";
 
 import fallbackPayloadJson from "../fallback/dashboard-fallback.json" with { type: "json" };
 
 const STOOQ_BASE_URL = "https://stooq.com";
 const STOOQ_MAX_RESPONSE_BYTES = 64_000;
-export const EQUITY_FUNDAMENTALS_AS_OF = "2026-05-12";
+const STOOQ_HISTORY_MAX_RESPONSE_BYTES = 256_000;
+export const EQUITY_FUNDAMENTALS_AS_OF = "2026-05-14";
 
 // Lists ordered by current market cap / AUM. Ranking is positional —
 // Stooq does not expose those values, so we derive them from the static
 // share/unit counts below multiplied by the live close price.
 const TOP_STOCK_SYMBOLS = ["NVDA", "GOOGL", "AAPL", "MSFT", "AMZN", "TSM", "AVGO", "META", "BRK-B", "LLY"];
-const TOP_ETF_SYMBOLS = ["VOO", "SPY", "IVV", "VTI", "QQQ", "VUG", "BND", "AGG", "GLD", "VXUS"];
+const TOP_ETF_SYMBOLS = ["VOO", "IVV", "SPY", "VTI", "QQQ", "VUG", "GLD", "BND", "VXUS", "AGG"];
 
 type FallbackStockRow = {
   symbol?: string;
@@ -25,6 +26,12 @@ type FallbackEtfRow = {
   symbol?: string;
   aumUsd?: number | null;
   priceUsd?: number | null;
+};
+
+const HISTORY_RANGE_DAYS: Record<HistoricalRange, number> = {
+  "7D": 14,
+  "30D": 45,
+  "1Y": 370,
 };
 
 function normalizeFallbackSymbol(symbol: string): string {
@@ -64,9 +71,9 @@ const STOCK_SHARES_ESTIMATE: Record<string, number> = {
   NVDA: 24_300_000_000,
   AAPL: 14_690_000_000,
   MSFT: 7_430_000_000,
-  GOOGL: 12_120_000_000,
-  AMZN: 10_750_000_000,
-  TSM: 4_615_000_000,
+  GOOGL: 12_440_000_000,
+  AMZN: 11_120_000_000,
+  TSM: 5_490_000_000,
   META: 2_530_000_000,
   AVGO: 4_730_000_000,
   "BRK-B": 2_160_000_000,
@@ -74,16 +81,16 @@ const STOCK_SHARES_ESTIMATE: Record<string, number> = {
 };
 
 const ETF_UNITS_ESTIMATE: Record<string, number> = {
-  SPY: 1_107_011_070,
-  IVV: 962_046_329,
-  VOO: 994_606_566,
-  VTI: 1_613_693_929,
-  QQQ: 641_307_213,
-  VUG: 376_313_334,
-  BND: 1_607_191_501,
-  AGG: 1_099_813_239,
-  VXUS: 1_183_431_953,
-  GLD: 280_875_325,
+  VOO: 1_392_000_000,
+  IVV: 1_096_000_000,
+  SPY: 1_016_000_000,
+  VTI: 1_747_000_000,
+  QQQ: 644_000_000,
+  VUG: 3_632_800_000,
+  GLD: 366_108_000,
+  BND: 2_085_000_000,
+  VXUS: 1_744_000_000,
+  AGG: 1_405_700_000,
 };
 
 function resolveStockShares(symbol: string): number {
@@ -91,7 +98,7 @@ function resolveStockShares(symbol: string): number {
 }
 
 function resolveEtfUnits(symbol: string): number {
-  return FALLBACK_ETF_UNITS[symbol] ?? ETF_UNITS_ESTIMATE[symbol] ?? 0;
+  return ETF_UNITS_ESTIMATE[symbol] ?? FALLBACK_ETF_UNITS[symbol] ?? 0;
 }
 
 // Human-readable names (Stooq doesn't return full names)
@@ -187,6 +194,68 @@ async function fetchStooqQuotes(
   }
 }
 
+function ymd(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}${month}${day}`;
+}
+
+function parseStooqHistoryRows(text: string): HistoricalPoint[] {
+  const lines = text.trim().split(/\r?\n/).slice(1);
+
+  return lines
+    .map((line) => {
+      const parts = line.split(",");
+      const date = parts[0] ?? "";
+      const close = toFiniteNumber(parts[4]);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+      return {
+        t: `${date}T00:00:00.000Z`,
+        value: close,
+      };
+    })
+    .filter((point): point is HistoricalPoint => point !== null);
+}
+
+export async function fetchHistoricalPricesFromStooq(
+  symbol: string,
+  range: HistoricalRange,
+  options: FetchStooqOptions = {},
+): Promise<HistoricalPoint[]> {
+  const baseUrl = resolveProviderBaseUrl(options.baseUrl, STOOQ_BASE_URL, "Stooq", "stooq.com");
+  const safeSymbol = symbol.trim().toLowerCase().replace(".", "-");
+  const end = new Date();
+  const start = new Date(end);
+  start.setUTCDate(start.getUTCDate() - HISTORY_RANGE_DAYS[range]);
+
+  const url = `${baseUrl}/q/d/l/?s=${safeSymbol}.us&d1=${ymd(start)}&d2=${ymd(end)}&i=d`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? 6_000);
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        Accept: "text/csv,text/plain,*/*",
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const text = await readResponseTextWithLimit(response, STOOQ_HISTORY_MAX_RESPONSE_BYTES);
+    const points = parseStooqHistoryRows(text);
+    if (points.length === 0) {
+      throw new Error("Stooq returned no historical prices");
+    }
+
+    return points;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function calcChangePercent(open: number | null, close: number | null): number | null {
   if (open === null || close === null || open === 0) return null;
   return ((close - open) / open) * 100;
@@ -200,6 +269,19 @@ function calcEstimatedValue(priceUsd: number | null, unitCount: number): number 
   return Math.round(priceUsd * unitCount);
 }
 
+function rankByEstimatedValue<T extends { rank: number }>(rows: T[], valueFor: (row: T) => number | null): T[] {
+  return [...rows]
+    .sort((left, right) => {
+      const leftValue = valueFor(left) ?? Number.NEGATIVE_INFINITY;
+      const rightValue = valueFor(right) ?? Number.NEGATIVE_INFINITY;
+      return rightValue - leftValue;
+    })
+    .map((row, index) => ({
+      ...row,
+      rank: index + 1,
+    }));
+}
+
 export async function fetchTopStocksFromStooq(
   options: FetchStooqOptions = {},
 ): Promise<DashboardStock[]> {
@@ -209,14 +291,14 @@ export async function fetchTopStocksFromStooq(
     throw new Error("Stooq returned no stock data");
   }
 
-  return TOP_STOCK_SYMBOLS
-    .map((symbol, index): DashboardStock | null => {
+  const stocks = TOP_STOCK_SYMBOLS
+    .map((symbol): DashboardStock | null => {
       const q = quotes.get(symbol);
       if (!q) return null;
 
       return {
         id: `stock-${symbol.toLowerCase().replace(".", "-")}`,
-        rank: index + 1,
+        rank: 0,
         name: toSafeString(STOCK_NAMES[symbol], symbol),
         symbol,
         category: "Stock" as const,
@@ -228,6 +310,8 @@ export async function fetchTopStocksFromStooq(
       };
     })
     .filter((s): s is DashboardStock => s !== null);
+
+  return rankByEstimatedValue(stocks, (stock) => stock.marketCapUsd);
 }
 
 export async function fetchTopEtfsFromStooq(
@@ -239,14 +323,14 @@ export async function fetchTopEtfsFromStooq(
     throw new Error("Stooq returned no ETF data");
   }
 
-  return TOP_ETF_SYMBOLS
-    .map((symbol, index): DashboardEtf | null => {
+  const etfs = TOP_ETF_SYMBOLS
+    .map((symbol): DashboardEtf | null => {
       const q = quotes.get(symbol);
       if (!q) return null;
 
       return {
         id: `etf-${symbol.toLowerCase()}`,
-        rank: index + 1,
+        rank: 0,
         name: toSafeString(ETF_NAMES[symbol], symbol),
         symbol,
         category: "ETF" as const,
@@ -258,4 +342,6 @@ export async function fetchTopEtfsFromStooq(
       };
     })
     .filter((e): e is DashboardEtf => e !== null);
+
+  return rankByEstimatedValue(etfs, (etf) => etf.aumUsd);
 }

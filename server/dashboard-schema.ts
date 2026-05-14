@@ -94,7 +94,7 @@ function isCurrency(value: unknown): boolean {
 function isAsset(value: unknown): boolean {
   return (
     hasBaseEntry(value) &&
-    (value.category === "Stock" || value.category === "Crypto" || value.category === "Commodity") &&
+    (value.category === "Stock" || value.category === "Crypto" || value.category === "Commodity" || value.category === "Private Company") &&
     isNullableNumber(value.marketCapUsd)
   );
 }

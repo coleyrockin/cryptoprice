@@ -50,3 +50,34 @@ test("renders logo fallback marks when logo network requests fail", async ({ pag
   await expect(fallbackMarks.first()).toBeVisible({ timeout: 15_000 });
   expect(await fallbackMarks.count()).toBeGreaterThan(0);
 });
+
+test("opens asset detail drawer with provenance and unsupported history states", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: /Show NVIDIA details/i }).first().click();
+  const nvidiaDialog = page.getByRole("dialog", { name: /NVIDIA/i });
+  await expect(nvidiaDialog).toBeVisible({ timeout: 15_000 });
+  await expect(nvidiaDialog.getByText(/Provider/i)).toBeVisible();
+  await expect(nvidiaDialog.getByText("derived-market-cap")).toBeVisible();
+  await page.getByRole("button", { name: /Close asset detail/i }).click();
+
+  await page.getByRole("button", { name: /Show SpaceX details/i }).first().click();
+  const spacexDialog = page.getByRole("dialog", { name: /SpaceX/i });
+  await expect(spacexDialog).toBeVisible({ timeout: 15_000 });
+  await expect(spacexDialog.getByText("curated-valuation")).toBeVisible();
+  await expect(spacexDialog.getByText(/curated snapshots/i).first()).toBeVisible();
+});
+
+test("saves a local portfolio holding across reloads", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.getByRole("heading", { level: 2, name: "Portfolio Lab" })).toBeVisible();
+  await page.getByLabel("Holding quantity").fill("2");
+  await page.getByLabel("Holding cost basis").fill("300");
+  await page.getByRole("button", { name: "Save holding" }).click();
+  await expect(page.locator("#section-portfolio")).toContainText("NVIDIA");
+
+  await page.reload();
+  await expect(page.locator("#section-portfolio")).toContainText("NVIDIA");
+  await expect(page.evaluate(() => localStorage.getItem("wap.portfolio.v1"))).resolves.toContain("stock-nvda");
+});

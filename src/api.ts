@@ -1,4 +1,4 @@
-import type { DashboardPayload, DashboardSegmentKey, DashboardSegmentSource } from "./types/dashboard";
+import type { AssetDetailPayload, DashboardPayload, DashboardSegmentKey, DashboardSegmentSource, HistoricalRange } from "./types/dashboard";
 
 declare const __GITHUB_PAGES__: boolean;
 
@@ -9,6 +9,7 @@ const DASHBOARD_ENDPOINT = import.meta.env.DEV
     : "/api/dashboard";
 
 const CLIENT_ERROR_ENDPOINT = import.meta.env.DEV ? "/__local_api/client-error" : "/api/client-error";
+const ASSET_DETAIL_ENDPOINT = import.meta.env.DEV ? "/__local_api/asset-detail" : "/api/asset-detail";
 const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "topPrivateCompanies", "night"];
 const SEGMENT_SOURCES = new Set<DashboardSegmentSource>(["live", "fresh-cache", "stale-cache", "fallback", "durable-cache"]);
 
@@ -82,6 +83,13 @@ function normalizeDashboardPayload(payload: DashboardPayload): DashboardPayload 
 export async function fetchDashboard(): Promise<DashboardPayload> {
   const payload = await getJson<DashboardPayload>(DASHBOARD_ENDPOINT);
   return normalizeDashboardPayload(payload);
+}
+
+export async function fetchAssetDetail(id: string, range: HistoricalRange): Promise<AssetDetailPayload> {
+  const url = new URL(ASSET_DETAIL_ENDPOINT, window.location.origin);
+  url.searchParams.set("id", id);
+  url.searchParams.set("range", range);
+  return getJson<AssetDetailPayload>(url.pathname + url.search);
 }
 
 type ClientErrorPayload = {

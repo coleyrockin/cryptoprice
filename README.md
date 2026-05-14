@@ -23,18 +23,20 @@ World Asset Prices is a live market dashboard that compares major public assets,
 
 The dashboard answers a simple question: what are the world's most valuable and most watched assets doing right now?
 
-A single `GET /api/dashboard` endpoint composes the full payload. The frontend does not call external market APIs directly. Server routes fetch stock and ETF prices from Stooq, FX rates from Frankfurter, crypto prices from CoinPaprika, and private-company valuations from an operator-curated fallback dataset. The app layers fresh cache, stale cache, optional durable KV cache, and bundled fallback data so users see a useful dashboard even when an upstream provider is degraded.
+A single `GET /api/dashboard` endpoint composes the compact dashboard payload. `GET /api/asset-detail?id=...&range=...` powers the asset drawer with quote, provenance, confidence, and history metadata. The frontend does not call external market APIs directly. Server routes fetch stock and ETF prices from Stooq, FX rates from Frankfurter, crypto prices from CoinPaprika, and private-company valuations from an operator-curated fallback dataset. The app layers fresh cache, stale cache, optional durable KV cache, and bundled fallback data so users see a useful dashboard even when an upstream provider is degraded.
 
 No paid API key is required for local development or deployment.
 
 ## Main Features
 
-- **Seven market sections:** Watchlist, Global Assets, Stocks, Private Companies, ETFs, Currencies, Cryptos, and NIGHT.
+- **Nine market sections:** Watchlist, Portfolio Lab, Global Assets, Stocks, Private Companies, ETFs, Currencies, Cryptos, and NIGHT.
 - **Live data controls:** Search, section filters, dense mode, and sortable grids by rank, name, value, or movement.
 - **Pinned watchlist:** Pin any card and keep it available across sessions through local storage.
+- **Asset detail drawer:** Click any card to inspect exact value, unit price, provenance, freshness, confidence, limitations, and Stooq-backed history where available.
+- **Local Portfolio Lab:** Track tradable stock, ETF, crypto, and NIGHT holdings with allocation, optional gain/loss, edit/remove controls, and JSON import/export.
 - **Segment-level data health:** Hero and section badges distinguish `live`, `fresh-cache`, `stale-cache`, `durable-cache`, and `fallback` states.
 - **Valuation transparency:** Stock market caps and ETF AUM values use live prices scaled from baseline share/unit snapshots, with source metadata exposed in the payload.
-- **Private companies:** Operator-curated top private companies are presented with the same grid, sorting, filtering, pinning, and empty-state behavior as public markets.
+- **Private companies:** Operator-curated top private companies are presented with the same grid, sorting, filtering, pinning, detail, and empty-state behavior as public markets.
 - **Logo proxy:** Server-side proxy validates logo URLs, blocks private hosts, enforces allowlisted domains, limits response size, and rejects unsafe content types.
 - **Light and dark themes:** System preference on first load, persistent user preference afterward.
 - **Responsive dashboard UI:** Desktop, tablet, and mobile layouts with compact cards, sticky section nav, and touch-friendly controls.
@@ -66,7 +68,11 @@ The hero **Data health** summary reports `Live` only when all visible segments a
 
 ## Private Companies
 
-Private-company valuations are not live market prices. They are curated estimates shipped in `server/fallback/dashboard-fallback.json` and displayed as a separate segment so they can be replaced by a future provider without changing the public payload shape. They intentionally participate in search, sorting, pinning, dense mode, and data-health metadata like the other sections.
+Private-company valuations are not live market prices. They are curated estimates shipped in `server/fallback/dashboard-fallback.json` and displayed as a separate segment so they can be replaced by a future provider without changing the public payload shape. They intentionally participate in search, sorting, pinning, dense mode, detail views, and data-health metadata like the other sections. Detail views label them as curated estimates, not traded prices.
+
+## Portfolio Privacy
+
+The Portfolio Lab is a local simulator, not brokerage software. Holdings are stored under `wap.portfolio.v1` in browser `localStorage`; they are never sent to dashboard APIs, URLs, client-error telemetry, logs, or analytics. Import/export uses plain JSON so users can move or back up local holdings manually.
 
 ## Local Setup
 
@@ -125,6 +131,8 @@ npm audit --omit=dev
 
 For visual QA, run `npm run dev`, open `http://localhost:5188`, and check desktop, tablet, and mobile breakpoints in both light and dark modes.
 
+Deterministic Playwright fixtures cover live, degraded, fallback, empty, long-name, logo-failure, detail-drawer, portfolio, light, dark, desktop, and mobile states.
+
 ## Deployment Notes
 
 The app is configured for Vercel:
@@ -157,6 +165,8 @@ Shipped:
 
 - Live stock, ETF, FX, and crypto sections with resilient fallback behavior.
 - Private-company section with sorting, filtering, pinning, and health metadata.
+- Asset detail drawer with provenance, confidence, limitation copy, and Stooq-backed stock/ETF history.
+- Local-only Portfolio Lab with holdings persistence, allocation, optional gain/loss, edit/remove, and JSON import/export.
 - Price-derived stock market-cap and ETF AUM estimates.
 - Segment-level data health and provider transparency.
 - Hardened logo proxy, client-error endpoint limits, and trusted-proxy handling.
@@ -164,8 +174,8 @@ Shipped:
 Next:
 
 - Add provider redundancy for stock and ETF fundamentals.
-- Add richer historical chart views for each asset.
-- Add user-entered portfolio holdings and allocation summaries.
+- Add richer historical chart providers for crypto, currencies, commodities, private companies, and NIGHT.
+- Add portfolio scenario tools such as rebalance targets and what-if price changes.
 - Add optional cross-device watchlist sync.
 - Add visual regression coverage for core dashboard states.
 
@@ -173,8 +183,9 @@ Next:
 
 - Stock market-cap and ETF AUM values are estimates, not exchange-certified real-time fundamentals.
 - Private-company valuations are curated snapshots and can lag new funding rounds or secondary-market marks.
+- Historical charts are v1 coverage: Stooq-backed stocks and ETFs have history; crypto, currencies, commodities, private companies, and NIGHT show an honest unavailable state until a no-key history provider is added.
 - Free providers can rate limit or temporarily fail, which may show as `stale-cache`, `durable-cache`, or `fallback` in Data health.
-- No authentication or portfolio persistence is included yet.
+- Portfolio data is local to one browser profile and does not sync across devices.
 
 ## Security Notes
 
@@ -183,6 +194,7 @@ Next:
 - Provider origin overrides are HTTPS-only and expected-host-only.
 - Logo proxy requests are validated, rate limited, size limited, and restricted to safe image content types.
 - Client error reporting trims and hashes stack details before logging to reduce accidental sensitive data retention.
+- Local portfolio holdings stay client-side and are excluded from API payloads and telemetry.
 
 ## Credits
 

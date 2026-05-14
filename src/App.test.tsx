@@ -2,14 +2,16 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { fetchDashboard } from "./api";
+import { fetchAssetDetail, fetchDashboard } from "./api";
 import App from "./App";
-import type { DashboardPayload } from "./types/dashboard";
+import type { AssetDetailPayload, DashboardPayload } from "./types/dashboard";
 
 vi.mock("./api", () => ({
+  fetchAssetDetail: vi.fn(),
   fetchDashboard: vi.fn(),
 }));
 
+const mockedFetchAssetDetail = vi.mocked(fetchAssetDetail);
 const mockedFetchDashboard = vi.mocked(fetchDashboard);
 
 const payload: DashboardPayload = {
@@ -108,6 +110,46 @@ const payload: DashboardPayload = {
   },
 };
 
+const assetDetail: AssetDetailPayload = {
+  asset: {
+    id: "stock-aapl",
+    symbol: "AAPL",
+    displayName: "Apple",
+    category: "Stock",
+    currency: "USD",
+    tradable: true,
+    supportsHistory: true,
+    supportsLivePrice: true,
+    providerIds: { stooq: "AAPL" },
+  },
+  quote: {
+    valueUsd: 3_000_000_000_000,
+    priceUsd: 200,
+    valueLabel: "Estimated market cap",
+    changePercent: 1,
+    asOf: "2026-02-16T00:00:00.000Z",
+  },
+  history: {
+    range: "30D",
+    available: true,
+    points: [
+      { t: "2026-02-01T00:00:00.000Z", value: 190 },
+      { t: "2026-02-02T00:00:00.000Z", value: 200 },
+    ],
+  },
+  provenance: {
+    provider: "Stooq",
+    source: "live",
+    segment: "topStocks",
+    ageSec: 0,
+    updatedAt: "2026-02-16T00:00:00.000Z",
+    valueMethod: "derived-market-cap",
+    confidence: "medium",
+    limitation: "Market cap is estimated.",
+  },
+  stale: false,
+};
+
 function renderApp() {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -126,9 +168,37 @@ function renderApp() {
 
 describe("App", () => {
   beforeEach(() => {
+    mockedFetchAssetDetail.mockReset();
+    mockedFetchAssetDetail.mockResolvedValue(assetDetail);
     mockedFetchDashboard.mockReset();
     mockedFetchDashboard.mockResolvedValue(payload);
     localStorage.clear();
+  });
+
+  it("opens an asset detail drawer from a market card", async () => {
+    renderApp();
+
+    await screen.findByText("Apple");
+    fireEvent.click(screen.getByRole("button", { name: "Show Apple details" }));
+
+    expect(await screen.findByRole("dialog", { name: "Apple" })).toBeInTheDocument();
+    expect(screen.getByText("Market cap is estimated.")).toBeInTheDocument();
+    expect(mockedFetchAssetDetail).toHaveBeenCalledWith("stock-aapl", "30D");
+  });
+
+  it("adds a local portfolio holding without sending it to an API", async () => {
+    renderApp();
+
+    await screen.findByText("Portfolio Lab");
+    await screen.findByText("Apple");
+    fireEvent.change(screen.getByLabelText("Holding quantity"), { target: { value: "2" } });
+    fireEvent.change(screen.getByLabelText("Holding cost basis"), { target: { value: "300" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save holding" }));
+
+    const portfolio = screen.getByRole("region", { name: "Portfolio Lab" });
+    expect(within(portfolio).getByText("Apple")).toBeInTheDocument();
+    expect(localStorage.getItem("wap.portfolio.v1")).toContain("stock-aapl");
+    expect(mockedFetchAssetDetail).not.toHaveBeenCalled();
   });
 
   it("renders safely with missing numbers and keeps ticker pills visible", async () => {

@@ -295,7 +295,11 @@ function getCommodityAssets(): DashboardAsset[] {
     }));
 }
 
-export function buildTopAssets(topStocks: DashboardStock[], topCryptos: DashboardCrypto[]): DashboardAsset[] {
+export function buildTopAssets(
+  topStocks: DashboardStock[],
+  topCryptos: DashboardCrypto[],
+  topPrivateCompanies: DashboardPrivateCompany[] = FALLBACK_PAYLOAD.topPrivateCompanies,
+): DashboardAsset[] {
   // Pre-allocate Map for deduplication
   const commodityAssets = getCommodityAssets();
   const deduped = new Map<string, DashboardAsset>();
@@ -316,6 +320,19 @@ export function buildTopAssets(topStocks: DashboardStock[], topCryptos: Dashboar
       marketCapUsd: stock.marketCapUsd,
       logoUrl: stock.logoUrl,
       fallbackLogoUrls: stock.fallbackLogoUrls,
+    });
+  }
+
+  for (const company of topPrivateCompanies) {
+    deduped.set(company.id, {
+      id: company.id,
+      rank: company.rank,
+      name: company.name,
+      symbol: company.symbol,
+      category: "Private Company",
+      marketCapUsd: company.marketCapUsd,
+      logoUrl: company.logoUrl,
+      fallbackLogoUrls: company.fallbackLogoUrls,
     });
   }
 
@@ -546,7 +563,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
   const topCryptos = normalizeCryptos(cryptosResult.data);
   const topCurrencies = normalizeCurrencies(currenciesResult.data);
   const topPrivateCompanies = normalizePrivateCompanies(FALLBACK_PAYLOAD.topPrivateCompanies);
-  const topAssets = buildTopAssets(topStocks, topCryptos);
+  const topAssets = buildTopAssets(topStocks, topCryptos, topPrivateCompanies);
   const night = normalizeNight(nightResult.data);
 
   const stale = cryptosResult.stale || stocksMeta.stale || etfsMeta.stale || currenciesResult.stale || nightResult.stale;
@@ -571,7 +588,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       ageSec: Math.max(0, Math.floor((nowMs - currenciesResult.updatedAtMs) / 1_000)),
     },
     topPrivateCompanies: {
-      source: "live",
+      source: "fresh-cache",
       ageSec: 0,
     },
     night: {

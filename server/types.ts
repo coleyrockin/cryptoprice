@@ -51,7 +51,7 @@ export type DashboardPrivateCompany = DashboardEntryBase & {
 };
 
 export type DashboardAsset = DashboardEntryBase & {
-  category: "Stock" | "Crypto" | "Commodity";
+  category: "Stock" | "Crypto" | "Commodity" | "Private Company";
   marketCapUsd: number | null;
 };
 
@@ -89,5 +89,61 @@ export type DashboardPayload = {
   topPrivateCompanies: DashboardPrivateCompany[];
   topAssets: DashboardAsset[];
   night: DashboardNight | null;
+  requestId?: string;
+};
+
+export type AssetCategory = DashboardCrypto["category"] | DashboardStock["category"] | DashboardEtf["category"] | DashboardCurrency["category"] | DashboardPrivateCompany["category"] | DashboardAsset["category"] | "NIGHT";
+
+export type AssetRef = {
+  id: string;
+  symbol: string;
+  displayName: string;
+  category: AssetCategory;
+  currency: "USD";
+  tradable: boolean;
+  supportsHistory: boolean;
+  supportsLivePrice: boolean;
+  providerIds: {
+    stooq?: string;
+    coinpaprika?: string;
+  };
+};
+
+export type HistoricalRange = "7D" | "30D" | "1Y";
+
+export type HistoricalPoint = {
+  t: string;
+  value: number | null;
+};
+
+export type AssetProvenance = {
+  provider: string;
+  source: DashboardSegmentSource | "curated";
+  segment: DashboardSegmentKey | "topAssets";
+  ageSec: number;
+  updatedAt: string;
+  valueMethod: "live-price" | "derived-market-cap" | "derived-aum" | "exchange-rate" | "curated-valuation" | "commodity-estimate" | "unavailable";
+  confidence: "high" | "medium" | "low" | "curated";
+  limitation: string;
+};
+
+export type AssetDetailPayload = {
+  asset: AssetRef;
+  quote: {
+    valueUsd: number | null;
+    priceUsd?: number | null;
+    valueLabel: string;
+    changePercent?: number | null;
+    asOf: string;
+  };
+  history: {
+    range: HistoricalRange;
+    available: boolean;
+    points: HistoricalPoint[];
+    reason?: string;
+  };
+  provenance: AssetProvenance;
+  stale: boolean;
+  degradedReason?: string;
   requestId?: string;
 };

@@ -1655,6 +1655,273 @@ html:not(.dark) .night-ticker-stat { position: relative; z-index: 1; }
   margin-right: 0.2rem;
 }
 
+.night-detail-button {
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  min-height: 2rem;
+  padding: 0.35rem 0.7rem;
+  background: rgba(77, 240, 224, 0.1);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── Portfolio Lab ── */
+.portfolio-surface { border-color: rgba(77, 240, 224, 0.22); }
+
+.portfolio-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.portfolio-summary > div,
+.portfolio-position,
+.detail-metrics > div,
+.detail-provenance > div {
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.portfolio-summary > div { padding: 0.74rem; }
+
+.portfolio-summary span,
+.portfolio-form span,
+.detail-metrics span,
+.detail-provenance span {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.portfolio-summary strong,
+.detail-metrics strong {
+  font-family: "Sora", sans-serif;
+  font-size: 1rem;
+}
+
+.portfolio-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) repeat(2, minmax(110px, 0.7fr)) auto;
+  gap: 0.55rem;
+  align-items: end;
+  margin-top: 0.75rem;
+}
+
+.portfolio-form label { min-width: 0; }
+
+.portfolio-form input,
+.portfolio-form select,
+.portfolio-transfer textarea {
+  width: 100%;
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  background: var(--input-bg);
+  color: var(--text);
+  font: inherit;
+  min-height: 2.35rem;
+  padding: 0.55rem 0.65rem;
+}
+
+.portfolio-form button,
+.portfolio-transfer button,
+.portfolio-position button {
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.75rem;
+  background: rgba(77, 240, 224, 0.1);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.portfolio-positions {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.portfolio-position {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.portfolio-position strong,
+.portfolio-position span { display: block; }
+
+.portfolio-position span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.portfolio-transfer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+  align-items: end;
+}
+
+.portfolio-transfer textarea {
+  min-height: 4.5rem;
+  resize: vertical;
+}
+
+.portfolio-transfer div {
+  display: grid;
+  gap: 0.45rem;
+}
+
+/* ── Asset Detail Drawer ── */
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+}
+
+.asset-detail-drawer {
+  width: min(460px, 94vw);
+  min-height: 100vh;
+  overflow-y: auto;
+  border-left: 1px solid var(--surface-border);
+  background: var(--surface-bg);
+  box-shadow: -24px 0 80px rgba(0, 0, 0, 0.38);
+  padding: 1rem;
+}
+
+.detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.detail-eyebrow {
+  margin: 0 0 0.2rem;
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.detail-head h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.detail-head p {
+  margin: 0.2rem 0 0;
+  color: var(--text-muted);
+}
+
+.detail-close {
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  width: 2.25rem;
+  height: 2.25rem;
+  background: var(--input-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.detail-metrics,
+.detail-provenance {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.detail-provenance { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.detail-metrics > div,
+.detail-provenance > div { padding: 0.65rem; }
+
+.detail-provenance strong {
+  font-size: 0.78rem;
+  text-transform: capitalize;
+}
+
+.detail-range-row {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.9rem;
+}
+
+.detail-range {
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  min-height: 2rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--input-bg);
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.detail-range.active {
+  color: var(--text);
+  border-color: rgba(77, 240, 224, 0.45);
+  background: rgba(77, 240, 224, 0.12);
+}
+
+.detail-panel {
+  margin-top: 0.75rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  padding: 0.8rem;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.detail-panel-head,
+.detail-chart-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.detail-chart {
+  width: 100%;
+  height: 180px;
+  margin-top: 0.8rem;
+  color: var(--accent-cyan);
+  filter: drop-shadow(0 0 10px rgba(77, 240, 224, 0.22));
+}
+
+.detail-unavailable,
+.detail-limitation,
+.detail-degraded {
+  margin: 0.8rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.detail-degraded { color: var(--amber); }
+
 /* ── Disclaimer ── */
 .disclaimer {
   margin: 0.6rem 0 0;
@@ -1974,6 +2241,26 @@ html:not(.dark) .footer-glow {
   .hero-insights { gap: 0.42rem; }
   .hero-insight { padding: 0.58rem; }
   .hero-insight dd { font-size: 0.92rem; }
+  .portfolio-summary,
+  .portfolio-form,
+  .portfolio-transfer {
+    grid-template-columns: 1fr;
+  }
+  .portfolio-position {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  .detail-overlay {
+    align-items: flex-end;
+  }
+  .asset-detail-drawer {
+    width: 100%;
+    min-height: 76vh;
+    max-height: 92vh;
+    border-left: 0;
+    border-top: 1px solid var(--surface-border);
+    border-radius: 18px 18px 0 0;
+  }
 
   [id^="section-"] { scroll-margin-top: 3rem; }
 }
@@ -2015,6 +2302,8 @@ html:not(.dark) .footer-glow {
   .section-nav a { padding: 0.26rem 0.52rem; font-size: 0.7rem; }
   .segmented-button,
   .density-toggle { font-size: 0.68rem; padding-inline: 0.52rem; }
+  .detail-metrics,
+  .detail-provenance { grid-template-columns: 1fr; }
 }
 
 /* Very small phones — single column only if truly cramped */

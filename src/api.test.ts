@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { fetchDashboard } from "./api";
-import type { DashboardPayload, DashboardSegmentKey } from "./types/dashboard";
+import { fetchAssetDetail, fetchDashboard } from "./api";
+import type { AssetDetailPayload, DashboardPayload, DashboardSegmentKey } from "./types/dashboard";
 
 const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "topPrivateCompanies", "night"];
 
@@ -78,5 +78,55 @@ describe("fetchDashboard", () => {
 
     expect(dashboard.degradedSegments).toEqual(SEGMENT_KEYS);
     expect(dashboard.segmentMeta.topPrivateCompanies.source).toBe("fallback");
+  });
+});
+
+describe("fetchAssetDetail", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("requests an additive asset detail endpoint", async () => {
+    const detail: AssetDetailPayload = {
+      asset: {
+        id: "stock-nvda",
+        symbol: "NVDA",
+        displayName: "NVIDIA",
+        category: "Stock",
+        currency: "USD",
+        tradable: true,
+        supportsHistory: true,
+        supportsLivePrice: true,
+        providerIds: { stooq: "NVDA" },
+      },
+      quote: {
+        valueUsd: 1,
+        priceUsd: 1,
+        valueLabel: "Estimated market cap",
+        asOf: "2026-05-13T00:00:00.000Z",
+      },
+      history: {
+        range: "30D",
+        available: false,
+        points: [],
+        reason: "unavailable",
+      },
+      provenance: {
+        provider: "Stooq",
+        source: "live",
+        segment: "topStocks",
+        ageSec: 0,
+        updatedAt: "2026-05-13T00:00:00.000Z",
+        valueMethod: "derived-market-cap",
+        confidence: "medium",
+        limitation: "Estimated",
+      },
+      stale: false,
+    };
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(detail), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(fetchAssetDetail("stock-nvda", "30D")).resolves.toEqual(detail);
+    expect(String((fetchMock.mock.calls[0] as unknown[])[0])).toContain("/asset-detail?id=stock-nvda&range=30D");
   });
 });

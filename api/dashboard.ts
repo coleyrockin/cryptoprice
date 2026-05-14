@@ -59,8 +59,8 @@ function mergeDurableFallbackSegments(payload: DashboardPayload, durablePayload:
     if (segment === "night") merged.night = durablePayload.night;
   }
 
-  if (segments.includes("topCryptos") || segments.includes("topStocks")) {
-    merged.topAssets = buildTopAssets(merged.topStocks, merged.topCryptos);
+  if (segments.includes("topCryptos") || segments.includes("topStocks") || segments.includes("topPrivateCompanies")) {
+    merged.topAssets = buildTopAssets(merged.topStocks, merged.topCryptos, merged.topPrivateCompanies);
   }
 
   merged.degradedSegments = ALL_SEGMENTS.filter((segment) => {
