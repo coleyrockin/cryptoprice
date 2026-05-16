@@ -37,7 +37,7 @@ function sampleDetail(): AssetDetailPayload {
       points: [{ t: "2026-05-01T00:00:00.000Z", value: 200 }],
     },
     provenance: {
-      provider: "Stooq",
+      provider: "Stooq / Yahoo Finance fallback",
       source: "live",
       segment: "topStocks",
       ageSec: 0,

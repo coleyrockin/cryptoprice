@@ -117,14 +117,14 @@ export const visualAssetDetailFixture: AssetDetailPayload = {
     ],
   },
   provenance: {
-    provider: "Stooq",
+    provider: "Stooq / Yahoo Finance fallback",
     source: "live",
     segment: "topStocks",
     ageSec: 0,
     updatedAt: "2026-05-13T12:00:00.000Z",
     valueMethod: "derived-market-cap",
     confidence: "medium",
-    limitation: "Market cap is estimated from live Stooq price and public share count baseline as of 2026-05-12.",
+    limitation: "Market cap is estimated from live equity quote price and public share count baseline as of 2026-05-12.",
   },
   stale: false,
 };

@@ -7,9 +7,32 @@ describe("Stooq provider", () => {
     vi.unstubAllGlobals();
   });
 
-  it("fetches stock quotes in a single batched Stooq request", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(
+  it("fetches stock quotes from Stooq and fills missing symbols from Yahoo Finance", async () => {
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("query1.finance.yahoo.com")) {
+        return new Response(
+          JSON.stringify({
+            quoteResponse: {
+              result: [
+                {
+                  symbol: "GOOGL",
+                  regularMarketOpen: 388,
+                  regularMarketPrice: 390,
+                },
+              ],
+            },
+          }),
+          {
+            status: 200,
+            headers: {
+              "content-type": "application/json",
+            },
+          },
+        );
+      }
+
+      return new Response(
         [
           "Symbol,Date,Open,High,Low,Close,Volume",
           "NVDA.US,2026-05-04,199.5,201.73,194.74,198.543,85711680",
@@ -21,22 +44,28 @@ describe("Stooq provider", () => {
             "content-type": "text/csv",
           },
         },
-      ),
-    );
+      );
+    });
     vi.stubGlobal("fetch", fetchMock);
 
     const stocks = await fetchTopStocksFromStooq({ timeoutMs: 1000 });
 
-    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     const requestUrl = String((fetchMock.mock.calls[0] as unknown[])[0]);
     expect(requestUrl).toContain("s=nvda.us+googl.us+aapl.us");
-    expect(stocks).toHaveLength(2);
+    expect(String((fetchMock.mock.calls[1] as unknown[])[0])).toContain("query1.finance.yahoo.com/v7/finance/quote");
+    expect(stocks).toHaveLength(3);
     expect(stocks[0]).toMatchObject({
+      symbol: "GOOGL",
+      priceUsd: 390,
+      marketCapUsd: 4_851_600_000_000,
+    });
+    expect(stocks[1]).toMatchObject({
       symbol: "NVDA",
       priceUsd: 198.543,
       marketCapUsd: 4_824_594_900_000,
     });
-    expect(stocks[1]).toMatchObject({
+    expect(stocks[2]).toMatchObject({
       symbol: "AAPL",
       priceUsd: 276.873,
       marketCapUsd: 4_067_264_370_000,
@@ -44,8 +73,18 @@ describe("Stooq provider", () => {
   });
 
   it("fetches ETF quotes in a single batched Stooq request", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("query1.finance.yahoo.com")) {
+        return new Response(JSON.stringify({ quoteResponse: { result: [] } }), {
+          status: 200,
+          headers: {
+            "content-type": "application/json",
+          },
+        });
+      }
+
+      return new Response(
         [
           "Symbol,Date,Open,High,Low,Close,Volume",
           "SPY.US,2026-05-04,720.07,722.12,715,718.03,38285071",
@@ -57,13 +96,13 @@ describe("Stooq provider", () => {
             "content-type": "text/csv",
           },
         },
-      ),
-    );
+      );
+    });
     vi.stubGlobal("fetch", fetchMock);
 
     const etfs = await fetchTopEtfsFromStooq({ timeoutMs: 1000 });
 
-    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     const requestUrl = String((fetchMock.mock.calls[0] as unknown[])[0]);
     expect(requestUrl).toContain("s=voo.us+ivv.us+spy.us");
     expect(etfs).toHaveLength(2);
@@ -109,6 +148,46 @@ describe("Stooq provider", () => {
       }),
     ).rejects.toThrow("Invalid Stooq base URL");
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("uses Yahoo Finance when Stooq fails completely", async () => {
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("query1.finance.yahoo.com")) {
+        return new Response(
+          JSON.stringify({
+            quoteResponse: {
+              result: [
+                {
+                  symbol: "NVDA",
+                  regularMarketOpen: 224,
+                  regularMarketPrice: 225,
+                },
+              ],
+            },
+          }),
+          {
+            status: 200,
+            headers: {
+              "content-type": "application/json",
+            },
+          },
+        );
+      }
+
+      return new Response("upstream down", { status: 503 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const stocks = await fetchTopStocksFromStooq({ timeoutMs: 1000 });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(stocks).toHaveLength(1);
+    expect(stocks[0]).toMatchObject({
+      symbol: "NVDA",
+      priceUsd: 225,
+      marketCapUsd: 5_467_500_000_000,
+    });
   });
 
   it("normalizes historical daily prices from Stooq", async () => {

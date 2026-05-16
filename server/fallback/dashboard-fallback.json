@@ -3,7 +3,7 @@
   "stale": true,
   "refreshInSec": 30,
   "source": {
-    "equities": "stooq",
+    "equities": "stooq+yahoo-finance",
     "crypto": "coinpaprika",
     "fallbackUsed": true,
     "equityFundamentalsAsOf": "2026-05-14"

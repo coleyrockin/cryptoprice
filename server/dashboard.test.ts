@@ -3,6 +3,7 @@ import { MemoryCache } from "./cache";
 
 vi.mock("./providers/stooq", () => ({
   EQUITY_FUNDAMENTALS_AS_OF: "2026-05-12",
+  EQUITY_QUOTE_PROVIDERS: "stooq+yahoo-finance",
   fetchTopStocksFromStooq: vi.fn(),
   fetchTopEtfsFromStooq: vi.fn(),
 }));

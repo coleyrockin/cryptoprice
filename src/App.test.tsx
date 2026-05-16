@@ -19,7 +19,7 @@ const payload: DashboardPayload = {
   stale: false,
   refreshInSec: 30,
   source: {
-    equities: "stooq",
+    equities: "stooq+yahoo-finance",
     crypto: "coinpaprika",
     fallbackUsed: false,
     equityFundamentalsAsOf: "2026-05-12",
@@ -138,7 +138,7 @@ const assetDetail: AssetDetailPayload = {
     ],
   },
   provenance: {
-    provider: "Stooq",
+    provider: "Stooq / Yahoo Finance fallback",
     source: "live",
     segment: "topStocks",
     ageSec: 0,

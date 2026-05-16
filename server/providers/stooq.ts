@@ -1,14 +1,16 @@
 import { toFiniteNumber, toSafeString } from "../sanitize.js";
-import { readResponseTextWithLimit } from "../request.js";
+import { readResponseTextWithLimit, requestJsonWithRetry } from "../request.js";
 import { resolveProviderBaseUrl } from "./base-url.js";
 import type { DashboardEtf, DashboardStock, HistoricalPoint, HistoricalRange } from "../types.js";
 
 import fallbackPayloadJson from "../fallback/dashboard-fallback.json" with { type: "json" };
 
 const STOOQ_BASE_URL = "https://stooq.com";
+const YAHOO_FINANCE_BASE_URL = "https://query1.finance.yahoo.com";
 const STOOQ_MAX_RESPONSE_BYTES = 64_000;
 const STOOQ_HISTORY_MAX_RESPONSE_BYTES = 256_000;
 export const EQUITY_FUNDAMENTALS_AS_OF = "2026-05-14";
+export const EQUITY_QUOTE_PROVIDERS = "stooq+yahoo-finance";
 
 // Lists ordered by current market cap / AUM. Ranking is positional —
 // Stooq does not expose those values, so we derive them from the static
@@ -130,7 +132,26 @@ const ETF_NAMES: Record<string, string> = {
 
 export type FetchStooqOptions = {
   baseUrl?: string;
+  yahooBaseUrl?: string;
   timeoutMs?: number;
+};
+
+type EquityQuote = {
+  open: number | null;
+  close: number | null;
+};
+
+type YahooFinanceQuote = {
+  symbol?: string;
+  regularMarketOpen?: number | string;
+  regularMarketPrice?: number | string;
+  regularMarketPreviousClose?: number | string;
+};
+
+type YahooFinanceQuoteResponse = {
+  quoteResponse?: {
+    result?: YahooFinanceQuote[];
+  };
 };
 
 // Stooq uses lowercase .us suffix: NVDA → nvda.us, BRK-B → brk-b.us
@@ -142,8 +163,8 @@ function fromStooqSymbol(symbol: string): string {
   return symbol.trim().toUpperCase().replace(/\.US$/, "");
 }
 
-function parseStooqRows(text: string): Map<string, { open: number | null; close: number | null }> {
-  const map = new Map<string, { open: number | null; close: number | null }>();
+function parseStooqRows(text: string): Map<string, EquityQuote> {
+  const map = new Map<string, EquityQuote>();
   const lines = text.trim().split(/\r?\n/).slice(1);
 
   for (const line of lines) {
@@ -164,8 +185,8 @@ function parseStooqRows(text: string): Map<string, { open: number | null; close:
 async function fetchStooqQuotes(
   symbols: string[],
   options: FetchStooqOptions,
-): Promise<Map<string, { open: number | null; close: number | null }>> {
-  const baseUrl = resolveProviderBaseUrl(options.baseUrl, STOOQ_BASE_URL, "Stooq", "stooq.com");
+): Promise<Map<string, EquityQuote>> {
+  const baseUrl = resolveProviderBaseUrl(options.baseUrl ?? process.env.STOOQ_BASE_URL, STOOQ_BASE_URL, "Stooq", "stooq.com");
   const stooqSymbols = symbols.map(toStooqSymbol).join("+");
   // f=sd2ohlcv: Symbol, Date, Open, High, Low, Close, Volume
   const url = `${baseUrl}/q/l/?s=${stooqSymbols}&f=sd2ohlcv&h&e=csv`;
@@ -192,6 +213,90 @@ async function fetchStooqQuotes(
   } finally {
     clearTimeout(timer);
   }
+}
+
+function normalizeYahooSymbol(symbol: string): string {
+  return symbol.trim().toUpperCase().replace("BRK.B", "BRK-B");
+}
+
+function parseYahooQuotes(payload: unknown): Map<string, EquityQuote> {
+  const map = new Map<string, EquityQuote>();
+  const quotes = (payload as YahooFinanceQuoteResponse).quoteResponse?.result;
+  if (!Array.isArray(quotes)) return map;
+
+  for (const quote of quotes) {
+    const symbol = normalizeYahooSymbol(toSafeString(quote.symbol, ""));
+    const close = toFiniteNumber(quote.regularMarketPrice);
+    if (!symbol || close === null) continue;
+
+    map.set(symbol, {
+      close,
+      open: toFiniteNumber(quote.regularMarketOpen) ?? toFiniteNumber(quote.regularMarketPreviousClose),
+    });
+  }
+
+  return map;
+}
+
+async function fetchYahooFinanceQuotes(symbols: string[], options: FetchStooqOptions): Promise<Map<string, EquityQuote>> {
+  const baseUrl = resolveProviderBaseUrl(
+    options.yahooBaseUrl ?? process.env.YAHOO_FINANCE_BASE_URL,
+    YAHOO_FINANCE_BASE_URL,
+    "Yahoo Finance",
+    "query1.finance.yahoo.com",
+  );
+  const url = new URL(`${baseUrl}/v7/finance/quote`);
+  url.searchParams.set("symbols", symbols.join(","));
+
+  const payload = await requestJsonWithRetry<unknown>(url.toString(), {
+    timeoutMs: options.timeoutMs,
+    retries: 0,
+    maxBytes: STOOQ_MAX_RESPONSE_BYTES,
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+      Accept: "application/json,*/*",
+    },
+  });
+
+  return parseYahooQuotes(payload);
+}
+
+async function fetchEquityQuotes(symbols: string[], options: FetchStooqOptions): Promise<Map<string, EquityQuote>> {
+  const quotes = new Map<string, EquityQuote>();
+  let stooqError: unknown;
+
+  try {
+    const stooqQuotes = await fetchStooqQuotes(symbols, options);
+    stooqQuotes.forEach((quote, symbol) => {
+      quotes.set(symbol, quote);
+    });
+  } catch (error) {
+    if (error instanceof Error && (error.message === "payload_too_large" || error.message === "Invalid Stooq base URL")) {
+      throw error;
+    }
+    stooqError = error;
+  }
+
+  const missingSymbols = symbols.filter((symbol) => !quotes.has(symbol));
+  if (missingSymbols.length > 0) {
+    try {
+      const yahooQuotes = await fetchYahooFinanceQuotes(missingSymbols, options);
+      yahooQuotes.forEach((quote, symbol) => {
+        quotes.set(symbol, quote);
+      });
+    } catch (error) {
+      if (error instanceof Error && (error.message === "payload_too_large" || error.message === "Invalid Yahoo Finance base URL")) {
+        throw error;
+      }
+      if (quotes.size === 0) {
+        const stooqMessage = stooqError instanceof Error ? stooqError.message : "no Stooq data";
+        const yahooMessage = error instanceof Error ? error.message : "unknown Yahoo Finance error";
+        throw new Error(`Equity quote providers returned no data (Stooq: ${stooqMessage}; Yahoo Finance: ${yahooMessage})`);
+      }
+    }
+  }
+
+  return quotes;
 }
 
 function ymd(date: Date): string {
@@ -223,7 +328,7 @@ export async function fetchHistoricalPricesFromStooq(
   range: HistoricalRange,
   options: FetchStooqOptions = {},
 ): Promise<HistoricalPoint[]> {
-  const baseUrl = resolveProviderBaseUrl(options.baseUrl, STOOQ_BASE_URL, "Stooq", "stooq.com");
+  const baseUrl = resolveProviderBaseUrl(options.baseUrl ?? process.env.STOOQ_BASE_URL, STOOQ_BASE_URL, "Stooq", "stooq.com");
   const safeSymbol = symbol.trim().toLowerCase().replace(".", "-");
   const end = new Date();
   const start = new Date(end);
@@ -285,10 +390,10 @@ function rankByEstimatedValue<T extends { rank: number }>(rows: T[], valueFor: (
 export async function fetchTopStocksFromStooq(
   options: FetchStooqOptions = {},
 ): Promise<DashboardStock[]> {
-  const quotes = await fetchStooqQuotes(TOP_STOCK_SYMBOLS, options);
+  const quotes = await fetchEquityQuotes(TOP_STOCK_SYMBOLS, options);
 
   if (quotes.size === 0) {
-    throw new Error("Stooq returned no stock data");
+    throw new Error("Equity quote providers returned no stock data");
   }
 
   const stocks = TOP_STOCK_SYMBOLS
@@ -317,10 +422,10 @@ export async function fetchTopStocksFromStooq(
 export async function fetchTopEtfsFromStooq(
   options: FetchStooqOptions = {},
 ): Promise<DashboardEtf[]> {
-  const quotes = await fetchStooqQuotes(TOP_ETF_SYMBOLS, options);
+  const quotes = await fetchEquityQuotes(TOP_ETF_SYMBOLS, options);
 
   if (quotes.size === 0) {
-    throw new Error("Stooq returned no ETF data");
+    throw new Error("Equity quote providers returned no ETF data");
   }
 
   const etfs = TOP_ETF_SYMBOLS

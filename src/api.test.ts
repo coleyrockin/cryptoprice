@@ -112,7 +112,7 @@ describe("fetchAssetDetail", () => {
         reason: "unavailable",
       },
       provenance: {
-        provider: "Stooq",
+        provider: "Stooq / Yahoo Finance fallback",
         source: "live",
         segment: "topStocks",
         ageSec: 0,

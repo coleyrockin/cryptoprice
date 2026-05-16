@@ -42,7 +42,7 @@ function ageFromSegment(payload: DashboardPayload, segment: ReturnType<typeof se
 }
 
 function providerForCategory(category: string): string {
-  if (category === "Stock" || category === "ETF") return "Stooq";
+  if (category === "Stock" || category === "ETF") return "Stooq / Yahoo Finance fallback";
   if (category === "Crypto" || category === "NIGHT") return "CoinPaprika";
   if (category === "Currency") return "Frankfurter / ECB";
   if (category === "Private Company") return "Curated private-company snapshot";
@@ -68,8 +68,8 @@ function confidenceForEntry(entry: NonNullable<ReturnType<typeof findDashboardEn
 }
 
 function limitationForEntry(entry: NonNullable<ReturnType<typeof findDashboardEntry>>): string {
-  if (entry.category === "Stock") return `Market cap is estimated from live Stooq price and public share count baseline as of ${EQUITY_FUNDAMENTALS_AS_OF}.`;
-  if (entry.category === "ETF") return `AUM is estimated from live Stooq price and unit baseline as of ${EQUITY_FUNDAMENTALS_AS_OF}.`;
+  if (entry.category === "Stock") return `Market cap is estimated from live equity quote price and public share count baseline as of ${EQUITY_FUNDAMENTALS_AS_OF}.`;
+  if (entry.category === "ETF") return `AUM is estimated from live equity quote price and unit baseline as of ${EQUITY_FUNDAMENTALS_AS_OF}.`;
   if (entry.category === "Private Company") return "Private-company value is a curated estimate and can lag funding rounds or secondary-market marks.";
   if (entry.category === "Currency") return "FX rates are based on the current free provider feed and may update on a daily/business-day cadence.";
   if (entry.category === "Commodity") return "Commodity value is a curated global estimate included for cross-asset context.";

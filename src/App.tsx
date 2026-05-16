@@ -996,7 +996,7 @@ function App() {
               <div className="footer-col">
                 <span className="footer-col-title">Data</span>
                 <span>CoinPaprika</span>
-                <span>Stooq / Frankfurter</span>
+                <span>Stooq / Yahoo / Frankfurter</span>
               </div>
               <div className="footer-col">
                 <span className="footer-col-title">Built With</span>

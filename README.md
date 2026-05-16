@@ -23,7 +23,7 @@ World Asset Prices is a live market dashboard that compares major public assets,
 
 The dashboard answers a simple question: what are the world's most valuable and most watched assets doing right now?
 
-A single `GET /api/dashboard` endpoint composes the compact dashboard payload. `GET /api/asset-detail?id=...&range=...` powers the asset drawer with quote, provenance, confidence, and history metadata. The frontend does not call external market APIs directly. Server routes fetch stock and ETF prices from Stooq, FX rates from Frankfurter, crypto prices from CoinPaprika, and private-company valuations from an operator-curated fallback dataset. The app layers fresh cache, stale cache, optional durable KV cache, and bundled fallback data so users see a useful dashboard even when an upstream provider is degraded.
+A single `GET /api/dashboard` endpoint composes the compact dashboard payload. `GET /api/asset-detail?id=...&range=...` powers the asset drawer with quote, provenance, confidence, and history metadata. The frontend does not call external market APIs directly. Server routes fetch stock and ETF prices from Stooq with Yahoo Finance as a no-key quote fallback, FX rates from Frankfurter, crypto prices from CoinPaprika, and private-company valuations from an operator-curated fallback dataset. The app layers fresh cache, stale cache, optional durable KV cache, and bundled fallback data so users see a useful dashboard even when an upstream provider is degraded.
 
 No paid API key is required for local development or deployment.
 
@@ -50,7 +50,7 @@ No paid API key is required for local development or deployment.
 | Styling | Tailwind CSS 4, custom CSS theme tokens, clsx |
 | Animation | Framer Motion 12, CSS transitions with reduced-motion support |
 | Backend | Vercel Serverless Functions on Node 20 |
-| Data Sources | Stooq, Frankfurter / ECB, CoinPaprika, bundled private-company snapshot |
+| Data Sources | Stooq, Yahoo Finance fallback quotes, Frankfurter / ECB, CoinPaprika, bundled private-company snapshot |
 | Cache | In-memory TTL cache plus optional Upstash / Vercel KV durable cache |
 | Testing | Vitest 4, Testing Library, Playwright |
 | Quality | ESLint 9, TypeScript strict mode, bundle-size guard |
@@ -93,6 +93,7 @@ All environment variables are optional. Copy `.env.example` to `.env` only if yo
 | --- | --- | --- |
 | `COINPAPRIKA_BASE_URL` | CoinPaprika HTTPS origin override | `https://api.coinpaprika.com` |
 | `STOOQ_BASE_URL` | Stooq HTTPS origin override | `https://stooq.com` |
+| `YAHOO_FINANCE_BASE_URL` | Yahoo Finance quote fallback HTTPS origin override | `https://query1.finance.yahoo.com` |
 | `FRANKFURTER_BASE_URL` | Frankfurter HTTPS origin override | `https://api.frankfurter.dev` |
 | `CACHE_TTL_SEC` | Fresh in-memory cache TTL | `30` |
 | `FALLBACK_TTL_SEC` | Stale cache TTL before last-resort fallback | `600` |
@@ -143,6 +144,7 @@ The app is configured for Vercel:
 - Static assets are built by Vite into `dist/`.
 - Security headers include CSP, frame protection, referrer policy, and permissions policy.
 - Optional KV credentials can improve fallback durability, but deployment works without them.
+- `.github/workflows/production-verify.yml` runs the live production verifier every four hours and can be triggered manually.
 
 ## Project Structure
 
@@ -200,7 +202,7 @@ Next:
 
 ## Credits
 
-Built by Boyd Roberts. Market data comes from Stooq, Frankfurter / ECB, CoinPaprika, and curated public valuation snapshots for private companies.
+Built by Boyd Roberts. Market data comes from Stooq, Yahoo Finance fallback quotes, Frankfurter / ECB, CoinPaprika, and curated public valuation snapshots for private companies.
 
 ## License
 

@@ -4,7 +4,7 @@ import fallbackPayloadJson from "./fallback/dashboard-fallback.json" with { type
 import { recordProviderFailure, recordProviderFallback, recordProviderSuccess, type ProviderMetricKey } from "./metrics.js";
 import { fetchNightFromCoinpaprika, fetchTopCryptosFromCoinpaprika } from "./providers/coinpaprika.js";
 import { fetchTopCurrenciesFromFrankfurter } from "./providers/frankfurter.js";
-import { EQUITY_FUNDAMENTALS_AS_OF, fetchTopEtfsFromStooq, fetchTopStocksFromStooq } from "./providers/stooq.js";
+import { EQUITY_FUNDAMENTALS_AS_OF, EQUITY_QUOTE_PROVIDERS, fetchTopEtfsFromStooq, fetchTopStocksFromStooq } from "./providers/stooq.js";
 import { toFiniteNumber } from "./sanitize.js";
 import { isDashboardPayload } from "./dashboard-schema.js";
 import type {
@@ -621,7 +621,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
     stale,
     refreshInSec: cacheTtlSec,
     source: {
-      equities: "stooq",
+      equities: EQUITY_QUOTE_PROVIDERS,
       crypto: "coinpaprika",
       fallbackUsed,
       equityFundamentalsAsOf: EQUITY_FUNDAMENTALS_AS_OF,
