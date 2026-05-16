@@ -155,6 +155,28 @@ describe("dashboard insights", () => {
     });
   });
 
+  it("marks short stale-cache payloads as recovering instead of degraded", () => {
+    const insights = buildDashboardInsights(makePayload({
+      stale: true,
+      degradedSegments: [],
+      segmentMeta: {
+        ...makePayload().segmentMeta,
+        topStocks: {
+          ...makePayload().segmentMeta.topStocks,
+          source: "stale-cache",
+          ageSec: 60,
+        },
+      },
+    }));
+
+    expect(insights[1]).toEqual({
+      label: "Data health",
+      value: "Recovering",
+      detail: "1 segment retrying with recent cache",
+      tone: "warning",
+    });
+  });
+
   it("returns top degraded segments with the worst health first", () => {
     const summary = getWorstSegmentHealthSummaries(
       makePayload({

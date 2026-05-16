@@ -45,4 +45,18 @@ export default tseslint.config(
       "no-console": "off",
     },
   },
+  {
+    files: ["scripts/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        console: "readonly",
+        fetch: "readonly",
+        process: "readonly",
+        URL: "readonly",
+      },
+    },
+    rules: {
+      "no-console": "off",
+    },
+  },
 );

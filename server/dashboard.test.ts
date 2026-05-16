@@ -187,7 +187,7 @@ describe("buildDashboardPayload", () => {
 
     expect(payload.stale).toBe(true);
     expect(payload.source.fallbackUsed).toBe(false);
-    expect(payload.degradedSegments).toEqual(["topCryptos", "topStocks", "topEtfs", "topCurrencies", "night"]);
+    expect(payload.degradedSegments).toEqual([]);
     expect(payload.segmentMeta.topCryptos.source).toBe("stale-cache");
     expect(payload.topStocks[0]?.symbol).toBe("AAPL");
   });
@@ -349,8 +349,20 @@ describe("buildDashboardPayload", () => {
     });
     expect(staleCachePayload.stale).toBe(true);
     expect(staleCachePayload.source.fallbackUsed).toBe(false);
-    expect(staleCachePayload.degradedSegments).toEqual(["topStocks"]);
+    expect(staleCachePayload.degradedSegments).toEqual([]);
     expect(staleCachePayload.segmentMeta.topStocks.source).toBe("stale-cache");
+
+    now += 300_000;
+    const escalatedStalePayload = await buildDashboardPayload({
+      cache,
+      now: () => now,
+      cacheTtlSec: 60,
+      fallbackTtlSec: 600,
+      logger,
+    });
+    expect(escalatedStalePayload.stale).toBe(true);
+    expect(escalatedStalePayload.degradedSegments).toEqual(["topStocks"]);
+    expect(escalatedStalePayload.segmentMeta.topStocks.source).toBe("stale-cache");
 
     now += 700_000;
     mockedFetchTopStocksFromStooq.mockRejectedValue(new Error("stooq down"));

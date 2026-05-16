@@ -599,7 +599,8 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
 
   const degradedSegments = SEGMENT_KEYS.filter((segment) => {
     const source = segmentMeta[segment].source;
-    return source === "stale-cache" || source === "fallback" || source === "durable-cache";
+    if (source === "stale-cache") return segmentMeta[segment].ageSec >= staleAlertSec;
+    return source === "fallback" || source === "durable-cache";
   });
 
   logger.info(`[dashboard] assembled stale=${stale} fallbackUsed=${fallbackUsed}`);

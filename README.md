@@ -117,6 +117,7 @@ Provider URL overrides must be exact HTTPS origins. The server rejects userinfo,
 | `npm run build` | Typecheck and build production assets |
 | `npm run check:bundle` | Enforce the bundle-size budget |
 | `npm run check` | Full local release gate: lint, typecheck, tests, route tests, build, bundle check |
+| `npm run verify:production` | Check the live Vercel HTML/API, CSP, data health, ranking order, NVIDIA value, and SpaceX global placement |
 | `npm run preview` | Preview the production build locally |
 
 ## Testing And Validation
@@ -126,6 +127,7 @@ Recommended release validation:
 ```bash
 npm run check
 npm run test:e2e
+npm run verify:production
 npm audit --omit=dev
 ```
 

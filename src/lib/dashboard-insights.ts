@@ -28,7 +28,7 @@ export type DashboardSegmentHealth = {
   ageSec: number;
 };
 
-type DashboardHealthMode = "degraded" | "fresh";
+type DashboardHealthMode = "degraded" | "fresh" | "recovering";
 
 const DEGRADE_RANK: Record<DashboardPayload["segmentMeta"][keyof DashboardPayload["segmentMeta"]]["source"], number> = {
   live: 0,
@@ -124,6 +124,11 @@ function formatDataHealthDetail(dashboard: DashboardPayload, mode: DashboardHeal
   const freshSegments = getFreshSegmentCount(dashboard);
   if (mode === "fresh") {
     return `${freshSegments} of ${totalSegments} segments live`;
+  }
+
+  if (mode === "recovering") {
+    const recentCacheCount = Object.values(dashboard.segmentMeta).filter((meta) => meta.source === "stale-cache").length;
+    return `${recentCacheCount} segment${recentCacheCount === 1 ? "" : "s"} retrying with recent cache`;
   }
 
   const fallbackSegments = dashboard.degradedSegments.filter((segment) => dashboard.segmentMeta[segment].source === "fallback");
@@ -231,8 +236,9 @@ function getGlobalLeader(topAssets: readonly DashboardAsset[]): DashboardInsight
 export function buildDashboardInsights(dashboard: DashboardPayload): DashboardInsight[] {
   const totalSegments = Object.keys(dashboard.segmentMeta).length;
   const degradedCount = dashboard.degradedSegments.length;
-  const isDegraded = dashboard.stale || dashboard.source.fallbackUsed || degradedCount > 0;
-  const healthMode: DashboardHealthMode = isDegraded ? "degraded" : "fresh";
+  const isDegraded = dashboard.source.fallbackUsed || degradedCount > 0;
+  const isRecovering = !isDegraded && dashboard.stale;
+  const healthMode: DashboardHealthMode = isDegraded ? "degraded" : isRecovering ? "recovering" : "fresh";
 
   return [
     {
@@ -243,9 +249,9 @@ export function buildDashboardInsights(dashboard: DashboardPayload): DashboardIn
     },
     {
       label: "Data health",
-      value: isDegraded ? "Degraded" : "Live",
+      value: isDegraded ? "Degraded" : isRecovering ? "Recovering" : "Live",
       detail: formatDataHealthDetail(dashboard, healthMode),
-      tone: isDegraded ? "warning" : "positive",
+      tone: isDegraded || isRecovering ? "warning" : "positive",
     },
     getLargestMover(dashboard),
     getGlobalLeader(dashboard.topAssets),
