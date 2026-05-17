@@ -54,7 +54,7 @@ describe("Stooq provider", () => {
     const requestUrl = String((fetchMock.mock.calls[0] as unknown[])[0]);
     expect(requestUrl).toContain("s=nvda.us+googl.us+aapl.us");
     expect(String((fetchMock.mock.calls[1] as unknown[])[0])).toContain("query1.finance.yahoo.com/v7/finance/quote");
-    expect(stocks).toHaveLength(3);
+    expect(stocks).toHaveLength(14);
     expect(stocks[0]).toMatchObject({
       symbol: "GOOGL",
       priceUsd: 390,
@@ -69,6 +69,11 @@ describe("Stooq provider", () => {
       symbol: "AAPL",
       priceUsd: 276.873,
       marketCapUsd: 4_067_264_370_000,
+    });
+    expect(stocks.find((stock) => stock.symbol === "2222.SR")).toMatchObject({
+      name: "Saudi Aramco",
+      priceUsd: null,
+      marketCapUsd: 1_700_000_000_000,
     });
   });
 
@@ -112,7 +117,7 @@ describe("Stooq provider", () => {
     expect(spy).toMatchObject({
       symbol: "SPY",
       priceUsd: 718.03,
-      aumUsd: 729_518_480_000,
+      aumUsd: 743_110_000_000,
     });
   });
 
@@ -182,7 +187,7 @@ describe("Stooq provider", () => {
     const stocks = await fetchTopStocksFromStooq({ timeoutMs: 1000 });
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(stocks).toHaveLength(1);
+    expect(stocks).toHaveLength(14);
     expect(stocks[0]).toMatchObject({
       symbol: "NVDA",
       priceUsd: 225,

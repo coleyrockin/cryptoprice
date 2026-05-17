@@ -7,6 +7,7 @@ import { fetchTopCurrenciesFromFrankfurter } from "./providers/frankfurter.js";
 import { EQUITY_FUNDAMENTALS_AS_OF, EQUITY_QUOTE_PROVIDERS, fetchTopEtfsFromStooq, fetchTopStocksFromStooq } from "./providers/stooq.js";
 import { toFiniteNumber } from "./sanitize.js";
 import { isDashboardPayload } from "./dashboard-schema.js";
+import { ASSET_VALUE_SOURCE_VERSION, assetValueSourcesById } from "./value-sources.js";
 import type {
   DashboardAsset,
   DashboardCrypto,
@@ -279,7 +280,7 @@ function normalizeAssets(assets: unknown): DashboardAsset[] {
       const rightValue = right.marketCapUsd ?? Number.NEGATIVE_INFINITY;
       return rightValue - leftValue;
     })
-    .slice(0, 10)
+    .slice(0, 15)
     .map((asset, index) => ({
       ...asset,
       rank: index + 1,
@@ -625,6 +626,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       crypto: "coinpaprika",
       fallbackUsed,
       equityFundamentalsAsOf: EQUITY_FUNDAMENTALS_AS_OF,
+      valueSourceVersion: ASSET_VALUE_SOURCE_VERSION,
     },
     degradedSegments,
     segmentMeta,
@@ -635,6 +637,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
     topPrivateCompanies,
     topAssets,
     night,
+    valueSources: assetValueSourcesById(),
   };
 }
 

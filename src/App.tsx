@@ -52,7 +52,7 @@ type DensityMode = "comfortable" | "compact";
 const SECTION_FILTERS: { value: SectionFilter; label: string }[] = [
   { value: "all", label: "All" },
   { value: "assets", label: "Assets" },
-  { value: "stocks", label: "Stocks" },
+  { value: "stocks", label: "Public" },
   { value: "private", label: "Private" },
   { value: "etfs", label: "ETFs" },
   { value: "currencies", label: "FX" },
@@ -70,7 +70,7 @@ const SECTION_LINKS: { id: (typeof SECTION_IDS)[number]; label: string; filter: 
   { id: "section-watchlist", label: "Watchlist", filter: "watchlist" },
   { id: "section-portfolio", label: "Portfolio", filter: "portfolio" },
   { id: "section-assets", label: "Global Assets", filter: "assets" },
-  { id: "section-stocks", label: "Stocks", filter: "stocks" },
+  { id: "section-stocks", label: "Public Companies", filter: "stocks" },
   { id: "section-private-companies", label: "Private Companies", filter: "private" },
   { id: "section-etfs", label: "ETFs", filter: "etfs" },
   { id: "section-currencies", label: "Currencies", filter: "currencies" },
@@ -282,7 +282,7 @@ function App() {
   const segmentMeta = dashboard?.segmentMeta;
   const generatedAt = dashboard?.generatedAt;
   const equityFundamentalsAsOf = dashboard?.source.equityFundamentalsAsOf;
-  const equityEstimateLabel = equityFundamentalsAsOf ? `Live prices; estimates as of ${equityFundamentalsAsOf}` : "Live prices; estimated fundamentals";
+  const equityEstimateLabel = equityFundamentalsAsOf ? `Live prices; valuation baselines as of ${equityFundamentalsAsOf}` : "Live prices; valuation baselines";
   const normalizedSearchTerm = searchTerm.trim();
   const isBooting = dashboardQuery.isPending && !dashboard;
 
@@ -401,7 +401,7 @@ function App() {
   }, [night, pinnedIds, topAssets, topCryptos, topCurrencies, topEtfs, topPrivateCompanies, topStocks]);
 
   const portfolioCandidates = useMemo(() => {
-    const entries: PortfolioEntry[] = [...topStocks, ...topEtfs, ...topCryptos];
+    const entries: PortfolioEntry[] = [...topStocks.filter((stock) => typeof stock.priceUsd === "number"), ...topEtfs, ...topCryptos];
     if (night) {
       entries.push({
         ...night,
@@ -488,7 +488,7 @@ function App() {
               : isPricedAsset || isCurrency
                 ? "—"
                 : isPrivateCompany
-                  ? "Estimated valuation"
+                  ? "Curated estimate"
                   : "Estimated market cap"
         }
         secondaryClassName={isCrypto || hasChange ? clsx("coin-change", trendClass(change)) : "asset-note"}
@@ -558,10 +558,10 @@ function App() {
             name={company.name}
             symbol={company.symbol}
             meta={company.category}
-            valueLabel="Est. Valuation"
+            valueLabel="Verified valuation"
             value={formatCompactCurrency(company.marketCapUsd)}
             priceTitle={buildPriceTitle(formatExactNumber(company.marketCapUsd), generatedAt, "Exact valuation (USD)")}
-            secondary="Estimated valuation"
+            secondary="Curated estimate"
             secondaryClassName="asset-note"
             index={index}
             logoUrl={company.logoUrl}
@@ -580,7 +580,7 @@ function App() {
 
   const renderStockGrid = () => {
     if (isBooting) return <SkeletonGrid />;
-    if (!topStocks.length || !visibleTopStocks.length) return renderEmptyState("stocks", topStocks.length > 0);
+    if (!topStocks.length || !visibleTopStocks.length) return renderEmptyState("public companies", topStocks.length > 0);
 
     return (
       <div className="coin-grid">
@@ -596,12 +596,12 @@ function App() {
               name={stock.name}
               symbol={stock.symbol}
               meta={stock.category}
-              valueLabel="Price"
-              value={formatCurrency(stock.priceUsd)}
-              priceTitle={buildPriceTitle(formatExactCurrency(stock.priceUsd), generatedAt)}
-              secondary={hasChange ? changeText : "—"}
+              valueLabel="Market cap"
+              value={formatCompactCurrency(stock.marketCapUsd)}
+              priceTitle={buildPriceTitle(formatExactNumber(stock.marketCapUsd), generatedAt, "Exact market cap (USD)")}
+              secondary={stock.priceUsd === null ? "Curated market cap" : hasChange ? `${formatCurrency(stock.priceUsd)} · ${changeText}` : formatCurrency(stock.priceUsd)}
               secondaryClassName={hasChange ? clsx("coin-change", trendClass(stock.changePercent)) : "asset-note"}
-              secondaryTitle={hasChange ? "Daily change" : undefined}
+              secondaryTitle={stock.priceUsd === null ? "Verified snapshot; no free live quote" : hasChange ? "Price and daily change" : "Unit price"}
               index={index}
               logoUrl={stock.logoUrl}
               fallbackLogoUrls={stock.fallbackLogoUrls}
@@ -759,7 +759,7 @@ function App() {
           <h1>
             Global Assets <span>Dashboard</span>
           </h1>
-          <p className="tagline">Top global assets, stocks, ETFs, currencies, cryptocurrencies, and NIGHT price with faster market discovery.</p>
+          <p className="tagline">Top global assets, public companies, ETFs, currencies, cryptocurrencies, and NIGHT price with faster market discovery.</p>
           {dashboardInsights.length ? (
             <dl className="hero-insights" aria-label="Dashboard highlights">
               {dashboardInsights.map((insight) => (
@@ -894,7 +894,7 @@ function App() {
         {shouldShowSection("assets") ? (
           <motion.section id="section-assets" className="surface global-assets-surface" {...SECTION_REVEAL}>
             <SectionHeader
-              title="Top 10 Global Assets"
+              title="Global Asset Leaders"
               subtitle={equityEstimateLabel}
               meta={segmentMeta?.topStocks}
               generatedAt={generatedAt}
@@ -907,7 +907,7 @@ function App() {
         {shouldShowSection("stocks") ? (
           <motion.section id="section-stocks" className="surface stocks-surface" {...SECTION_REVEAL}>
             <SectionHeader
-              title="Top 10 Stocks"
+              title="Top Public Companies"
               subtitle={equityEstimateLabel}
               meta={segmentMeta?.topStocks}
               generatedAt={generatedAt}
@@ -919,8 +919,8 @@ function App() {
         {shouldShowSection("private") ? (
           <motion.section id="section-private-companies" className="surface private-companies-surface" {...SECTION_REVEAL}>
             <SectionHeader
-              title="Top 10 Private Companies"
-              subtitle="Estimated valuations"
+              title="Top Private Companies"
+              subtitle="Verified primary valuations; targets stay secondary"
               meta={segmentMeta?.topPrivateCompanies}
               generatedAt={generatedAt}
             />

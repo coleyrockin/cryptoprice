@@ -31,6 +31,39 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every(isString);
 }
 
+function isAlternateValuation(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isNumber(value.valueUsd) &&
+    isString(value.valueAsOf) &&
+    isString(value.sourceUrl) &&
+    isString(value.sourceTitle) &&
+    (value.sourceType === "rumor" || value.sourceType === "target" || value.sourceType === "secondary-market-chatter") &&
+    isString(value.notes)
+  );
+}
+
+function isAssetValueSource(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isString(value.assetId) &&
+    isString(value.category) &&
+    isNumber(value.valueUsd) &&
+    isString(value.valueAsOf) &&
+    isString(value.sourceUrl) &&
+    isString(value.sourceTitle) &&
+    (value.sourceType === "live-provider" || value.sourceType === "issuer" || value.sourceType === "reported-transaction" || value.sourceType === "recognized-market-data") &&
+    (value.confidence === "high" || value.confidence === "medium" || value.confidence === "low" || value.confidence === "curated") &&
+    (value.updateCadence === "daily" || value.updateCadence === "weekly" || value.updateCadence === "monthly" || value.updateCadence === "event-driven") &&
+    isString(value.notes) &&
+    (!("alternateValuations" in value) || (Array.isArray(value.alternateValuations) && value.alternateValuations.every(isAlternateValuation)))
+  );
+}
+
+function hasValueSources(value: unknown): boolean {
+  return isRecord(value) && Object.values(value).every(isAssetValueSource);
+}
+
 function hasBaseEntry(value: unknown): value is Record<string, unknown> {
   return (
     isRecord(value) &&
@@ -133,7 +166,8 @@ function hasSource(value: unknown): boolean {
     isString(value.equities) &&
     value.crypto === "coinpaprika" &&
     isBoolean(value.fallbackUsed) &&
-    (!("equityFundamentalsAsOf" in value) || isString(value.equityFundamentalsAsOf))
+    (!("equityFundamentalsAsOf" in value) || isString(value.equityFundamentalsAsOf)) &&
+    (!("valueSourceVersion" in value) || isString(value.valueSourceVersion))
   );
 }
 
@@ -160,6 +194,7 @@ export function isDashboardPayload(value: unknown): value is DashboardPayload {
     Array.isArray(value.topAssets) &&
     value.topAssets.every(isAsset) &&
     (value.night === null || isNight(value.night)) &&
+    (!("valueSources" in value) || hasValueSources(value.valueSources)) &&
     (!("requestId" in value) || isString(value.requestId))
   );
 }

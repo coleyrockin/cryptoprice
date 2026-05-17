@@ -3,6 +3,7 @@ export type DashboardSource = {
   crypto: "coinpaprika";
   fallbackUsed: boolean;
   equityFundamentalsAsOf?: string;
+  valueSourceVersion?: string;
 };
 
 export type DashboardSegmentKey = "topCryptos" | "topStocks" | "topEtfs" | "topCurrencies" | "topPrivateCompanies" | "night";
@@ -21,6 +22,31 @@ export type DashboardEntryBase = {
   symbol: string;
   logoUrl: string | null;
   fallbackLogoUrls: string[];
+};
+
+export type AssetValueSourceType = "live-provider" | "issuer" | "reported-transaction" | "recognized-market-data";
+
+export type AlternateAssetValuation = {
+  valueUsd: number;
+  valueAsOf: string;
+  sourceUrl: string;
+  sourceTitle: string;
+  sourceType: "rumor" | "target" | "secondary-market-chatter";
+  notes: string;
+};
+
+export type AssetValueSource = {
+  assetId: string;
+  category: AssetCategory;
+  valueUsd: number;
+  valueAsOf: string;
+  sourceUrl: string;
+  sourceTitle: string;
+  sourceType: AssetValueSourceType;
+  confidence: "high" | "medium" | "low" | "curated";
+  updateCadence: "daily" | "weekly" | "monthly" | "event-driven";
+  notes: string;
+  alternateValuations?: AlternateAssetValuation[];
 };
 
 export type DashboardCrypto = DashboardEntryBase & {
@@ -89,6 +115,7 @@ export type DashboardPayload = {
   topPrivateCompanies: DashboardPrivateCompany[];
   topAssets: DashboardAsset[];
   night: DashboardNight | null;
+  valueSources?: Record<string, AssetValueSource>;
   requestId?: string;
 };
 
@@ -122,9 +149,14 @@ export type AssetProvenance = {
   segment: DashboardSegmentKey | "topAssets";
   ageSec: number;
   updatedAt: string;
-  valueMethod: "live-price" | "derived-market-cap" | "derived-aum" | "exchange-rate" | "curated-valuation" | "commodity-estimate" | "unavailable";
+  valueMethod: "live-price" | "derived-market-cap" | "curated-market-cap" | "sourced-aum" | "derived-aum" | "exchange-rate" | "curated-valuation" | "commodity-estimate" | "unavailable";
   confidence: "high" | "medium" | "low" | "curated";
   limitation: string;
+  valueAsOf?: string;
+  sourceUrl?: string;
+  sourceTitle?: string;
+  sourceType?: AssetValueSourceType;
+  alternateValuations?: AlternateAssetValuation[];
 };
 
 export type AssetDetailPayload = {

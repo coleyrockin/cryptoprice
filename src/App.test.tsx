@@ -73,9 +73,9 @@ const payload: DashboardPayload = {
       name: "Apple",
       symbol: "AAPL",
       category: "Stock",
-      marketCapUsd: null,
-      priceUsd: null,
-      changePercent: null,
+      marketCapUsd: 3_000_000_000_000,
+      priceUsd: 200,
+      changePercent: 1,
       logoUrl: null,
       fallbackLogoUrls: [],
     },
@@ -263,7 +263,7 @@ describe("App", () => {
 
     const healthRow = await screen.findByLabelText("Degraded segments");
     expect(healthRow).toBeInTheDocument();
-    expect(healthRow.textContent).toContain("Stocks");
+    expect(healthRow.textContent).toContain("Public companies");
     expect(healthRow.textContent).toContain("ETFs");
     expect(healthRow.textContent).toContain("Durable cache");
   });

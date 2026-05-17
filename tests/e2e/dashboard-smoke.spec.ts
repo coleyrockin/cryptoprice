@@ -6,9 +6,9 @@ test("dashboard smoke renders cards, symbols, logos, and status", async ({ page 
   await expect(page.getByRole("heading", { level: 1, name: /Global Assets Dashboard/i })).toBeVisible();
   await expect(page.getByLabel("Search markets")).toBeVisible();
   await expect(page.getByLabel("Sort markets")).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "Top 10 Global Assets" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Global Asset Leaders" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Top 10 Cryptocurrencies" })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "Top 10 Stocks" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Top Public Companies" })).toBeVisible();
 
   const cards = page.locator(".coin-card");
   await expect(cards.first()).toBeVisible({ timeout: 15_000 });
@@ -59,19 +59,23 @@ test("opens asset detail drawer with provenance and unsupported history states",
   await expect(nvidiaDialog).toBeVisible({ timeout: 15_000 });
   await expect(nvidiaDialog.getByText(/Provider/i)).toBeVisible();
   await expect(nvidiaDialog.getByText("derived-market-cap")).toBeVisible();
+  await expect(nvidiaDialog.getByText(/Verified as of/i)).toBeVisible();
   await page.getByRole("button", { name: /Close asset detail/i }).click();
 
   await page.getByRole("button", { name: /Show SpaceX details/i }).first().click();
   const spacexDialog = page.getByRole("dialog", { name: /SpaceX/i });
   await expect(spacexDialog).toBeVisible({ timeout: 15_000 });
   await expect(spacexDialog.getByText("curated-valuation")).toBeVisible();
-  await expect(spacexDialog.getByText(/curated snapshots/i).first()).toBeVisible();
+  await expect(spacexDialog.getByText(/verified curated primary/i).first()).toBeVisible();
+  await expect(spacexDialog.getByText("Alternate context", { exact: true })).toBeVisible();
 });
 
 test("saves a local portfolio holding across reloads", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByRole("heading", { level: 2, name: "Portfolio Lab" })).toBeVisible();
+  await expect(page.getByLabel("Portfolio asset")).toContainText("NVIDIA");
+  await page.getByLabel("Portfolio asset").selectOption("stock-nvda");
   await page.getByLabel("Holding quantity").fill("2");
   await page.getByLabel("Holding cost basis").fill("300");
   await page.getByRole("button", { name: "Save holding" }).click();

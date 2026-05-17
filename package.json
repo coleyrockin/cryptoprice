@@ -2,7 +2,7 @@
   "name": "world-asset-prices",
   "private": true,
   "version": "1.0.0",
-  "description": "Live financial dashboard tracking top stocks, private companies, ETFs, fiat currencies, cryptocurrencies, and the Midnight Token side-by-side. Zero API keys required; powered by Stooq, Frankfurter, and CoinPaprika behind a tiered cache with bundled fallback.",
+  "description": "Live financial dashboard tracking global public companies, private companies, ETFs, fiat currencies, cryptocurrencies, and the Midnight Token side-by-side with no-key providers and audited source metadata.",
   "author": "Boyd Roberts",
   "license": "MIT",
   "keywords": [
@@ -42,11 +42,12 @@
     "test:routes": "vitest run api",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "audit:data": "node ./scripts/audit-data.mjs",
     "verify:production": "node ./scripts/verify-production.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.server.json",
     "build": "npm run typecheck && vite build --config vite.config.ts",
     "check:bundle": "node ./scripts/check-bundle.mjs",
-    "check": "npm run lint && npm run typecheck && npm run test && npm run test:routes && npm run build && npm run check:bundle",
+    "check": "npm run lint && npm run typecheck && npm run audit:data && npm run test && npm run test:routes && npm run build && npm run check:bundle",
     "preview": "vite preview --config vite.config.ts"
   },
   "dependencies": {

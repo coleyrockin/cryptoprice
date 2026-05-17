@@ -87,6 +87,7 @@ export function assetRefFromEntry(entry: DetailEntry): AssetRef {
   const isStockOrEtf = entry.category === "Stock" || entry.category === "ETF";
   const isCrypto = entry.category === "Crypto" || entry.category === "NIGHT";
   const isCurrency = entry.category === "Currency";
+  const hasUnitPrice = "priceUsd" in entry && typeof entry.priceUsd === "number";
 
   return {
     id: entry.id,
@@ -94,9 +95,9 @@ export function assetRefFromEntry(entry: DetailEntry): AssetRef {
     displayName: entry.name,
     category: entry.category,
     currency: "USD",
-    tradable: isStockOrEtf || isCrypto,
-    supportsHistory: isStockOrEtf,
-    supportsLivePrice: isStockOrEtf || isCrypto || isCurrency,
+    tradable: (isStockOrEtf && hasUnitPrice) || isCrypto,
+    supportsHistory: isStockOrEtf && hasUnitPrice,
+    supportsLivePrice: (isStockOrEtf && hasUnitPrice) || isCrypto || isCurrency,
     providerIds: {
       stooq: isStockOrEtf ? stooqSymbolForAsset(entry.symbol) : undefined,
       coinpaprika: isCrypto && entry.category !== "NIGHT" ? entry.id : entry.category === "NIGHT" ? "night-midnight2" : undefined,

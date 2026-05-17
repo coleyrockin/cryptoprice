@@ -1,5 +1,6 @@
 const DEFAULT_URL = "https://world-asset-prices.vercel.app";
 const STALE_ALERT_SEC = 300;
+const REQUIRED_PUBLIC_COMPANIES = ["NVDA", "GOOGL", "AAPL", "MSFT", "AMZN", "TSM", "AVGO", "2222.SR", "TSLA", "META", "005930.KS", "WMT", "BRK-B", "LLY"];
 
 const origin = new URL(process.env.WAP_PRODUCTION_URL || DEFAULT_URL);
 origin.pathname = origin.pathname.replace(/\/$/, "");
@@ -73,6 +74,7 @@ assert(payload.degradedSegments.length === 0, "dashboard has escalated degraded 
 
 assert(Array.isArray(payload.topStocks) && payload.topStocks.length >= 10, "topStocks is incomplete");
 assert(Array.isArray(payload.topEtfs) && payload.topEtfs.length >= 10, "topEtfs is incomplete");
+assert(Array.isArray(payload.topPrivateCompanies) && payload.topPrivateCompanies.length >= 10, "topPrivateCompanies is incomplete");
 assert(Array.isArray(payload.topAssets) && payload.topAssets.length >= 10, "topAssets is incomplete");
 assert(rankIsSequential(payload.topStocks), "topStocks ranks are not sequential");
 assert(rankIsSequential(payload.topEtfs), "topEtfs ranks are not sequential");
@@ -82,9 +84,20 @@ assert(valuesAreDescending(payload.topEtfs, "aumUsd"), "topEtfs values are not d
 assert(valuesAreDescending(payload.topAssets, "marketCapUsd"), "topAssets values are not descending");
 
 const nvidia = payload.topStocks.find((stock) => stock.symbol === "NVDA");
-const spacex = payload.topAssets.find((asset) => asset.symbol === "SPACEX");
+const spacex = payload.topPrivateCompanies?.find((asset) => asset.symbol === "SPACEX");
 assert(nvidia?.marketCapUsd > 5_000_000_000_000, "NVIDIA market cap is unexpectedly low", nvidia);
-assert(spacex?.category === "Private Company", "SpaceX is missing from global assets", spacex);
+assert(spacex?.category === "Private Company", "SpaceX is missing from private companies", spacex);
+assert(spacex?.marketCapUsd === 1_250_000_000_000, "SpaceX primary valuation is not the verified transaction mark", spacex);
+
+for (const symbol of REQUIRED_PUBLIC_COMPANIES) {
+  assert(payload.topStocks.some((stock) => stock.symbol === symbol), `required global public company missing: ${symbol}`);
+}
+
+assert(payload.valueSources && typeof payload.valueSources === "object", "valueSources metadata is missing");
+for (const row of [...payload.topPrivateCompanies, ...payload.topEtfs]) {
+  const source = payload.valueSources[row.id];
+  assert(source?.sourceUrl && source?.valueAsOf && source?.sourceTitle, `missing source metadata for ${row.id}`, source);
+}
 
 if (process.exitCode) process.exit(process.exitCode);
 
@@ -97,4 +110,5 @@ console.log(JSON.stringify({
   stockLeaderValue: payload.topStocks[0]?.marketCapUsd,
   etfLeader: payload.topEtfs[0]?.symbol,
   globalTop10: payload.topAssets.map((asset) => asset.symbol),
+  valueSourceVersion: payload.source?.valueSourceVersion,
 }, null, 2));

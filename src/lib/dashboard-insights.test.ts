@@ -99,8 +99,8 @@ describe("dashboard insights", () => {
   });
 
   it("uses the displayed numeric value for each dashboard entry type", () => {
-    expect(getEntryValue(btc)).toBe(100_000);
-    expect(getEntryValue(apple)).toBe(220);
+    expect(getEntryValue(btc)).toBe(2_000_000_000_000);
+    expect(getEntryValue(apple)).toBe(3_000_000_000_000);
     expect(getEntryValue(euro)).toBe(1.08);
     expect(getEntryValue(gold)).toBe(20_000_000_000_000);
   });
@@ -114,7 +114,7 @@ describe("dashboard insights", () => {
 
   it("sorts entries by name, value, movement, and rank", () => {
     expect(sortDashboardEntries([btc, apple, euro], "name").map((entry) => entry.symbol)).toEqual(["AAPL", "BTC", "EUR"]);
-    expect(sortDashboardEntries([euro, apple, btc], "value").map((entry) => entry.symbol)).toEqual(["BTC", "AAPL", "EUR"]);
+    expect(sortDashboardEntries([euro, apple, btc], "value").map((entry) => entry.symbol)).toEqual(["AAPL", "BTC", "EUR"]);
     expect(sortDashboardEntries([apple, euro, btc], "movement").map((entry) => entry.symbol)).toEqual(["BTC", "AAPL", "EUR"]);
     expect(sortDashboardEntries([apple, euro, btc], "rank").map((entry) => entry.symbol)).toEqual(["BTC", "AAPL", "EUR"]);
   });
@@ -122,7 +122,7 @@ describe("dashboard insights", () => {
   it("builds concise hero insight cards from dashboard data", () => {
     expect(buildDashboardInsights(makePayload())).toEqual([
       { label: "Tracked markets", value: "4", detail: "Across 6 live sections", tone: "neutral" },
-      { label: "Data health", value: "Live", detail: "6 of 6 segments live", tone: "positive" },
+      { label: "Data health", value: "Live", detail: "5 of 5 provider segments live; curated snapshots verified", tone: "positive" },
       { label: "Largest move", value: "+2.50%", detail: "Bitcoin (BTC)", tone: "positive" },
       { label: "Global leader", value: "$20T", detail: "Gold (XAU)", tone: "neutral" },
     ]);
@@ -194,7 +194,7 @@ describe("dashboard insights", () => {
 
     expect(summary).toEqual([
       { segment: "topEtfs", label: "ETFs", source: "fallback", ageSec: 3_000 },
-      { segment: "topStocks", label: "Stocks", source: "durable-cache", ageSec: 4_100 },
+      { segment: "topStocks", label: "Public companies", source: "durable-cache", ageSec: 4_100 },
       { segment: "topPrivateCompanies", label: "Private companies", source: "stale-cache", ageSec: 4_050 },
     ]);
   });

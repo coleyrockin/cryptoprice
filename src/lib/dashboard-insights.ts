@@ -40,7 +40,7 @@ const DEGRADE_RANK: Record<DashboardPayload["segmentMeta"][keyof DashboardPayloa
 
 const SEGMENT_LABELS: Record<keyof DashboardPayload["segmentMeta"], string> = {
   topCryptos: "Cryptos",
-  topStocks: "Stocks",
+  topStocks: "Public companies",
   topEtfs: "ETFs",
   topCurrencies: "FX",
   topPrivateCompanies: "Private companies",
@@ -60,9 +60,9 @@ export function dashboardEntryMatches(entry: DashboardEntry, searchTerm: string)
 
 export function getEntryValue(entry: DashboardEntry): number | null {
   if ("rateVsUsd" in entry) return isFiniteNumber(entry.rateVsUsd) ? entry.rateVsUsd : null;
-  if ("priceUsd" in entry && isFiniteNumber(entry.priceUsd)) return entry.priceUsd;
-  if ("marketCapUsd" in entry && isFiniteNumber(entry.marketCapUsd)) return entry.marketCapUsd;
   if ("aumUsd" in entry && isFiniteNumber(entry.aumUsd)) return entry.aumUsd;
+  if ("marketCapUsd" in entry && isFiniteNumber(entry.marketCapUsd)) return entry.marketCapUsd;
+  if ("priceUsd" in entry && isFiniteNumber(entry.priceUsd)) return entry.priceUsd;
   return null;
 }
 
@@ -123,7 +123,7 @@ function formatDataHealthDetail(dashboard: DashboardPayload, mode: DashboardHeal
   const totalSegments = Object.keys(dashboard.segmentMeta).length;
   const freshSegments = getFreshSegmentCount(dashboard);
   if (mode === "fresh") {
-    return `${freshSegments} of ${totalSegments} segments live`;
+    return `${freshSegments - 1} of ${totalSegments - 1} provider segments live; curated snapshots verified`;
   }
 
   if (mode === "recovering") {

@@ -35,6 +35,11 @@ function HistoryChart({ points }: { points: AssetDetailPayload["history"]["point
   );
 }
 
+function formatSourceType(value: string | undefined): string {
+  if (!value) return "—";
+  return value.replace(/-/g, " ");
+}
+
 export function AssetDetailDrawer({ detail, isLoading, error, range, onRangeChange, onClose }: AssetDetailDrawerProps) {
   return (
     <div className="detail-overlay" role="presentation" onMouseDown={onClose}>
@@ -110,7 +115,24 @@ export function AssetDetailDrawer({ detail, isLoading, error, range, onRangeChan
               <div><span>Source</span><strong>{detail.provenance.source}</strong></div>
               <div><span>Confidence</span><strong>{detail.provenance.confidence}</strong></div>
               <div><span>Method</span><strong>{detail.provenance.valueMethod}</strong></div>
+              <div><span>Verified as of</span><strong>{detail.provenance.valueAsOf ?? detail.quote.asOf.slice(0, 10)}</strong></div>
+              <div><span>Source type</span><strong>{formatSourceType(detail.provenance.sourceType)}</strong></div>
             </div>
+            {detail.provenance.sourceUrl ? (
+              <a className="detail-source-link" href={detail.provenance.sourceUrl} target="_blank" rel="noreferrer">
+                {detail.provenance.sourceTitle ?? "Open source"}
+              </a>
+            ) : null}
+            {detail.provenance.alternateValuations?.length ? (
+              <div className="detail-alternates">
+                <span>Alternate context</span>
+                {detail.provenance.alternateValuations.map((valuation) => (
+                  <p key={`${valuation.valueUsd}-${valuation.valueAsOf}`}>
+                    {formatCompactCurrency(valuation.valueUsd)} {formatSourceType(valuation.sourceType)} · {valuation.notes}
+                  </p>
+                ))}
+              </div>
+            ) : null}
             <p className="detail-limitation">{detail.provenance.limitation}</p>
             {detail.degradedReason ? <p className="detail-degraded">{detail.degradedReason}</p> : null}
           </>

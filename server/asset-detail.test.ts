@@ -39,7 +39,7 @@ function stockPayload(): DashboardPayload {
       name: "SpaceX",
       symbol: "SPACEX",
       category: "Private Company",
-      marketCapUsd: 1_750_000_000_000,
+      marketCapUsd: 1_250_000_000_000,
       logoUrl: null,
       fallbackLogoUrls: [],
     }],
@@ -74,7 +74,8 @@ describe("buildAssetDetailPayload", () => {
     expect(detail.asset.providerIds.stooq).toBe("NVDA");
     expect(detail.history.available).toBe(true);
     expect(detail.provenance.valueMethod).toBe("derived-market-cap");
-    expect(detail.provenance.confidence).toBe("medium");
+    expect(detail.provenance.confidence).toBe("high");
+    expect(detail.provenance.sourceTitle).toContain("NVIDIA");
   });
 
   it("labels private companies as curated with unsupported history", async () => {
@@ -86,7 +87,8 @@ describe("buildAssetDetailPayload", () => {
     });
 
     expect(detail.provenance.source).toBe("curated");
-    expect(detail.provenance.confidence).toBe("curated");
+    expect(detail.provenance.confidence).toBe("high");
+    expect(detail.provenance.alternateValuations?.[0]?.sourceType).toBe("target");
     expect(detail.history.available).toBe(false);
     expect(detail.history.reason).toContain("curated");
   });

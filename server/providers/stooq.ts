@@ -1,6 +1,7 @@
 import { toFiniteNumber, toSafeString } from "../sanitize.js";
 import { readResponseTextWithLimit, requestJsonWithRetry } from "../request.js";
 import { resolveProviderBaseUrl } from "./base-url.js";
+import { sourceValueUsd } from "../value-sources.js";
 import type { DashboardEtf, DashboardStock, HistoricalPoint, HistoricalRange } from "../types.js";
 
 import fallbackPayloadJson from "../fallback/dashboard-fallback.json" with { type: "json" };
@@ -12,10 +13,37 @@ const STOOQ_HISTORY_MAX_RESPONSE_BYTES = 256_000;
 export const EQUITY_FUNDAMENTALS_AS_OF = "2026-05-14";
 export const EQUITY_QUOTE_PROVIDERS = "stooq+yahoo-finance";
 
-// Lists ordered by current market cap / AUM. Ranking is positional —
-// Stooq does not expose those values, so we derive them from the static
-// share/unit counts below multiplied by the live close price.
-const TOP_STOCK_SYMBOLS = ["NVDA", "GOOGL", "AAPL", "MSFT", "AMZN", "TSM", "AVGO", "META", "BRK-B", "LLY"];
+type PublicCompanyDefinition = {
+  id: string;
+  symbol: string;
+  quoteSymbol?: string;
+  name: string;
+  shares?: number;
+  logoSymbol?: string;
+};
+
+// Global public-company universe. Stooq/Yahoo provide live quotes where possible;
+// unsupported exchanges fall back to verified market-cap snapshots with no unit price.
+const PUBLIC_COMPANIES: PublicCompanyDefinition[] = [
+  { id: "stock-nvda", symbol: "NVDA", quoteSymbol: "NVDA", name: "NVIDIA", shares: 24_300_000_000 },
+  { id: "stock-googl", symbol: "GOOGL", quoteSymbol: "GOOGL", name: "Alphabet", shares: 12_440_000_000 },
+  { id: "stock-aapl", symbol: "AAPL", quoteSymbol: "AAPL", name: "Apple", shares: 14_690_000_000 },
+  { id: "stock-msft", symbol: "MSFT", quoteSymbol: "MSFT", name: "Microsoft", shares: 7_430_000_000 },
+  { id: "stock-amzn", symbol: "AMZN", quoteSymbol: "AMZN", name: "Amazon", shares: 11_120_000_000 },
+  { id: "stock-tsm", symbol: "TSM", quoteSymbol: "TSM", name: "TSMC", shares: 5_490_000_000 },
+  { id: "stock-avgo", symbol: "AVGO", quoteSymbol: "AVGO", name: "Broadcom", shares: 4_730_000_000 },
+  { id: "stock-saudi-aramco", symbol: "2222.SR", name: "Saudi Aramco" },
+  { id: "stock-tsla", symbol: "TSLA", quoteSymbol: "TSLA", name: "Tesla", shares: 3_755_700_000 },
+  { id: "stock-meta", symbol: "META", quoteSymbol: "META", name: "Meta Platforms", shares: 2_530_000_000 },
+  { id: "stock-samsung-electronics", symbol: "005930.KS", name: "Samsung Electronics" },
+  { id: "stock-wmt", symbol: "WMT", quoteSymbol: "WMT", name: "Walmart", shares: 7_985_000_000 },
+  { id: "stock-brk-b", symbol: "BRK-B", quoteSymbol: "BRK-B", name: "Berkshire Hathaway", shares: 2_160_000_000 },
+  { id: "stock-lly", symbol: "LLY", quoteSymbol: "LLY", name: "Eli Lilly", shares: 891_740_000 },
+];
+
+const TOP_STOCK_SYMBOLS = PUBLIC_COMPANIES
+  .map((company) => company.quoteSymbol)
+  .filter((symbol): symbol is string => typeof symbol === "string");
 const TOP_ETF_SYMBOLS = ["VOO", "IVV", "SPY", "VTI", "QQQ", "VUG", "GLD", "BND", "VXUS", "AGG"];
 
 type FallbackStockRow = {
@@ -68,54 +96,17 @@ function fallbackUnitsFromRows(rows: unknown[], valueKey: "marketCapUsd" | "aumU
 const FALLBACK_STOCK_UNITS = fallbackUnitsFromRows((fallbackPayloadJson as { topStocks?: unknown[] }).topStocks ?? [], "marketCapUsd");
 const FALLBACK_ETF_UNITS = fallbackUnitsFromRows((fallbackPayloadJson as { topEtfs?: unknown[] }).topEtfs ?? [], "aumUsd");
 
-// Share estimates are May 2026 public share counts used to derive live mcap from close prices.
-const STOCK_SHARES_ESTIMATE: Record<string, number> = {
-  NVDA: 24_300_000_000,
-  AAPL: 14_690_000_000,
-  MSFT: 7_430_000_000,
-  GOOGL: 12_440_000_000,
-  AMZN: 11_120_000_000,
-  TSM: 5_490_000_000,
-  META: 2_530_000_000,
-  AVGO: 4_730_000_000,
-  "BRK-B": 2_160_000_000,
-  LLY: 891_740_000,
-};
-
-const ETF_UNITS_ESTIMATE: Record<string, number> = {
-  VOO: 1_392_000_000,
-  IVV: 1_096_000_000,
-  SPY: 1_016_000_000,
-  VTI: 1_747_000_000,
-  QQQ: 644_000_000,
-  VUG: 3_632_800_000,
-  GLD: 366_108_000,
-  BND: 2_085_000_000,
-  VXUS: 1_744_000_000,
-  AGG: 1_405_700_000,
-};
-
-function resolveStockShares(symbol: string): number {
-  return STOCK_SHARES_ESTIMATE[symbol] ?? FALLBACK_STOCK_UNITS[symbol] ?? 0;
+function resolveStockShares(company: PublicCompanyDefinition): number {
+  return company.shares ?? FALLBACK_STOCK_UNITS[company.symbol] ?? 0;
 }
 
-function resolveEtfUnits(symbol: string): number {
-  return ETF_UNITS_ESTIMATE[symbol] ?? FALLBACK_ETF_UNITS[symbol] ?? 0;
+function sourceMarketCap(id: string): number | null {
+  return sourceValueUsd(id);
 }
 
-// Human-readable names (Stooq doesn't return full names)
-const STOCK_NAMES: Record<string, string> = {
-  NVDA: "NVIDIA",
-  AAPL: "Apple",
-  MSFT: "Microsoft",
-  GOOGL: "Alphabet",
-  AMZN: "Amazon",
-  TSM: "TSMC",
-  META: "Meta Platforms",
-  AVGO: "Broadcom",
-  "BRK-B": "Berkshire Hathaway",
-  LLY: "Eli Lilly",
-};
+function sourceAum(id: string): number | null {
+  return sourceValueUsd(id);
+}
 
 const ETF_NAMES: Record<string, string> = {
   SPY: "SPDR S&P 500 ETF",
@@ -396,22 +387,26 @@ export async function fetchTopStocksFromStooq(
     throw new Error("Equity quote providers returned no stock data");
   }
 
-  const stocks = TOP_STOCK_SYMBOLS
-    .map((symbol): DashboardStock | null => {
-      const q = quotes.get(symbol);
-      if (!q) return null;
+  const stocks = PUBLIC_COMPANIES
+    .map((company): DashboardStock | null => {
+      const q = company.quoteSymbol ? quotes.get(company.quoteSymbol) : undefined;
+      const marketCapUsd = q
+        ? calcEstimatedValue(q.close, resolveStockShares(company))
+        : sourceMarketCap(company.id);
+
+      if (marketCapUsd === null) return null;
 
       return {
-        id: `stock-${symbol.toLowerCase().replace(".", "-")}`,
+        id: company.id,
         rank: 0,
-        name: toSafeString(STOCK_NAMES[symbol], symbol),
-        symbol,
+        name: toSafeString(company.name, company.symbol),
+        symbol: company.symbol,
         category: "Stock" as const,
-        marketCapUsd: calcEstimatedValue(q.close, resolveStockShares(symbol)),
-        priceUsd: q.close,
-        changePercent: calcChangePercent(q.open, q.close),
-        logoUrl: `https://financialmodelingprep.com/image-stock/${symbol}.png`,
-        fallbackLogoUrls: [`https://images.financialmodelingprep.com/symbol/${symbol}.png`],
+        marketCapUsd,
+        priceUsd: q?.close ?? null,
+        changePercent: q ? calcChangePercent(q.open, q.close) : null,
+        logoUrl: company.quoteSymbol ? `https://financialmodelingprep.com/image-stock/${company.logoSymbol ?? company.quoteSymbol}.png` : null,
+        fallbackLogoUrls: company.quoteSymbol ? [`https://images.financialmodelingprep.com/symbol/${company.logoSymbol ?? company.quoteSymbol}.png`] : [],
       };
     })
     .filter((s): s is DashboardStock => s !== null);
@@ -439,7 +434,7 @@ export async function fetchTopEtfsFromStooq(
         name: toSafeString(ETF_NAMES[symbol], symbol),
         symbol,
         category: "ETF" as const,
-        aumUsd: calcEstimatedValue(q.close, resolveEtfUnits(symbol)),
+        aumUsd: sourceAum(`etf-${symbol.toLowerCase()}`) ?? calcEstimatedValue(q.close, FALLBACK_ETF_UNITS[symbol] ?? 0),
         priceUsd: q.close,
         changePercent: calcChangePercent(q.open, q.close),
         logoUrl: `https://financialmodelingprep.com/image-stock/${symbol}.png`,

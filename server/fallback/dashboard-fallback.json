@@ -1,12 +1,13 @@
 {
-  "generatedAt": "2026-05-14T00:00:00.000Z",
+  "generatedAt": "2026-05-16T00:00:00.000Z",
   "stale": true,
   "refreshInSec": 30,
   "source": {
     "equities": "stooq+yahoo-finance",
     "crypto": "coinpaprika",
     "fallbackUsed": true,
-    "equityFundamentalsAsOf": "2026-05-14"
+    "equityFundamentalsAsOf": "2026-05-14",
+    "valueSourceVersion": "2026-05-16"
   },
   "topCryptos": [
     {
@@ -167,8 +168,8 @@
       "name": "NVIDIA",
       "symbol": "NVDA",
       "category": "Stock",
-      "marketCapUsd": 5050000000000,
-      "priceUsd": 207.82,
+      "marketCapUsd": 5380000000000,
+      "priceUsd": 221.4,
       "changePercent": 0.68,
       "logoUrl": "https://financialmodelingprep.com/image-stock/NVDA.png",
       "fallbackLogoUrls": [
@@ -181,8 +182,8 @@
       "name": "Alphabet",
       "symbol": "GOOGL",
       "category": "Stock",
-      "marketCapUsd": 4822000000000,
-      "priceUsd": 387.62,
+      "marketCapUsd": 4940000000000,
+      "priceUsd": 397.11,
       "changePercent": 0.06,
       "logoUrl": "https://financialmodelingprep.com/image-stock/GOOGL.png",
       "fallbackLogoUrls": [
@@ -195,8 +196,8 @@
       "name": "Apple",
       "symbol": "AAPL",
       "category": "Stock",
-      "marketCapUsd": 4223000000000,
-      "priceUsd": 287.47,
+      "marketCapUsd": 4410000000000,
+      "priceUsd": 300.2,
       "changePercent": 0.05,
       "logoUrl": "https://financialmodelingprep.com/image-stock/AAPL.png",
       "fallbackLogoUrls": [
@@ -209,8 +210,8 @@
       "name": "Microsoft",
       "symbol": "MSFT",
       "category": "Stock",
-      "marketCapUsd": 3075000000000,
-      "priceUsd": 413.86,
+      "marketCapUsd": 3130000000000,
+      "priceUsd": 421.27,
       "changePercent": -0.69,
       "logoUrl": "https://financialmodelingprep.com/image-stock/MSFT.png",
       "fallbackLogoUrls": [
@@ -223,8 +224,8 @@
       "name": "Amazon",
       "symbol": "AMZN",
       "category": "Stock",
-      "marketCapUsd": 2958000000000,
-      "priceUsd": 266.01,
+      "marketCapUsd": 2940000000000,
+      "priceUsd": 264.39,
       "changePercent": 0.05,
       "logoUrl": "https://financialmodelingprep.com/image-stock/AMZN.png",
       "fallbackLogoUrls": [
@@ -237,8 +238,8 @@
       "name": "TSMC",
       "symbol": "TSM",
       "category": "Stock",
-      "marketCapUsd": 2180000000000,
-      "priceUsd": 397.26,
+      "marketCapUsd": 2220000000000,
+      "priceUsd": 404.37,
       "changePercent": -0.12,
       "logoUrl": "https://financialmodelingprep.com/image-stock/TSM.png",
       "fallbackLogoUrls": [
@@ -251,8 +252,8 @@
       "name": "Broadcom",
       "symbol": "AVGO",
       "category": "Stock",
-      "marketCapUsd": 2014000000000,
-      "priceUsd": 425.79,
+      "marketCapUsd": 2010000000000,
+      "priceUsd": 424.95,
       "changePercent": -0.56,
       "logoUrl": "https://financialmodelingprep.com/image-stock/AVGO.png",
       "fallbackLogoUrls": [
@@ -260,8 +261,34 @@
       ]
     },
     {
-      "id": "stock-meta",
+      "id": "stock-saudi-aramco",
       "rank": 8,
+      "name": "Saudi Aramco",
+      "symbol": "2222.SR",
+      "category": "Stock",
+      "marketCapUsd": 1700000000000,
+      "priceUsd": null,
+      "changePercent": null,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "stock-tsla",
+      "rank": 9,
+      "name": "Tesla",
+      "symbol": "TSLA",
+      "category": "Stock",
+      "marketCapUsd": 1540000000000,
+      "priceUsd": 410.05,
+      "changePercent": 0.41,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/TSLA.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/TSLA.png"
+      ]
+    },
+    {
+      "id": "stock-meta",
+      "rank": 10,
       "name": "Meta Platforms",
       "symbol": "META",
       "category": "Stock",
@@ -275,7 +302,7 @@
     },
     {
       "id": "stock-brk-b",
-      "rank": 9,
+      "rank": 11,
       "name": "Berkshire Hathaway",
       "symbol": "BRK-B",
       "category": "Stock",
@@ -288,13 +315,39 @@
       ]
     },
     {
+      "id": "stock-samsung-electronics",
+      "rank": 12,
+      "name": "Samsung Electronics",
+      "symbol": "005930.KS",
+      "category": "Stock",
+      "marketCapUsd": 1024000000000,
+      "priceUsd": null,
+      "changePercent": null,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "stock-wmt",
+      "rank": 13,
+      "name": "Walmart",
+      "symbol": "WMT",
+      "category": "Stock",
+      "marketCapUsd": 1017000000000,
+      "priceUsd": 127.36,
+      "changePercent": 0.22,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/WMT.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/WMT.png"
+      ]
+    },
+    {
       "id": "stock-lly",
-      "rank": 10,
+      "rank": 14,
       "name": "Eli Lilly",
       "symbol": "LLY",
       "category": "Stock",
-      "marketCapUsd": 875000000000,
-      "priceUsd": 974.38,
+      "marketCapUsd": 900000000000,
+      "priceUsd": 1009.26,
       "changePercent": -0.06,
       "logoUrl": "https://financialmodelingprep.com/image-stock/LLY.png",
       "fallbackLogoUrls": [
@@ -319,7 +372,7 @@
       "name": "NVIDIA",
       "symbol": "NVDA",
       "category": "Stock",
-      "marketCapUsd": 5050000000000,
+      "marketCapUsd": 5380000000000,
       "logoUrl": "https://financialmodelingprep.com/image-stock/NVDA.png",
       "fallbackLogoUrls": [
         "https://images.financialmodelingprep.com/symbol/NVDA.png"
@@ -341,7 +394,7 @@
       "name": "Alphabet",
       "symbol": "GOOGL",
       "category": "Stock",
-      "marketCapUsd": 4822000000000,
+      "marketCapUsd": 4940000000000,
       "logoUrl": "https://financialmodelingprep.com/image-stock/GOOGL.png",
       "fallbackLogoUrls": [
         "https://images.financialmodelingprep.com/symbol/GOOGL.png"
@@ -353,7 +406,7 @@
       "name": "Apple",
       "symbol": "AAPL",
       "category": "Stock",
-      "marketCapUsd": 4223000000000,
+      "marketCapUsd": 4410000000000,
       "logoUrl": "https://financialmodelingprep.com/image-stock/AAPL.png",
       "fallbackLogoUrls": [
         "https://images.financialmodelingprep.com/symbol/AAPL.png"
@@ -365,7 +418,7 @@
       "name": "Microsoft",
       "symbol": "MSFT",
       "category": "Stock",
-      "marketCapUsd": 3075000000000,
+      "marketCapUsd": 3130000000000,
       "logoUrl": "https://financialmodelingprep.com/image-stock/MSFT.png",
       "fallbackLogoUrls": [
         "https://images.financialmodelingprep.com/symbol/MSFT.png"
@@ -377,7 +430,7 @@
       "name": "Amazon",
       "symbol": "AMZN",
       "category": "Stock",
-      "marketCapUsd": 2958000000000,
+      "marketCapUsd": 2940000000000,
       "logoUrl": "https://financialmodelingprep.com/image-stock/AMZN.png",
       "fallbackLogoUrls": [
         "https://images.financialmodelingprep.com/symbol/AMZN.png"
@@ -389,7 +442,7 @@
       "name": "TSMC",
       "symbol": "TSM",
       "category": "Stock",
-      "marketCapUsd": 2180000000000,
+      "marketCapUsd": 2220000000000,
       "logoUrl": "https://financialmodelingprep.com/image-stock/TSM.png",
       "fallbackLogoUrls": [
         "https://images.financialmodelingprep.com/symbol/TSM.png"
@@ -401,19 +454,75 @@
       "name": "Broadcom",
       "symbol": "AVGO",
       "category": "Stock",
-      "marketCapUsd": 2014000000000,
+      "marketCapUsd": 2010000000000,
       "logoUrl": "https://financialmodelingprep.com/image-stock/AVGO.png",
       "fallbackLogoUrls": [
         "https://images.financialmodelingprep.com/symbol/AVGO.png"
       ]
     },
     {
-      "id": "private-spacex",
+      "id": "stock-saudi-aramco",
       "rank": 10,
+      "name": "Saudi Aramco",
+      "symbol": "2222.SR",
+      "category": "Stock",
+      "marketCapUsd": 1700000000000,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "stock-tsla",
+      "rank": 11,
+      "name": "Tesla",
+      "symbol": "TSLA",
+      "category": "Stock",
+      "marketCapUsd": 1540000000000,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/TSLA.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/TSLA.png"
+      ]
+    },
+    {
+      "id": "stock-meta",
+      "rank": 12,
+      "name": "Meta Platforms",
+      "symbol": "META",
+      "category": "Stock",
+      "marketCapUsd": 1518000000000,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/META.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/META.png"
+      ]
+    },
+    {
+      "id": "private-spacex",
+      "rank": 13,
       "name": "SpaceX",
       "symbol": "SPACEX",
       "category": "Private Company",
-      "marketCapUsd": 1750000000000,
+      "marketCapUsd": 1250000000000,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "stock-brk-b",
+      "rank": 14,
+      "name": "Berkshire Hathaway",
+      "symbol": "BRK-B",
+      "category": "Stock",
+      "marketCapUsd": 1042000000000,
+      "logoUrl": "https://financialmodelingprep.com/image-stock/BRK-B.png",
+      "fallbackLogoUrls": [
+        "https://images.financialmodelingprep.com/symbol/BRK-B.png"
+      ]
+    },
+    {
+      "id": "stock-samsung-electronics",
+      "rank": 15,
+      "name": "Samsung Electronics",
+      "symbol": "005930.KS",
+      "category": "Stock",
+      "marketCapUsd": 1024000000000,
       "logoUrl": null,
       "fallbackLogoUrls": []
     }
@@ -425,7 +534,7 @@
       "name": "SpaceX",
       "symbol": "SPACEX",
       "category": "Private Company",
-      "marketCapUsd": 1750000000000,
+      "marketCapUsd": 1250000000000,
       "logoUrl": null,
       "fallbackLogoUrls": []
     },
@@ -455,7 +564,7 @@
       "name": "Anthropic",
       "symbol": "ANTHROPIC",
       "category": "Private Company",
-      "marketCapUsd": 388000000000,
+      "marketCapUsd": 380000000000,
       "logoUrl": null,
       "fallbackLogoUrls": []
     },
@@ -465,7 +574,7 @@
       "name": "Stripe",
       "symbol": "STRIPE",
       "category": "Private Company",
-      "marketCapUsd": 176000000000,
+      "marketCapUsd": 159000000000,
       "logoUrl": null,
       "fallbackLogoUrls": []
     },
@@ -475,7 +584,7 @@
       "name": "Databricks",
       "symbol": "DATABRICKS",
       "category": "Private Company",
-      "marketCapUsd": 135000000000,
+      "marketCapUsd": 134000000000,
       "logoUrl": null,
       "fallbackLogoUrls": []
     },
@@ -490,18 +599,8 @@
       "fallbackLogoUrls": []
     },
     {
-      "id": "private-shein",
-      "rank": 8,
-      "name": "Shein",
-      "symbol": "SHEIN",
-      "category": "Private Company",
-      "marketCapUsd": 65000000000,
-      "logoUrl": null,
-      "fallbackLogoUrls": []
-    },
-    {
       "id": "private-canva",
-      "rank": 9,
+      "rank": 8,
       "name": "Canva",
       "symbol": "CANVA",
       "category": "Private Company",
@@ -511,11 +610,21 @@
     },
     {
       "id": "private-epic-games",
-      "rank": 10,
+      "rank": 9,
       "name": "Epic Games",
       "symbol": "EPIC",
       "category": "Private Company",
       "marketCapUsd": 31500000000,
+      "logoUrl": null,
+      "fallbackLogoUrls": []
+    },
+    {
+      "id": "private-shein",
+      "rank": 10,
+      "name": "Shein",
+      "symbol": "SHEIN",
+      "category": "Private Company",
+      "marketCapUsd": 30000000000,
       "logoUrl": null,
       "fallbackLogoUrls": []
     }
