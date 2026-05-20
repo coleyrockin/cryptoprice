@@ -9,6 +9,9 @@ type LogoMarkProps = {
   fallbackLogoUrls?: string[];
 };
 
+declare const __GITHUB_PAGES__: boolean;
+const IS_GITHUB_PAGES = typeof __GITHUB_PAGES__ !== "undefined" && __GITHUB_PAGES__;
+
 function toSafeLogoSource(source: string): string | null {
   const trimmed = source.trim();
   try {
@@ -38,10 +41,12 @@ export function LogoMark({ name, symbol, logoUrl, fallbackLogoUrls = [] }: LogoM
 
   const sources = useMemo(
     () =>
-      [logoUrl, ...fallbackLogoUrls]
-        .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
-        .map(toSafeLogoSource)
-        .filter((item): item is string => item !== null),
+      IS_GITHUB_PAGES
+        ? []
+        : [logoUrl, ...fallbackLogoUrls]
+          .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+          .map(toSafeLogoSource)
+          .filter((item): item is string => item !== null),
     [fallbackLogoUrls, logoUrl],
   );
 

@@ -19,6 +19,7 @@ export type BuildAssetDetailOptions = {
   now?: () => number;
   timeoutMs?: number;
   dashboard?: DashboardPayload;
+  historyMode?: "live" | "static-disabled";
 };
 
 function formatIsoFromAge(nowMs: number, ageSec: number): string {
@@ -32,6 +33,14 @@ function unsupportedHistoryReason(category: string): string {
   if (category === "Crypto" || category === "NIGHT") return "Crypto detail history needs a dedicated historical provider; current sparklines are not treated as historical prices.";
   if (category === "Commodity") return "Commodity history is not available from the current no-key dashboard provider in this version.";
   return "History is unavailable for this asset in the current provider set.";
+}
+
+function staticHistoryReason(category: string): string {
+  if (category === "Stock" || category === "ETF") {
+    return "Historical charts are disabled in the static GitHub Pages build; use the live Vercel app for Yahoo-backed stock and ETF history.";
+  }
+
+  return unsupportedHistoryReason(category);
 }
 
 function isPricedEntry(entry: NonNullable<ReturnType<typeof findDashboardEntry>>): boolean {
@@ -133,7 +142,12 @@ async function historyForEntry(
   entry: NonNullable<ReturnType<typeof findDashboardEntry>>,
   range: HistoricalRange,
   timeoutMs: number | undefined,
+  historyMode: NonNullable<BuildAssetDetailOptions["historyMode"]>,
 ): Promise<{ points: HistoricalPoint[]; reason?: string }> {
+  if (historyMode === "static-disabled") {
+    return { points: [], reason: staticHistoryReason(entry.category) };
+  }
+
   const isEquity = entry.category === "Stock" || entry.category === "ETF";
   const hasUnitPrice = isEquity && "priceUsd" in entry && typeof entry.priceUsd === "number" && Number.isFinite(entry.priceUsd);
   if (!isEquity || !hasUnitPrice) {
@@ -172,7 +186,7 @@ export async function buildAssetDetailPayload(options: BuildAssetDetailOptions):
   const source = entry.category === "Private Company" ? "curated" : sourceFromSegment(dashboard, segment);
   const ageSec = entry.category === "Private Company" ? 0 : ageFromSegment(dashboard, segment);
   const asOf = dashboard.generatedAt;
-  const history = await historyForEntry(entry, options.range, options.timeoutMs);
+  const history = await historyForEntry(entry, options.range, options.timeoutMs, options.historyMode ?? "live");
   const stale = source === "stale-cache" || source === "fallback" || source === "durable-cache";
   const valueSource = getAssetValueSource(entry.id);
 

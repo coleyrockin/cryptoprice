@@ -132,7 +132,7 @@ function githubPagesFallbackPlugin(): Plugin {
             id: entry.id,
             range,
             dashboard: payload,
-            timeoutMs: 1,
+            historyMode: "static-disabled",
             now: () => Date.parse(payload.generatedAt),
           });
           writeFileSync(resolve(detailDir, `${entry.id}-${range}.json`), JSON.stringify(detail));
