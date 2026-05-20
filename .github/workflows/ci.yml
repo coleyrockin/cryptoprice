@@ -31,6 +31,9 @@ jobs:
       - name: Run typecheck
         run: npm run typecheck
 
+      - name: Run data audit
+        run: npm run audit:data
+
       - name: Run unit and integration tests
         run: npm run test
 

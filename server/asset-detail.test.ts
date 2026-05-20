@@ -53,17 +53,7 @@ describe("buildAssetDetailPayload", () => {
     vi.unstubAllGlobals();
   });
 
-  it("returns stock detail with Stooq history and derived valuation provenance", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () =>
-        new Response("Date,Open,High,Low,Close,Volume\n2026-05-01,200,201,199,200,1\n2026-05-02,201,203,200,202,1", {
-          status: 200,
-          headers: { "content-type": "text/csv" },
-        }),
-      ),
-    );
-
+  it("returns stock detail with derived valuation provenance and honest unavailable history", async () => {
     const detail = await buildAssetDetailPayload({
       id: "stock-nvda",
       range: "30D",
@@ -72,7 +62,9 @@ describe("buildAssetDetailPayload", () => {
     });
 
     expect(detail.asset.providerIds.stooq).toBe("NVDA");
-    expect(detail.history.available).toBe(true);
+    expect(detail.asset.supportsHistory).toBe(false);
+    expect(detail.history.available).toBe(false);
+    expect(detail.history.reason).toContain("no-key stock and ETF history provider");
     expect(detail.provenance.valueMethod).toBe("derived-market-cap");
     expect(detail.provenance.confidence).toBe("high");
     expect(detail.provenance.sourceTitle).toContain("NVIDIA");

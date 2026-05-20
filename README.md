@@ -32,7 +32,7 @@ No paid API key is required for local development or deployment.
 - **Nine market sections:** Watchlist, Portfolio Lab, Global Assets, Public Companies, Private Companies, ETFs, Currencies, Cryptos, and NIGHT.
 - **Live data controls:** Search, section filters, dense mode, and sortable grids by rank, name, value, or movement.
 - **Pinned watchlist:** Pin any card and keep it available across sessions through local storage.
-- **Asset detail drawer:** Click any card to inspect exact value, unit price, provenance, verified-as-of date, source link, confidence, limitations, and Stooq-backed history where available.
+- **Asset detail drawer:** Click any card to inspect exact value, unit price, provenance, verified-as-of date, source link, confidence, limitations, and an honest history-unavailable state where no reliable no-key history provider exists.
 - **Local Portfolio Lab:** Track tradable stock, ETF, crypto, and NIGHT holdings with allocation, optional gain/loss, edit/remove controls, and JSON import/export.
 - **Segment-level data health:** Hero and section badges distinguish `live`, `fresh-cache`, `stale-cache`, `durable-cache`, and `fallback` states.
 - **Valuation transparency:** Public-company market caps, ETF AUM snapshots, commodities, and private-company valuations carry source metadata in the payload.
@@ -171,7 +171,7 @@ Shipped:
 - Live public-company, ETF, FX, and crypto sections with resilient fallback behavior.
 - Global public-company coverage with curated snapshots where no-key quote providers do not cover an exchange.
 - Private-company section with verified primary values, alternate valuation context, sorting, filtering, pinning, and health metadata.
-- Asset detail drawer with provenance, verified-as-of dates, source links, confidence, limitation copy, and Stooq-backed public-company/ETF history where available.
+- Asset detail drawer with provenance, verified-as-of dates, source links, confidence, limitation copy, and clear history-unavailable messaging until a reliable no-key history provider is added.
 - Local-only Portfolio Lab with holdings persistence, allocation, optional gain/loss, edit/remove, and JSON import/export.
 - Price-derived public-company market caps, sourced ETF AUM snapshots, and audited curated valuation metadata.
 - Segment-level data health and provider transparency.
@@ -190,7 +190,7 @@ Next:
 - Public-company market caps combine live quotes where available with audited share-count or market-data baselines; they are not exchange-certified real-time fundamentals.
 - ETF AUM values are sourced snapshots and can differ across issuer and market-data sites.
 - Private-company valuations are curated verified primary marks and can lag new funding rounds or secondary-market marks.
-- Historical charts are v1 coverage: Stooq-backed public companies and ETFs have history; crypto, currencies, commodities, curated public-company snapshots, private companies, and NIGHT show an honest unavailable state until a no-key history provider is added.
+- Historical charts are intentionally disabled in v1 because the previously tested no-key Stooq CSV history path now requires an API key. All categories show an honest unavailable state until a reliable no-key history provider is added.
 - Free providers can rate limit or temporarily fail, which may show as `stale-cache`, `durable-cache`, or `fallback` in Data health.
 - Portfolio data is local to one browser profile and does not sync across devices.
 

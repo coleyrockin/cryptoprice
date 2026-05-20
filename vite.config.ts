@@ -1,4 +1,4 @@
-import { copyFileSync, mkdirSync } from "node:fs";
+import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { resolve } from "node:path";
 
@@ -9,9 +9,12 @@ import type { Plugin } from "vite";
 
 import { buildDashboardPayload } from "./server/dashboard";
 import { buildAssetDetailPayload } from "./server/asset-detail";
-import { isHistoricalRange } from "./server/asset-registry";
+import { dashboardEntries, isHistoricalRange } from "./server/asset-registry";
+import { isDashboardPayload } from "./server/dashboard-schema";
 import { buildHealthPayload } from "./server/health";
 import { createRequestId } from "./server/log";
+import fallbackPayloadJson from "./server/fallback/dashboard-fallback.json" with { type: "json" };
+import type { DashboardPayload, HistoricalRange } from "./server/types";
 
 function localApiPlugin(): Plugin {
   return {
@@ -94,21 +97,47 @@ function localApiPlugin(): Plugin {
 }
 
 const isGitHubPages = Boolean(process.env.GITHUB_PAGES);
+const STATIC_DETAIL_RANGES: HistoricalRange[] = ["7D", "30D", "1Y"];
+
+function fallbackDashboardPayload(): DashboardPayload {
+  const payload = fallbackPayloadJson as unknown;
+  if (!isDashboardPayload(payload)) {
+    throw new Error("Invalid bundled fallback dashboard payload");
+  }
+
+  return payload;
+}
 
 /**
- * Copies dashboard-fallback.json into the build output so GitHub Pages
- * (a static host with no serverless backend) can serve it as the data source.
+ * Copies fallback dashboard/detail JSON into the build output so GitHub Pages
+ * (a static host with no serverless backend) can serve the core experience.
  */
 function githubPagesFallbackPlugin(): Plugin {
   return {
     name: "github-pages-fallback",
     apply: "build",
-    closeBundle() {
+    async closeBundle() {
       if (!isGitHubPages) return;
+      const payload = fallbackDashboardPayload();
       const src = resolve(__dirname, "server/fallback/dashboard-fallback.json");
       const destDir = resolve(__dirname, "dist/data");
+      const detailDir = resolve(destDir, "asset-detail");
       mkdirSync(destDir, { recursive: true });
+      mkdirSync(detailDir, { recursive: true });
       copyFileSync(src, resolve(destDir, "dashboard.json"));
+
+      for (const entry of dashboardEntries(payload)) {
+        for (const range of STATIC_DETAIL_RANGES) {
+          const detail = await buildAssetDetailPayload({
+            id: entry.id,
+            range,
+            dashboard: payload,
+            timeoutMs: 1,
+            now: () => Date.parse(payload.generatedAt),
+          });
+          writeFileSync(resolve(detailDir, `${entry.id}-${range}.json`), JSON.stringify(detail));
+        }
+      }
     },
   };
 }

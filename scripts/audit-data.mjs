@@ -28,6 +28,19 @@ const REQUIRED_PRIVATE_VALUES = new Map([
   ["private-databricks", 134_000_000_000],
   ["private-waymo", 126_000_000_000],
 ]);
+const PRIVATE_REVIEW_MAX_AGE_DAYS = 90;
+const PRIVATE_LOW_CONFIDENCE_MAX_SOURCE_AGE_DAYS = 180;
+const PRIVATE_MEDIUM_CONFIDENCE_MAX_SOURCE_AGE_DAYS = 365;
+
+function parseYmd(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value ?? "")) return null;
+  const ms = Date.parse(`${value}T00:00:00.000Z`);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+function ageDays(fromMs, toMs) {
+  return Math.floor((toMs - fromMs) / 86_400_000);
+}
 
 function fail(errors) {
   console.error(`Data audit failed with ${errors.length} issue${errors.length === 1 ? "" : "s"}:`);
@@ -64,6 +77,7 @@ const [manifest, fallback] = await Promise.all([
 const errors = [];
 const sources = Array.isArray(manifest.sources) ? manifest.sources : [];
 const sourceById = new Map(sources.map((source) => [source.assetId, source]));
+const auditNowMs = Date.now();
 
 if (!manifest.version || typeof manifest.version !== "string") errors.push("manifest version is missing");
 if (!sources.length) errors.push("manifest has no sources");
@@ -73,9 +87,30 @@ for (const source of sources) {
   if (!PRIMARY_SOURCE_TYPES.has(source.sourceType)) errors.push(`${source.assetId} uses invalid primary sourceType=${source.sourceType}`);
   if (!Number.isFinite(source.valueUsd) || source.valueUsd <= 0) errors.push(`${source.assetId} has invalid valueUsd`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(source.valueAsOf ?? "")) errors.push(`${source.assetId} has invalid valueAsOf`);
+  if (source.lastCheckedAt !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(source.lastCheckedAt)) errors.push(`${source.assetId} has invalid lastCheckedAt`);
   if (!isHttpUrl(source.sourceUrl)) errors.push(`${source.assetId} has invalid sourceUrl`);
   if (!source.sourceTitle) errors.push(`${source.assetId} is missing sourceTitle`);
   if (!source.notes) errors.push(`${source.assetId} is missing notes`);
+
+  if (source.category === "Private Company" && source.updateCadence === "event-driven") {
+    const valueAsOfMs = parseYmd(source.valueAsOf);
+    const lastCheckedMs = parseYmd(source.lastCheckedAt);
+    if (lastCheckedMs === null) {
+      errors.push(`${source.assetId} event-driven private-company source is missing lastCheckedAt`);
+    } else if (ageDays(lastCheckedMs, auditNowMs) > PRIVATE_REVIEW_MAX_AGE_DAYS) {
+      errors.push(`${source.assetId} private-company source review is older than ${PRIVATE_REVIEW_MAX_AGE_DAYS} days`);
+    }
+
+    if (valueAsOfMs !== null) {
+      const sourceAgeDays = ageDays(valueAsOfMs, auditNowMs);
+      if (source.confidence === "low" && sourceAgeDays > PRIVATE_LOW_CONFIDENCE_MAX_SOURCE_AGE_DAYS && lastCheckedMs === null) {
+        errors.push(`${source.assetId} low-confidence private-company source is stale without a current review`);
+      }
+      if (source.confidence === "medium" && sourceAgeDays > PRIVATE_MEDIUM_CONFIDENCE_MAX_SOURCE_AGE_DAYS && lastCheckedMs === null) {
+        errors.push(`${source.assetId} medium-confidence private-company source is stale without a current review`);
+      }
+    }
+  }
 
   for (const alternate of source.alternateValuations ?? []) {
     if (!ALTERNATE_SOURCE_TYPES.has(alternate.sourceType)) {

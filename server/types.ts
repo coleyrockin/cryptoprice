@@ -45,6 +45,7 @@ export type AssetValueSource = {
   sourceType: AssetValueSourceType;
   confidence: "high" | "medium" | "low" | "curated";
   updateCadence: "daily" | "weekly" | "monthly" | "event-driven";
+  lastCheckedAt?: string;
   notes: string;
   alternateValuations?: AlternateAssetValuation[];
 };

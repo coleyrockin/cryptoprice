@@ -204,6 +204,7 @@
       "sourceType": "reported-transaction",
       "confidence": "high",
       "updateCadence": "event-driven",
+      "lastCheckedAt": "2026-05-19",
       "notes": "Primary value uses Scottish Mortgage's holding mark. IPO target chatter is tracked only as alternate context.",
       "alternateValuations": [
         {
@@ -226,6 +227,7 @@
       "sourceType": "recognized-market-data",
       "confidence": "medium",
       "updateCadence": "event-driven",
+      "lastCheckedAt": "2026-05-19",
       "notes": "Reuters reported the FT valuation and stated it could not immediately verify the report."
     },
     {
@@ -238,6 +240,7 @@
       "sourceType": "recognized-market-data",
       "confidence": "medium",
       "updateCadence": "event-driven",
+      "lastCheckedAt": "2026-05-19",
       "notes": "Reported private-market valuation; not a live traded price."
     },
     {
@@ -250,6 +253,7 @@
       "sourceType": "reported-transaction",
       "confidence": "high",
       "updateCadence": "event-driven",
+      "lastCheckedAt": "2026-05-19",
       "notes": "Primary value uses the latest reported funding-round valuation; secondary-market chatter is intentionally excluded."
     },
     {
@@ -262,6 +266,7 @@
       "sourceType": "reported-transaction",
       "confidence": "high",
       "updateCadence": "event-driven",
+      "lastCheckedAt": "2026-05-19",
       "notes": "Employee/shareholder tender value replaces the older $176B estimate."
     },
     {
@@ -274,6 +279,7 @@
       "sourceType": "reported-transaction",
       "confidence": "high",
       "updateCadence": "event-driven",
+      "lastCheckedAt": "2026-05-19",
       "notes": "Company-announced Series L valuation."
     },
     {
@@ -286,6 +292,7 @@
       "sourceType": "reported-transaction",
       "confidence": "high",
       "updateCadence": "event-driven",
+      "lastCheckedAt": "2026-05-19",
       "notes": "Post-money valuation from a reported investment round."
     },
     {
@@ -298,6 +305,7 @@
       "sourceType": "recognized-market-data",
       "confidence": "medium",
       "updateCadence": "event-driven",
+      "lastCheckedAt": "2026-05-19",
       "notes": "Secondary transaction valuation; kept because it is explicitly sourced and dated."
     },
     {
@@ -310,6 +318,7 @@
       "sourceType": "reported-transaction",
       "confidence": "low",
       "updateCadence": "event-driven",
+      "lastCheckedAt": "2026-05-19",
       "notes": "Oldest primary value in the private-company set; retained with low confidence until a newer verified mark is found."
     },
     {
@@ -322,6 +331,7 @@
       "sourceType": "recognized-market-data",
       "confidence": "low",
       "updateCadence": "event-driven",
+      "lastCheckedAt": "2026-05-19",
       "notes": "Downgraded from the stale $65B estimate; current IPO context puts valuation pressure near $30B."
     },
     {

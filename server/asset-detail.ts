@@ -1,6 +1,6 @@
 import { assetRefFromEntry, findDashboardEntry, getFallbackAssetRef, isHistoricalRange, segmentForEntry } from "./asset-registry.js";
 import { buildDashboardPayload } from "./dashboard.js";
-import { EQUITY_FUNDAMENTALS_AS_OF, fetchHistoricalPricesFromStooq } from "./providers/stooq.js";
+import { EQUITY_FUNDAMENTALS_AS_OF } from "./providers/stooq.js";
 import { toFiniteNumber } from "./sanitize.js";
 import { getAssetValueSource } from "./value-sources.js";
 import type {
@@ -26,6 +26,7 @@ function formatIsoFromAge(nowMs: number, ageSec: number): string {
 }
 
 function unsupportedHistoryReason(category: string): string {
+  if (category === "Stock" || category === "ETF") return "Historical charts are unavailable until a reliable no-key stock and ETF history provider is added.";
   if (category === "Private Company") return "Private-company valuations are curated snapshots, not traded historical prices.";
   if (category === "Currency") return "FX history is not available from the current no-key dashboard provider in this version.";
   if (category === "Crypto" || category === "NIGHT") return "Crypto detail history needs a dedicated historical provider; current sparklines are not treated as historical prices.";
@@ -131,27 +132,9 @@ function quoteForEntry(entry: NonNullable<ReturnType<typeof findDashboardEntry>>
 async function historyForEntry(
   entry: NonNullable<ReturnType<typeof findDashboardEntry>>,
   range: HistoricalRange,
-  timeoutMs: number,
 ): Promise<{ points: HistoricalPoint[]; reason?: string }> {
-  if (entry.category !== "Stock" && entry.category !== "ETF") {
-    return { points: [], reason: unsupportedHistoryReason(entry.category) };
-  }
-
-  if (!isPricedEntry(entry)) {
-    return { points: [], reason: "Historical chart unavailable for curated market-cap snapshots in the current no-key provider set." };
-  }
-
-  try {
-    return {
-      points: await fetchHistoricalPricesFromStooq(entry.symbol, range, { timeoutMs }),
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "unknown provider error";
-    return {
-      points: [],
-      reason: `Stooq history unavailable: ${message}`,
-    };
-  }
+  void range;
+  return { points: [], reason: unsupportedHistoryReason(entry.category) };
 }
 
 export async function buildAssetDetailPayload(options: BuildAssetDetailOptions): Promise<AssetDetailPayload> {
@@ -174,7 +157,7 @@ export async function buildAssetDetailPayload(options: BuildAssetDetailOptions):
   const source = entry.category === "Private Company" ? "curated" : sourceFromSegment(dashboard, segment);
   const ageSec = entry.category === "Private Company" ? 0 : ageFromSegment(dashboard, segment);
   const asOf = dashboard.generatedAt;
-  const history = await historyForEntry(entry, options.range, options.timeoutMs ?? 4_500);
+  const history = await historyForEntry(entry, options.range);
   const stale = source === "stale-cache" || source === "fallback" || source === "durable-cache";
   const valueSource = getAssetValueSource(entry.id);
 

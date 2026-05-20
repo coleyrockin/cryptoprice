@@ -1,10 +1,11 @@
 import type { AssetDetailPayload, DashboardPayload, DashboardSegmentKey, DashboardSegmentSource, HistoricalRange } from "./types/dashboard";
 
 declare const __GITHUB_PAGES__: boolean;
+const IS_GITHUB_PAGES = typeof __GITHUB_PAGES__ !== "undefined" && __GITHUB_PAGES__;
 
 const DASHBOARD_ENDPOINT = import.meta.env.DEV
   ? "/__local_api/dashboard"
-  : __GITHUB_PAGES__
+  : IS_GITHUB_PAGES
     ? import.meta.env.BASE_URL + "data/dashboard.json"
     : "/api/dashboard";
 
@@ -86,6 +87,10 @@ export async function fetchDashboard(): Promise<DashboardPayload> {
 }
 
 export async function fetchAssetDetail(id: string, range: HistoricalRange): Promise<AssetDetailPayload> {
+  if (IS_GITHUB_PAGES) {
+    return getJson<AssetDetailPayload>(`${import.meta.env.BASE_URL}data/asset-detail/${encodeURIComponent(id)}-${range}.json`);
+  }
+
   const url = new URL(ASSET_DETAIL_ENDPOINT, window.location.origin);
   url.searchParams.set("id", id);
   url.searchParams.set("range", range);
@@ -102,7 +107,7 @@ type ClientErrorPayload = {
 };
 
 export async function reportClientError(payload: ClientErrorPayload): Promise<void> {
-  if (!import.meta.env.PROD) {
+  if (!import.meta.env.PROD || IS_GITHUB_PAGES) {
     return;
   }
 

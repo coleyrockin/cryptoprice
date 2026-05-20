@@ -57,7 +57,7 @@ test("opens asset detail drawer with provenance and unsupported history states",
   await page.getByRole("button", { name: /Show NVIDIA details/i }).first().click();
   const nvidiaDialog = page.getByRole("dialog", { name: /NVIDIA/i });
   await expect(nvidiaDialog).toBeVisible({ timeout: 15_000 });
-  await expect(nvidiaDialog.getByText(/Provider/i)).toBeVisible();
+  await expect(nvidiaDialog.getByText("Provider", { exact: true })).toBeVisible();
   await expect(nvidiaDialog.getByText("derived-market-cap")).toBeVisible();
   await expect(nvidiaDialog.getByText(/Verified as of/i)).toBeVisible();
   await page.getByRole("button", { name: /Close asset detail/i }).click();
