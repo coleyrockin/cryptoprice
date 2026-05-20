@@ -1,6 +1,6 @@
-import { assetRefFromEntry, findDashboardEntry, getFallbackAssetRef, isHistoricalRange, segmentForEntry } from "./asset-registry.js";
+import { assetRefFromEntry, findDashboardEntry, getFallbackAssetRef, isHistoricalRange, segmentForEntry, stooqSymbolForAsset } from "./asset-registry.js";
 import { buildDashboardPayload } from "./dashboard.js";
-import { EQUITY_FUNDAMENTALS_AS_OF } from "./providers/stooq.js";
+import { EQUITY_FUNDAMENTALS_AS_OF, fetchEquityHistory } from "./providers/stooq.js";
 import { toFiniteNumber } from "./sanitize.js";
 import { getAssetValueSource } from "./value-sources.js";
 import type {
@@ -26,7 +26,7 @@ function formatIsoFromAge(nowMs: number, ageSec: number): string {
 }
 
 function unsupportedHistoryReason(category: string): string {
-  if (category === "Stock" || category === "ETF") return "Historical charts are unavailable until a reliable no-key stock and ETF history provider is added.";
+  if (category === "Stock" || category === "ETF") return "Historical prices unavailable from the current no-key equity providers.";
   if (category === "Private Company") return "Private-company valuations are curated snapshots, not traded historical prices.";
   if (category === "Currency") return "FX history is not available from the current no-key dashboard provider in this version.";
   if (category === "Crypto" || category === "NIGHT") return "Crypto detail history needs a dedicated historical provider; current sparklines are not treated as historical prices.";
@@ -132,9 +132,24 @@ function quoteForEntry(entry: NonNullable<ReturnType<typeof findDashboardEntry>>
 async function historyForEntry(
   entry: NonNullable<ReturnType<typeof findDashboardEntry>>,
   range: HistoricalRange,
+  timeoutMs: number | undefined,
 ): Promise<{ points: HistoricalPoint[]; reason?: string }> {
-  void range;
-  return { points: [], reason: unsupportedHistoryReason(entry.category) };
+  const isEquity = entry.category === "Stock" || entry.category === "ETF";
+  const hasUnitPrice = isEquity && "priceUsd" in entry && typeof entry.priceUsd === "number" && Number.isFinite(entry.priceUsd);
+  if (!isEquity || !hasUnitPrice) {
+    return { points: [], reason: unsupportedHistoryReason(entry.category) };
+  }
+
+  try {
+    const points = await fetchEquityHistory(stooqSymbolForAsset(entry.symbol), range, { timeoutMs });
+    if (points.length === 0) {
+      return { points: [], reason: unsupportedHistoryReason(entry.category) };
+    }
+    return { points };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown history error";
+    return { points: [], reason: `Historical prices unavailable: ${message}` };
+  }
 }
 
 export async function buildAssetDetailPayload(options: BuildAssetDetailOptions): Promise<AssetDetailPayload> {
@@ -157,7 +172,7 @@ export async function buildAssetDetailPayload(options: BuildAssetDetailOptions):
   const source = entry.category === "Private Company" ? "curated" : sourceFromSegment(dashboard, segment);
   const ageSec = entry.category === "Private Company" ? 0 : ageFromSegment(dashboard, segment);
   const asOf = dashboard.generatedAt;
-  const history = await historyForEntry(entry, options.range);
+  const history = await historyForEntry(entry, options.range, options.timeoutMs);
   const stale = source === "stale-cache" || source === "fallback" || source === "durable-cache";
   const valueSource = getAssetValueSource(entry.id);
 

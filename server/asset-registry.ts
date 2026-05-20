@@ -96,7 +96,7 @@ export function assetRefFromEntry(entry: DetailEntry): AssetRef {
     category: entry.category,
     currency: "USD",
     tradable: (isStockOrEtf && hasUnitPrice) || isCrypto,
-    supportsHistory: false,
+    supportsHistory: isStockOrEtf && hasUnitPrice,
     supportsLivePrice: (isStockOrEtf && hasUnitPrice) || isCrypto || isCurrency,
     providerIds: {
       stooq: isStockOrEtf ? stooqSymbolForAsset(entry.symbol) : undefined,

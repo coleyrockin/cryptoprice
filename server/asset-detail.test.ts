@@ -53,7 +53,31 @@ describe("buildAssetDetailPayload", () => {
     vi.unstubAllGlobals();
   });
 
-  it("returns stock detail with derived valuation provenance and honest unavailable history", async () => {
+  it("returns stock detail with derived valuation provenance and Yahoo-backed history", async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          chart: {
+            result: [
+              {
+                timestamp: [1778679000, 1778765400, 1778851800],
+                indicators: {
+                  quote: [{ close: [225.83, 235.74, 225.32] }],
+                  adjclose: [{ adjclose: [225.83, 235.74, 225.32] }],
+                },
+              },
+            ],
+            error: null,
+          },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
     const detail = await buildAssetDetailPayload({
       id: "stock-nvda",
       range: "30D",
@@ -62,12 +86,32 @@ describe("buildAssetDetailPayload", () => {
     });
 
     expect(detail.asset.providerIds.stooq).toBe("NVDA");
-    expect(detail.asset.supportsHistory).toBe(false);
-    expect(detail.history.available).toBe(false);
-    expect(detail.history.reason).toContain("no-key stock and ETF history provider");
+    expect(detail.asset.supportsHistory).toBe(true);
+    expect(detail.history.available).toBe(true);
+    expect(detail.history.points).toHaveLength(3);
+    expect(detail.history.points[0]).toMatchObject({ value: 225.83 });
     expect(detail.provenance.valueMethod).toBe("derived-market-cap");
     expect(detail.provenance.confidence).toBe("high");
     expect(detail.provenance.sourceTitle).toContain("NVIDIA");
+    expect(String((fetchMock.mock.calls[0] as unknown[])[0])).toContain("query1.finance.yahoo.com/v8/finance/chart/NVDA");
+  });
+
+  it("falls back to honest unavailable history when both equity history providers fail", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("upstream down", { status: 503 })),
+    );
+
+    const detail = await buildAssetDetailPayload({
+      id: "stock-nvda",
+      range: "30D",
+      dashboard: stockPayload(),
+      now: () => Date.parse("2026-05-13T00:00:00.000Z"),
+    });
+
+    expect(detail.asset.supportsHistory).toBe(true);
+    expect(detail.history.available).toBe(false);
+    expect(detail.history.reason).toContain("Historical prices unavailable");
   });
 
   it("labels private companies as curated with unsupported history", async () => {

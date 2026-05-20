@@ -26,31 +26,27 @@ No P0 or P1 blockers were found. The original follow-up findings have been addre
 
 ## Findings
 
-### [P2] Fixed: Stock and ETF history is not actually available from the current no-key Stooq path
+### [P2] Resolved: Stock and ETF history now powered by Yahoo Finance v8
 
-Files: `server/providers/stooq.ts:317`, `server/asset-detail.ts:131`, `README.md:35`, `README.md:174`
+Files: `server/providers/stooq.ts`, `server/asset-detail.ts`, `server/asset-registry.ts`, `README.md`, `ROADMAP.md`, `CHANGELOG.md`
 
-Impact: The app and README present Stooq-backed history as a shipped detail-drawer capability for stocks and ETFs, but the production API currently returns unavailable history for real assets like NVIDIA and VOO.
+Original impact: The previous Stooq CSV history path returned an API-key prompt, so the drawer surfaced an unavailable state for every real asset. The 2026-05-19 pass made the messaging honest but did not restore history.
 
-Evidence:
+Re-fix applied on 2026-05-20:
 
-- Production `GET /api/asset-detail?id=stock-nvda&range=30D` returned `history.available: false` with reason `Stooq history unavailable: Stooq returned no historical prices`.
-- Production `GET /api/asset-detail?id=etf-voo&range=30D` returned the same unavailable history state.
-- Direct Stooq CSV history request returned an API-key prompt instead of CSV data: `Get your apikey`.
-- README still says the drawer includes "Stooq-backed history where available" and that the shipped drawer has "Stooq-backed public-company/ETF history where available."
-
-Fix applied:
-
-- Revised the detail payload capability flag so assets no longer claim supported history while no reliable no-key provider is available.
-- Revised README copy to state historical charts are intentionally disabled until a reliable no-key provider is added.
-- Updated server tests to assert the honest unavailable state for NVIDIA detail history.
+- Added `fetchHistoricalPricesFromYahoo` against `https://query1.finance.yahoo.com/v8/finance/chart/{symbol}` (no key). Prefers `adjclose`, falls back to `close`. Range tokens: 7D→`5d`, 30D→`1mo`, 1Y→`1y`, all at daily interval.
+- Added `fetchEquityHistory` wrapper that tries Yahoo first and falls back to the existing Stooq CSV path (in case Stooq ever reopens).
+- `historyForEntry` in `server/asset-detail.ts` calls the wrapper for Stock/ETF entries that have a live unit price; everything else still returns the existing honest unavailable reason.
+- `AssetRef.supportsHistory` flipped from constant `false` to `isStockOrEtf && hasUnitPrice` so the client enables the range selector for assets with real history.
+- Stooq history payload budget reused for Yahoo to keep responses capped.
+- README, ROADMAP, and CHANGELOG copy refreshed.
 
 Validation after fix:
 
-- `GET /api/asset-detail?id=stock-nvda&range=30D` returns a clear unavailable reason and README/UI copy no longer claims stock/ETF history as a live feature.
-- `npm run test:routes`
-- `npm run test:e2e`
-- `npm run verify:production`
+- `npm run check` — 77 unit tests (was 73), 33 route tests, lint, typecheck, build, bundle budget all green.
+- New stooq tests cover Yahoo chart parsing (adjusted close, null skip) and the Yahoo→Stooq fallback path.
+- `server/asset-detail.test.ts` now asserts Yahoo-mocked history populates `history.points` and that double-provider failure still returns the honest unavailable reason.
+- Live spot check: `curl https://query1.finance.yahoo.com/v8/finance/chart/NVDA?range=5d&interval=1d` returns 5 close points without an API key.
 
 ### [P2] Fixed: GitHub Pages build has static dashboard data but no static asset-detail route
 

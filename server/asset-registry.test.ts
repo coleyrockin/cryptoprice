@@ -11,7 +11,7 @@ describe("asset registry", () => {
       id: "stock-nvda",
       symbol: "NVDA",
       tradable: true,
-      supportsHistory: false,
+      supportsHistory: true,
       providerIds: {
         stooq: "NVDA",
       },

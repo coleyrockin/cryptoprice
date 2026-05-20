@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Yahoo Finance v8 `/chart` endpoint as the primary keyless history provider for stocks and ETFs. The asset detail drawer now populates real 7D / 30D / 1Y points (adjusted close preferred). Stooq CSV history is retained as an opportunistic fallback.
+- `AssetRef.supportsHistory` reflects per-entry capability: `true` for stocks and ETFs that resolve a live unit price, `false` for entries that only carry curated valuations.
+
+### Changed
+
+- Live-computed market caps and AUM derived from price × share/unit baselines, with rankings auto-recomputed from current values so the dashboard's top-of-list stays accurate even when prices move.
+- Equity quote pipeline now batches Stooq with Yahoo Finance v7 quote fallback when Stooq is missing symbols.
+- Source disclosure now carries `equityFundamentalsAsOf` and `valueSourceVersion` for transparency about the most recent baseline reconcile.
+
 ## [0.1.0] — 2026-03-10
 
 ### Added

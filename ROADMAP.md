@@ -9,7 +9,7 @@ This roadmap separates what is already shipped from the realistic next product s
 - **Data-health transparency** - Segment source labels, degraded-count summary, and per-section freshness badges.
 - **Price-derived public-market valuations** - Stock market caps and ETF AUM estimates scale from baseline share/unit snapshots using live prices.
 - **Private-company section** - Curated private-company valuations with grid parity for filtering, sorting, pinning, compact mode, and empty states.
-- **Asset detail drawer** - Per-asset quote, provenance, confidence, limitation copy, and stock/ETF historical charts without expanding the compact dashboard payload.
+- **Asset detail drawer** - Per-asset quote, provenance, confidence, limitation copy, and Yahoo-Finance-backed historical charts for stocks and ETFs (7D / 30D / 1Y) without expanding the compact dashboard payload.
 - **Local Portfolio Lab** - Browser-only holdings, allocation, optional gain/loss, edit/remove controls, and JSON import/export for tradable assets.
 - **Security hardening** - Logo proxy validation, trusted-proxy rate-limit keys, provider origin validation, CSP headers, and bounded client-error logging.
 - **Release gates** - Lint, typecheck, unit tests, route tests, production build, bundle budget, E2E smoke tests, and dependency audit.
@@ -17,7 +17,7 @@ This roadmap separates what is already shipped from the realistic next product s
 ## Next
 
 - **Provider redundancy** - Add secondary stock/ETF fundamentals coverage so public-market values can recover without falling back to stale snapshots.
-- **Broader historical coverage** - Add no-key history providers for crypto, currencies, commodities, private companies, and NIGHT.
+- **Broader historical coverage** - Extend the existing Yahoo-backed equity history coverage to crypto, currencies, commodities, private companies, and NIGHT.
 - **Currency selector** - Let users view dashboard values in USD, EUR, GBP, and JPY using cached exchange-rate conversion.
 - **Portfolio scenarios** - Add rebalance targets, what-if price changes, and stronger import/export validation.
 - **Watchlist sync** - Optionally sync pinned assets through a lightweight backend store while keeping local-only mode available.

@@ -352,6 +352,114 @@ export async function fetchHistoricalPricesFromStooq(
   }
 }
 
+// Yahoo Finance v8 chart endpoint range tokens.
+// 7D maps to 5d because Yahoo exposes 5 trading days (~7 calendar days) but no native 7d.
+const YAHOO_HISTORY_RANGE: Record<HistoricalRange, string> = {
+  "7D": "5d",
+  "30D": "1mo",
+  "1Y": "1y",
+};
+
+type YahooChartResponse = {
+  chart?: {
+    result?: {
+      timestamp?: number[];
+      indicators?: {
+        quote?: { close?: (number | null)[] }[];
+        adjclose?: { adjclose?: (number | null)[] }[];
+      };
+    }[];
+    error?: { code?: string; description?: string } | null;
+  };
+};
+
+function parseYahooHistoryPoints(payload: unknown): HistoricalPoint[] {
+  const result = (payload as YahooChartResponse).chart?.result?.[0];
+  if (!result) return [];
+
+  const timestamps = Array.isArray(result.timestamp) ? result.timestamp : [];
+  const adjCloses = result.indicators?.adjclose?.[0]?.adjclose;
+  const closes = result.indicators?.quote?.[0]?.close;
+  const series = Array.isArray(adjCloses) ? adjCloses : Array.isArray(closes) ? closes : [];
+
+  const points: HistoricalPoint[] = [];
+  for (let index = 0; index < timestamps.length; index += 1) {
+    const ts = timestamps[index];
+    const close = toFiniteNumber(series[index]);
+    if (typeof ts !== "number" || !Number.isFinite(ts) || close === null) continue;
+
+    const isoDate = new Date(ts * 1_000).toISOString().slice(0, 10);
+    points.push({ t: `${isoDate}T00:00:00.000Z`, value: close });
+  }
+
+  return points;
+}
+
+export async function fetchHistoricalPricesFromYahoo(
+  symbol: string,
+  range: HistoricalRange,
+  options: FetchStooqOptions = {},
+): Promise<HistoricalPoint[]> {
+  const baseUrl = resolveProviderBaseUrl(
+    options.yahooBaseUrl ?? process.env.YAHOO_FINANCE_BASE_URL,
+    YAHOO_FINANCE_BASE_URL,
+    "Yahoo Finance",
+    "query1.finance.yahoo.com",
+  );
+  const safeSymbol = encodeURIComponent(normalizeYahooSymbol(symbol));
+  const url = new URL(`${baseUrl}/v8/finance/chart/${safeSymbol}`);
+  url.searchParams.set("range", YAHOO_HISTORY_RANGE[range]);
+  url.searchParams.set("interval", "1d");
+
+  const payload = await requestJsonWithRetry<unknown>(url.toString(), {
+    timeoutMs: options.timeoutMs,
+    retries: 0,
+    maxBytes: STOOQ_HISTORY_MAX_RESPONSE_BYTES,
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+      Accept: "application/json,*/*",
+    },
+  });
+
+  const points = parseYahooHistoryPoints(payload);
+  if (points.length === 0) {
+    throw new Error("Yahoo Finance returned no historical prices");
+  }
+
+  return points;
+}
+
+// Stooq's daily history CSV path requires an API key as of mid-2026,
+// so Yahoo v8 /chart is the primary keyless path. We keep Stooq as a
+// fallback in case it ever opens up again (or local mocks point there).
+export async function fetchEquityHistory(
+  symbol: string,
+  range: HistoricalRange,
+  options: FetchStooqOptions = {},
+): Promise<HistoricalPoint[]> {
+  let yahooError: unknown;
+
+  try {
+    return await fetchHistoricalPricesFromYahoo(symbol, range, options);
+  } catch (error) {
+    if (error instanceof Error && (error.message === "payload_too_large" || error.message === "Invalid Yahoo Finance base URL")) {
+      throw error;
+    }
+    yahooError = error;
+  }
+
+  try {
+    return await fetchHistoricalPricesFromStooq(symbol, range, options);
+  } catch (stooqError) {
+    if (stooqError instanceof Error && (stooqError.message === "payload_too_large" || stooqError.message === "Invalid Stooq base URL")) {
+      throw stooqError;
+    }
+    const yahooMessage = yahooError instanceof Error ? yahooError.message : "no Yahoo data";
+    const stooqMessage = stooqError instanceof Error ? stooqError.message : "no Stooq data";
+    throw new Error(`Equity history providers returned no data (Yahoo: ${yahooMessage}; Stooq: ${stooqMessage})`);
+  }
+}
+
 function calcChangePercent(open: number | null, close: number | null): number | null {
   if (open === null || close === null || open === 0) return null;
   return ((close - open) / open) * 100;

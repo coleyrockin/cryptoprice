@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { fetchHistoricalPricesFromStooq, fetchTopEtfsFromStooq, fetchTopStocksFromStooq } from "./stooq";
+import {
+  fetchEquityHistory,
+  fetchHistoricalPricesFromStooq,
+  fetchHistoricalPricesFromYahoo,
+  fetchTopEtfsFromStooq,
+  fetchTopStocksFromStooq,
+} from "./stooq";
 
 describe("Stooq provider", () => {
   afterEach(() => {
@@ -193,6 +199,108 @@ describe("Stooq provider", () => {
       priceUsd: 225,
       marketCapUsd: 5_467_500_000_000,
     });
+  });
+
+  it("normalizes Yahoo Finance v8 chart history with adjusted close when available", async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          chart: {
+            result: [
+              {
+                timestamp: [1778679000, 1778765400, 1778851800],
+                indicators: {
+                  quote: [{ close: [200, null, 205] }],
+                  adjclose: [{ adjclose: [201, 203, 206] }],
+                },
+              },
+            ],
+            error: null,
+          },
+        }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const points = await fetchHistoricalPricesFromYahoo("NVDA", "30D", { timeoutMs: 1000 });
+
+    const url = String((fetchMock.mock.calls[0] as unknown[])[0]);
+    expect(url).toContain("query1.finance.yahoo.com/v8/finance/chart/NVDA");
+    expect(url).toContain("range=1mo");
+    expect(url).toContain("interval=1d");
+    expect(points).toHaveLength(3);
+    expect(points[0]).toMatchObject({ value: 201 });
+    expect(points[2]).toMatchObject({ value: 206 });
+  });
+
+  it("skips Yahoo Finance history points with null closes", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            chart: {
+              result: [
+                {
+                  timestamp: [1778679000, 1778765400],
+                  indicators: {
+                    quote: [{ close: [null, 235] }],
+                  },
+                },
+              ],
+              error: null,
+            },
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          },
+        ),
+      ),
+    );
+
+    const points = await fetchHistoricalPricesFromYahoo("NVDA", "7D", { timeoutMs: 1000 });
+
+    expect(points).toHaveLength(1);
+    expect(points[0]).toMatchObject({ value: 235 });
+  });
+
+  it("falls back to Stooq when Yahoo Finance history returns no data", async () => {
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("query1.finance.yahoo.com")) {
+        return new Response(JSON.stringify({ chart: { result: [], error: null } }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return new Response(
+        [
+          "Date,Open,High,Low,Close,Volume",
+          "2026-05-01,200,205,199,204.5,1234",
+          "2026-05-04,204,208,203,207.25,4567",
+        ].join("\n"),
+        {
+          status: 200,
+          headers: { "content-type": "text/csv" },
+        },
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const points = await fetchEquityHistory("NVDA", "30D", { timeoutMs: 1000 });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(String((fetchMock.mock.calls[0] as unknown[])[0])).toContain("query1.finance.yahoo.com");
+    expect(String((fetchMock.mock.calls[1] as unknown[])[0])).toContain("/q/d/l/?s=nvda.us");
+    expect(points).toEqual([
+      { t: "2026-05-01T00:00:00.000Z", value: 204.5 },
+      { t: "2026-05-04T00:00:00.000Z", value: 207.25 },
+    ]);
   });
 
   it("normalizes historical daily prices from Stooq", async () => {
