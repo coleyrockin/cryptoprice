@@ -11,7 +11,7 @@ const YAHOO_FINANCE_BASE_URL = "https://query1.finance.yahoo.com";
 const STOOQ_MAX_RESPONSE_BYTES = 64_000;
 const STOOQ_HISTORY_MAX_RESPONSE_BYTES = 256_000;
 export const EQUITY_FUNDAMENTALS_AS_OF = "2026-05-14";
-export const EQUITY_QUOTE_PROVIDERS = "stooq+yahoo-finance";
+export const EQUITY_QUOTE_PROVIDERS = "stooq+yahoo-finance+yahoo-chart";
 
 type PublicCompanyDefinition = {
   id: string;
@@ -252,9 +252,59 @@ async function fetchYahooFinanceQuotes(symbols: string[], options: FetchStooqOpt
   return parseYahooQuotes(payload);
 }
 
+async function fetchYahooChartQuoteForSymbol(symbol: string, options: FetchStooqOptions): Promise<EquityQuote | null> {
+  const baseUrl = resolveProviderBaseUrl(
+    options.yahooBaseUrl ?? process.env.YAHOO_FINANCE_BASE_URL,
+    YAHOO_FINANCE_BASE_URL,
+    "Yahoo Finance",
+    "query1.finance.yahoo.com",
+  );
+  const safeSymbol = encodeURIComponent(normalizeYahooSymbol(symbol));
+  const url = new URL(`${baseUrl}/v8/finance/chart/${safeSymbol}`);
+  url.searchParams.set("range", "5d");
+  url.searchParams.set("interval", "1d");
+
+  const payload = await requestJsonWithRetry<unknown>(url.toString(), {
+    timeoutMs: options.timeoutMs,
+    retries: 0,
+    maxBytes: STOOQ_HISTORY_MAX_RESPONSE_BYTES,
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+      Accept: "application/json,*/*",
+    },
+  });
+
+  const result = (payload as YahooChartResponse).chart?.result?.[0];
+  if (!result) return null;
+  const opens = result.indicators?.quote?.[0]?.open ?? [];
+  const closes = result.indicators?.quote?.[0]?.close ?? [];
+  for (let index = closes.length - 1; index >= 0; index -= 1) {
+    const close = toFiniteNumber(closes[index]);
+    if (close === null) continue;
+    const open = toFiniteNumber(opens[index]);
+    return { open, close };
+  }
+  return null;
+}
+
+async function fetchYahooChartQuotes(symbols: string[], options: FetchStooqOptions): Promise<Map<string, EquityQuote>> {
+  const map = new Map<string, EquityQuote>();
+  const results = await Promise.allSettled(
+    symbols.map(async (symbol) => ({ symbol, quote: await fetchYahooChartQuoteForSymbol(symbol, options) })),
+  );
+  for (const result of results) {
+    if (result.status !== "fulfilled") continue;
+    if (result.value.quote) {
+      map.set(normalizeYahooSymbol(result.value.symbol), result.value.quote);
+    }
+  }
+  return map;
+}
+
 async function fetchEquityQuotes(symbols: string[], options: FetchStooqOptions): Promise<Map<string, EquityQuote>> {
   const quotes = new Map<string, EquityQuote>();
   let stooqError: unknown;
+  let yahooError: unknown;
 
   try {
     const stooqQuotes = await fetchStooqQuotes(symbols, options);
@@ -268,10 +318,10 @@ async function fetchEquityQuotes(symbols: string[], options: FetchStooqOptions):
     stooqError = error;
   }
 
-  const missingSymbols = symbols.filter((symbol) => !quotes.has(symbol));
-  if (missingSymbols.length > 0) {
+  const missingAfterStooq = symbols.filter((symbol) => !quotes.has(symbol));
+  if (missingAfterStooq.length > 0) {
     try {
-      const yahooQuotes = await fetchYahooFinanceQuotes(missingSymbols, options);
+      const yahooQuotes = await fetchYahooFinanceQuotes(missingAfterStooq, options);
       yahooQuotes.forEach((quote, symbol) => {
         quotes.set(symbol, quote);
       });
@@ -279,12 +329,38 @@ async function fetchEquityQuotes(symbols: string[], options: FetchStooqOptions):
       if (error instanceof Error && (error.message === "payload_too_large" || error.message === "Invalid Yahoo Finance base URL")) {
         throw error;
       }
+      yahooError = error;
+    }
+  }
+
+  const missingAfterYahooQuote = symbols.filter((symbol) => !quotes.has(symbol));
+  if (missingAfterYahooQuote.length > 0) {
+    try {
+      const chartQuotes = await fetchYahooChartQuotes(missingAfterYahooQuote, options);
+      chartQuotes.forEach((quote, symbol) => {
+        quotes.set(symbol, quote);
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === "Invalid Yahoo Finance base URL") {
+        throw error;
+      }
       if (quotes.size === 0) {
         const stooqMessage = stooqError instanceof Error ? stooqError.message : "no Stooq data";
-        const yahooMessage = error instanceof Error ? error.message : "unknown Yahoo Finance error";
-        throw new Error(`Equity quote providers returned no data (Stooq: ${stooqMessage}; Yahoo Finance: ${yahooMessage})`);
+        const yahooMessage = yahooError instanceof Error ? yahooError.message : "no Yahoo quote data";
+        const chartMessage = error instanceof Error ? error.message : "unknown Yahoo chart error";
+        throw new Error(
+          `Equity quote providers returned no data (Stooq: ${stooqMessage}; Yahoo Finance: ${yahooMessage}; Yahoo chart: ${chartMessage})`,
+        );
       }
     }
+  }
+
+  if (quotes.size === 0) {
+    const stooqMessage = stooqError instanceof Error ? stooqError.message : "no Stooq data";
+    const yahooMessage = yahooError instanceof Error ? yahooError.message : "no Yahoo quote data";
+    throw new Error(
+      `Equity quote providers returned no data (Stooq: ${stooqMessage}; Yahoo Finance: ${yahooMessage}; Yahoo chart: no symbols resolved)`,
+    );
   }
 
   return quotes;
@@ -365,7 +441,7 @@ type YahooChartResponse = {
     result?: {
       timestamp?: number[];
       indicators?: {
-        quote?: { close?: (number | null)[] }[];
+        quote?: { open?: (number | null)[]; close?: (number | null)[] }[];
         adjclose?: { adjclose?: (number | null)[] }[];
       };
     }[];

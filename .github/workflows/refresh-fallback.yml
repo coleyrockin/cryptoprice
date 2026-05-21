@@ -1,0 +1,42 @@
+name: Refresh fallback snapshot
+
+on:
+  schedule:
+    # 06:30 UTC daily — well after US market close, before next-day open
+    - cron: "30 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
+      - name: Refresh fallback snapshot
+        run: node ./scripts/refresh-fallback.mjs
+
+      - name: Commit and push if changed
+        run: |
+          set -e
+          if git diff --quiet server/fallback/dashboard-fallback.json; then
+            echo "No changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add server/fallback/dashboard-fallback.json
+          git commit -m "chore(fallback): daily refresh from live dashboard"
+          git push

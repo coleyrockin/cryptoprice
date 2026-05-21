@@ -56,10 +56,9 @@ describe("Stooq provider", () => {
 
     const stocks = await fetchTopStocksFromStooq({ timeoutMs: 1000 });
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    const requestUrl = String((fetchMock.mock.calls[0] as unknown[])[0]);
-    expect(requestUrl).toContain("s=nvda.us+googl.us+aapl.us");
-    expect(String((fetchMock.mock.calls[1] as unknown[])[0])).toContain("query1.finance.yahoo.com/v7/finance/quote");
+    const calls = fetchMock.mock.calls.map((call) => String(call[0] as string | URL));
+    expect(calls[0]).toContain("s=nvda.us+googl.us+aapl.us");
+    expect(calls.some((url) => url.includes("query1.finance.yahoo.com/v7/finance/quote"))).toBe(true);
     expect(stocks).toHaveLength(14);
     expect(stocks[0]).toMatchObject({
       symbol: "GOOGL",
@@ -113,9 +112,8 @@ describe("Stooq provider", () => {
 
     const etfs = await fetchTopEtfsFromStooq({ timeoutMs: 1000 });
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    const requestUrl = String((fetchMock.mock.calls[0] as unknown[])[0]);
-    expect(requestUrl).toContain("s=voo.us+ivv.us+spy.us");
+    const calls = fetchMock.mock.calls.map((call) => String(call[0] as string | URL));
+    expect(calls[0]).toContain("s=voo.us+ivv.us+spy.us");
     expect(etfs).toHaveLength(2);
     // CSV row order is independent of TOP_ETF_SYMBOLS rank order;
     // SPY rank is 3 in the canonical list.
@@ -192,12 +190,57 @@ describe("Stooq provider", () => {
 
     const stocks = await fetchTopStocksFromStooq({ timeoutMs: 1000 });
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const calls = fetchMock.mock.calls.map((call) => String(call[0] as string | URL));
+    expect(calls.some((url) => url.includes("stooq.com"))).toBe(true);
+    expect(calls.some((url) => url.includes("query1.finance.yahoo.com/v7/finance/quote"))).toBe(true);
     expect(stocks).toHaveLength(14);
     expect(stocks[0]).toMatchObject({
       symbol: "NVDA",
       priceUsd: 225,
       marketCapUsd: 5_467_500_000_000,
+    });
+  });
+
+  it("uses Yahoo Finance v8 chart as a third-tier quote fallback when v7 also fails", async () => {
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes("/v8/finance/chart/NVDA")) {
+        return new Response(
+          JSON.stringify({
+            chart: {
+              result: [
+                {
+                  timestamp: [1778765400],
+                  indicators: { quote: [{ open: [220], close: [225] }] },
+                },
+              ],
+              error: null,
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }
+      if (url.includes("/v8/finance/chart/")) {
+        return new Response(JSON.stringify({ chart: { result: [], error: null } }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (url.includes("query1.finance.yahoo.com/v7/finance/quote")) {
+        return new Response("rate limited", { status: 429 });
+      }
+      return new Response("upstream down", { status: 503 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const stocks = await fetchTopStocksFromStooq({ timeoutMs: 1000 });
+
+    const calls = fetchMock.mock.calls.map((call) => String(call[0] as string | URL));
+    expect(calls.some((url) => url.includes("/v8/finance/chart/NVDA"))).toBe(true);
+    expect(stocks).toHaveLength(14);
+    expect(stocks.find((stock) => stock.symbol === "NVDA")).toMatchObject({
+      priceUsd: 225,
+      changePercent: 2.272727272727273,
     });
   });
 
