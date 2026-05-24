@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-23T08:34:41.129Z",
+  "generatedAt": "2026-05-24T09:04:51.470Z",
   "stale": false,
   "refreshInSec": 30,
   "source": {
@@ -43,16 +43,16 @@
       "name": "Bitcoin",
       "symbol": "BTC",
       "category": "Crypto",
-      "priceUsd": 74450.61608446392,
-      "marketCapUsd": 1491488995883,
-      "change24h": -3.4800000190734863,
+      "priceUsd": 76762.37391187198,
+      "marketCapUsd": 1537835828723,
+      "change24h": 2.890000104904175,
       "sparkline7d": [
         0,
-        -0.1599999964237213,
-        -1.0099999904632568,
-        -1.3200000524520874,
-        -3.4800000190734863,
-        -4.619999885559082
+        0.029999999329447746,
+        0.11999999731779099,
+        -0.05000000074505806,
+        2.890000104904175,
+        -1.8899999856948853
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/btc-bitcoin/logo.png",
       "fallbackLogoUrls": [
@@ -66,16 +66,16 @@
       "name": "Ethereum",
       "symbol": "ETH",
       "category": "Crypto",
-      "priceUsd": 2024.2107641423233,
-      "marketCapUsd": 243768245133,
-      "change24h": -4.46999979019165,
+      "priceUsd": 2118.0904839110794,
+      "marketCapUsd": 255073833932,
+      "change24h": 4.53000020980835,
       "sparkline7d": [
         0,
-        -0.1599999964237213,
-        -1.5,
-        -2.009999990463257,
-        -4.46999979019165,
-        -6.800000190734863
+        -0.009999999776482582,
+        0,
+        -0.15000000596046448,
+        4.53000020980835,
+        -3.3299999237060547
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/eth-ethereum/logo.png",
       "fallbackLogoUrls": [
@@ -89,16 +89,16 @@
       "name": "Tether",
       "symbol": "USDT",
       "category": "Crypto",
-      "priceUsd": 0.9991118323763581,
-      "marketCapUsd": 189551753312,
-      "change24h": 0.009999999776482582,
+      "priceUsd": 0.9990070222779114,
+      "marketCapUsd": 189532756934,
+      "change24h": -0.009999999776482582,
       "sparkline7d": [
         0,
         0,
-        -0.009999999776482582,
+        -0.019999999552965164,
         0,
-        0.009999999776482582,
-        -0.05000000074505806
+        -0.009999999776482582,
+        -0.07000000029802322
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/usdt-tether/logo.png",
       "fallbackLogoUrls": [
@@ -112,16 +112,16 @@
       "name": "BNB",
       "symbol": "BNB",
       "category": "Crypto",
-      "priceUsd": 638.9120305998115,
-      "marketCapUsd": 88926614466,
-      "change24h": -2.6700000762939453,
+      "priceUsd": 657.7623681746771,
+      "marketCapUsd": 91550288182,
+      "change24h": 3.009999990463257,
       "sparkline7d": [
         0,
-        -0.029999999329447746,
-        -0.9300000071525574,
-        -1.7400000095367432,
-        -2.6700000762939453,
-        -2.4100000858306885
+        -0.03999999910593033,
+        0.28999999165534973,
+        0.019999999552965164,
+        3.009999990463257,
+        0.6499999761581421
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/bnb-binance-coin/logo.png",
       "fallbackLogoUrls": [
@@ -135,16 +135,16 @@
       "name": "XRP",
       "symbol": "XRP",
       "category": "Crypto",
-      "priceUsd": 1.3104252141683552,
-      "marketCapUsd": 81060703865,
-      "change24h": -3.6600000858306885,
+      "priceUsd": 1.3597984850998766,
+      "marketCapUsd": 84114851519,
+      "change24h": 3.200000047683716,
       "sparkline7d": [
         0,
-        -0.18000000715255737,
-        -1.4700000286102295,
-        -2.0999999046325684,
-        -3.6600000858306885,
-        -6.829999923706055
+        0.05999999865889549,
+        0.23000000417232513,
+        -0.03999999910593033,
+        3.200000047683716,
+        -4.349999904632568
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/xrp-xrp/logo.png",
       "fallbackLogoUrls": [
@@ -158,15 +158,15 @@
       "name": "USDC",
       "symbol": "USDC",
       "category": "Crypto",
-      "priceUsd": 1.0000398557761978,
-      "marketCapUsd": 76521762441,
-      "change24h": 0.019999999552965164,
+      "priceUsd": 1.000100388218585,
+      "marketCapUsd": 76454527434,
+      "change24h": 0.009999999776482582,
       "sparkline7d": [
         0,
+        0.009999999776482582,
         0,
-        -0.009999999776482582,
-        -0.009999999776482582,
-        0.019999999552965164,
+        0,
+        0.009999999776482582,
         0.009999999776482582
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/usdc-usd-coin/logo.png",
@@ -181,16 +181,16 @@
       "name": "Solana",
       "symbol": "SOL",
       "category": "Crypto",
-      "priceUsd": 81.99304867769536,
-      "marketCapUsd": 47390350802,
-      "change24h": -5.820000171661377,
+      "priceUsd": 86.3835764418203,
+      "marketCapUsd": 49938262612,
+      "change24h": 5.289999961853027,
       "sparkline7d": [
         0,
-        -0.14000000059604645,
-        -2.180000066757202,
-        -2.7799999713897705,
-        -5.820000171661377,
-        -4.769999980926514
+        0.07999999821186066,
+        0.5,
+        0.7099999785423279,
+        5.289999961853027,
+        -0.6200000047683716
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/sol-solana/logo.png",
       "fallbackLogoUrls": [
@@ -204,16 +204,16 @@
       "name": "TRON",
       "symbol": "TRX",
       "category": "Crypto",
-      "priceUsd": 0.3597203835312817,
-      "marketCapUsd": 31066638860,
-      "change24h": -1.3799999952316284,
+      "priceUsd": 0.3627443549644931,
+      "marketCapUsd": 31327799008,
+      "change24h": 0.6399999856948853,
       "sparkline7d": [
         0,
-        -0.10000000149011612,
-        -0.3100000023841858,
-        -0.8399999737739563,
-        -1.3799999952316284,
-        2.3399999141693115
+        0.07000000029802322,
+        0.05999999865889549,
+        -0.009999999776482582,
+        0.6399999856948853,
+        2.2200000286102295
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/trx-tron/logo.png",
       "fallbackLogoUrls": [
@@ -222,49 +222,49 @@
       ]
     },
     {
-      "id": "steth-lido-staked-ether",
-      "rank": 9,
-      "name": "Lido Staked Ether",
-      "symbol": "STETH",
-      "category": "Crypto",
-      "priceUsd": 2023.0232032030706,
-      "marketCapUsd": 19814296438,
-      "change24h": -4.519999980926514,
-      "sparkline7d": [
-        0,
-        -0.20999999344348907,
-        -1.5199999809265137,
-        -2.0299999713897705,
-        -4.519999980926514,
-        -6.880000114440918
-      ],
-      "logoUrl": "https://static.coinpaprika.com/coin/steth-lido-staked-ether/logo.png",
-      "fallbackLogoUrls": [
-        "https://cryptoicons.org/api/icon/steth/200",
-        "https://cryptoicon-api.pages.dev/api/icon/steth"
-      ]
-    },
-    {
       "id": "hype-hyperliquid",
-      "rank": 10,
+      "rank": 9,
       "name": "Hyperliquid",
       "symbol": "HYPE",
       "category": "Crypto",
-      "priceUsd": 55.64586133607374,
-      "marketCapUsd": 18581721200,
-      "change24h": -6.269999980926514,
+      "priceUsd": 63.03984477489279,
+      "marketCapUsd": 21050780633,
+      "change24h": 13.770000457763672,
       "sparkline7d": [
         0,
-        0.25,
-        1.100000023841858,
-        1,
-        -6.269999980926514,
+        0.36000001430511475,
+        1.7000000476837158,
+        4.869999885559082,
+        13.770000457763672,
         35
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/hype-hyperliquid/logo.png",
       "fallbackLogoUrls": [
         "https://cryptoicons.org/api/icon/hype/200",
         "https://cryptoicon-api.pages.dev/api/icon/hype"
+      ]
+    },
+    {
+      "id": "steth-lido-staked-ether",
+      "rank": 10,
+      "name": "Lido Staked Ether",
+      "symbol": "STETH",
+      "category": "Crypto",
+      "priceUsd": 2118.3625626788676,
+      "marketCapUsd": 20748088165,
+      "change24h": 4.619999885559082,
+      "sparkline7d": [
+        0,
+        -0.009999999776482582,
+        0,
+        -0.10999999940395355,
+        4.619999885559082,
+        -3.4800000190734863
+      ],
+      "logoUrl": "https://static.coinpaprika.com/coin/steth-lido-staked-ether/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/steth/200",
+        "https://cryptoicon-api.pages.dev/api/icon/steth"
       ]
     }
   ],
@@ -983,7 +983,7 @@
       "name": "Bitcoin",
       "symbol": "BTC",
       "category": "Crypto",
-      "marketCapUsd": 1491488995883,
+      "marketCapUsd": 1537835828723,
       "logoUrl": "https://static.coinpaprika.com/coin/btc-bitcoin/logo.png",
       "fallbackLogoUrls": [
         "https://cryptoicons.org/api/icon/btc/200",
@@ -1022,12 +1022,12 @@
       "https://cryptoicons.org/api/icon/night/200",
       "https://cryptoicon-api.pages.dev/api/icon/night"
     ],
-    "priceUsd": 0.03223199516581335,
-    "marketCapUsd": 535289617,
-    "volume24hUsd": 19125752.902401384,
+    "priceUsd": 0.0334378780966253,
+    "marketCapUsd": 555316196,
+    "volume24hUsd": 7367223.531550649,
     "athPriceUsd": 0.11939941535583412,
-    "change24h": 4.099999904632568,
-    "percentFromAth": -73.05
+    "change24h": 3.7699999809265137,
+    "percentFromAth": -71.97
   },
   "valueSources": {
     "commodity-gold": {
@@ -1483,5 +1483,5 @@
       "notes": "AUM is treated as a sourced snapshot, not derived from ETF market price."
     }
   },
-  "requestId": "2ded9751-233c-4acd-99f2-51423102a90d"
+  "requestId": "4ae297d2-a593-425f-9b25-8cc77fe6b36d"
 }
