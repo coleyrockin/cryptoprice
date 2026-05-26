@@ -42,6 +42,13 @@ No paid API key is required for local development or deployment.
 - **Responsive dashboard UI:** Desktop, tablet, and mobile layouts with compact cards, sticky section nav, and touch-friendly controls.
 - **Production gates:** Lint, typecheck, unit tests, route tests, E2E smoke tests, production build, bundle budget, and dependency audit.
 
+## Project Status
+
+- **Current state:** MVP-grade with transparent freshness and provenance signals.
+- **Stability:** Stable in normal conditions; degraded behavior is explicit and recoverable.
+- **Planned work:** broader historical provider coverage and formal accessibility test automation.
+- **Roadmap:** see [`ROADMAP.md`](./ROADMAP.md) for prioritized execution plan and acceptance criteria.
+
 ## Tech Stack
 
 | Area | Technology |
@@ -165,6 +172,8 @@ world-asset-prices/
 ```
 
 ## Roadmap
+
+For current priorities, milestone order, and acceptance criteria, read [ROADMAP.md](./ROADMAP.md).
 
 Shipped:
 
