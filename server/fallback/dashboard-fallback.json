@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-25T10:55:32.608Z",
+  "generatedAt": "2026-05-26T10:33:16.083Z",
   "stale": false,
   "refreshInSec": 30,
   "source": {
@@ -43,16 +43,16 @@
       "name": "Bitcoin",
       "symbol": "BTC",
       "category": "Crypto",
-      "priceUsd": 77463.40763614191,
-      "marketCapUsd": 1551916936483,
-      "change24h": 0.3499999940395355,
+      "priceUsd": 77141.52040059178,
+      "marketCapUsd": 1545509378732,
+      "change24h": -0.2800000011920929,
       "sparkline7d": [
         0,
-        0.019999999552965164,
-        -0.03999999910593033,
-        0.1899999976158142,
-        0.3499999940395355,
-        0.3100000023841858
+        0.38999998569488525,
+        0.699999988079071,
+        0.5600000023841858,
+        -0.2800000011920929,
+        0.4099999964237213
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/btc-bitcoin/logo.png",
       "fallbackLogoUrls": [
@@ -66,16 +66,16 @@
       "name": "Ethereum",
       "symbol": "ETH",
       "category": "Crypto",
-      "priceUsd": 2114.837997312751,
-      "marketCapUsd": 254682148953,
-      "change24h": -0.44999998807907104,
+      "priceUsd": 2120.930366751695,
+      "marketCapUsd": 255415830560,
+      "change24h": 0.30000001192092896,
       "sparkline7d": [
         0,
-        0.029999999329447746,
-        0.029999999329447746,
-        0.3799999952316284,
-        -0.44999998807907104,
-        -0.8700000047683716
+        0.5899999737739563,
+        1.2799999713897705,
+        1.309999942779541,
+        0.30000001192092896,
+        0.33000001311302185
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/eth-ethereum/logo.png",
       "fallbackLogoUrls": [
@@ -89,16 +89,16 @@
       "name": "Tether",
       "symbol": "USDT",
       "category": "Crypto",
-      "priceUsd": 0.9992387297210348,
-      "marketCapUsd": 189488783718,
-      "change24h": 0.019999999552965164,
+      "priceUsd": 0.9988493032112701,
+      "marketCapUsd": 189415619703,
+      "change24h": -0.03999999910593033,
       "sparkline7d": [
         0,
-        0,
-        0.009999999776482582,
-        0.029999999329447746,
-        0.019999999552965164,
-        -0.029999999329447746
+        -0.03999999910593033,
+        -0.029999999329447746,
+        -0.03999999910593033,
+        -0.03999999910593033,
+        -0.05000000074505806
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/usdt-tether/logo.png",
       "fallbackLogoUrls": [
@@ -112,16 +112,16 @@
       "name": "BNB",
       "symbol": "BNB",
       "category": "Crypto",
-      "priceUsd": 661.2276665851798,
-      "marketCapUsd": 92032603808,
-      "change24h": 0.05999999865889549,
+      "priceUsd": 661.31448825764,
+      "marketCapUsd": 92044688034,
+      "change24h": -0.009999999776482582,
       "sparkline7d": [
         0,
-        0,
-        0.05999999865889549,
-        0.25999999046325684,
-        0.05999999865889549,
-        3.049999952316284
+        0.38999998569488525,
+        0.7599999904632568,
+        0.4699999988079071,
+        -0.009999999776482582,
+        3.3499999046325684
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/bnb-binance-coin/logo.png",
       "fallbackLogoUrls": [
@@ -135,16 +135,16 @@
       "name": "XRP",
       "symbol": "XRP",
       "category": "Crypto",
-      "priceUsd": 1.3593967164541025,
-      "marketCapUsd": 84089998785,
-      "change24h": -0.6000000238418579,
+      "priceUsd": 1.355350848895041,
+      "marketCapUsd": 83839728210,
+      "change24h": -0.23000000417232513,
       "sparkline7d": [
         0,
-        0.03999999910593033,
-        0.009999999776482582,
-        0.30000001192092896,
-        -0.6000000238418579,
-        -2.2100000381469727
+        0.6299999952316284,
+        1.1200000047683716,
+        0.8199999928474426,
+        -0.23000000417232513,
+        -1.2100000381469727
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/xrp-xrp/logo.png",
       "fallbackLogoUrls": [
@@ -158,16 +158,16 @@
       "name": "USDC",
       "symbol": "USDC",
       "category": "Crypto",
-      "priceUsd": 1.0000292055159465,
-      "marketCapUsd": 76421304509,
-      "change24h": 0,
+      "priceUsd": 0.9996982961105026,
+      "marketCapUsd": 76272911393,
+      "change24h": -0.029999999329447746,
       "sparkline7d": [
         0,
-        0,
-        0,
-        0.019999999552965164,
-        0,
-        0.009999999776482582
+        -0.05000000074505806,
+        -0.03999999910593033,
+        -0.029999999329447746,
+        -0.029999999329447746,
+        -0.029999999329447746
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/usdc-usd-coin/logo.png",
       "fallbackLogoUrls": [
@@ -181,16 +181,16 @@
       "name": "Solana",
       "symbol": "SOL",
       "category": "Crypto",
-      "priceUsd": 86.00826607233421,
-      "marketCapUsd": 49721234036,
-      "change24h": -0.44999998807907104,
+      "priceUsd": 85.51019918490513,
+      "marketCapUsd": 49443437588,
+      "change24h": -0.4000000059604645,
       "sparkline7d": [
         0,
-        0.11999999731779099,
-        0.18000000715255737,
-        0.12999999523162842,
-        -0.44999998807907104,
-        1.2899999618530273
+        0.6600000262260437,
+        1.350000023841858,
+        1.4199999570846558,
+        -0.4000000059604645,
+        1.159999966621399
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/sol-solana/logo.png",
       "fallbackLogoUrls": [
@@ -204,16 +204,16 @@
       "name": "TRON",
       "symbol": "TRX",
       "category": "Crypto",
-      "priceUsd": 0.3662500149549783,
-      "marketCapUsd": 31630559368,
-      "change24h": 0.5600000023841858,
+      "priceUsd": 0.372453045268873,
+      "marketCapUsd": 32166273526,
+      "change24h": 1.7599999904632568,
       "sparkline7d": [
         0,
-        -0.019999999552965164,
-        -0.10999999940395355,
-        0.3400000035762787,
-        0.5600000023841858,
-        2.8299999237060547
+        0.019999999552965164,
+        -0.4399999976158142,
+        -0.7099999785423279,
+        1.7599999904632568,
+        4.920000076293945
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/trx-tron/logo.png",
       "fallbackLogoUrls": [
@@ -222,49 +222,49 @@
       ]
     },
     {
-      "id": "hype-hyperliquid",
-      "rank": 9,
-      "name": "Hyperliquid",
-      "symbol": "HYPE",
-      "category": "Crypto",
-      "priceUsd": 63.5496744487507,
-      "marketCapUsd": 21221027128,
-      "change24h": 0.9900000095367432,
-      "sparkline7d": [
-        0,
-        0.1899999976158142,
-        0.4099999964237213,
-        1.2699999809265137,
-        0.9900000095367432,
-        35
-      ],
-      "logoUrl": "https://static.coinpaprika.com/coin/hype-hyperliquid/logo.png",
-      "fallbackLogoUrls": [
-        "https://cryptoicons.org/api/icon/hype/200",
-        "https://cryptoicon-api.pages.dev/api/icon/hype"
-      ]
-    },
-    {
       "id": "steth-lido-staked-ether",
-      "rank": 10,
+      "rank": 9,
       "name": "Lido Staked Ether",
       "symbol": "STETH",
       "category": "Crypto",
-      "priceUsd": 2110.5759753648254,
-      "marketCapUsd": 20671823222,
-      "change24h": -0.6600000262260437,
+      "priceUsd": 2119.42439705044,
+      "marketCapUsd": 20758488195,
+      "change24h": 0.4300000071525574,
       "sparkline7d": [
         0,
-        -0.10000000149011612,
-        -0.09000000357627869,
-        0.1899999976158142,
-        -0.6600000262260437,
-        -1.0800000429153442
+        0.6000000238418579,
+        1.2100000381469727,
+        1.2699999809265137,
+        0.4300000071525574,
+        0.23999999463558197
       ],
       "logoUrl": "https://static.coinpaprika.com/coin/steth-lido-staked-ether/logo.png",
       "fallbackLogoUrls": [
         "https://cryptoicons.org/api/icon/steth/200",
         "https://cryptoicon-api.pages.dev/api/icon/steth"
+      ]
+    },
+    {
+      "id": "hype-hyperliquid",
+      "rank": 10,
+      "name": "Hyperliquid",
+      "symbol": "HYPE",
+      "category": "Crypto",
+      "priceUsd": 61.48852594998046,
+      "marketCapUsd": 20532751561,
+      "change24h": -2.2799999713897705,
+      "sparkline7d": [
+        0,
+        1.100000023841858,
+        3.5999999046325684,
+        3.2799999713897705,
+        -2.2799999713897705,
+        27.889999389648438
+      ],
+      "logoUrl": "https://static.coinpaprika.com/coin/hype-hyperliquid/logo.png",
+      "fallbackLogoUrls": [
+        "https://cryptoicons.org/api/icon/hype/200",
+        "https://cryptoicon-api.pages.dev/api/icon/hype"
       ]
     }
   ],
@@ -624,8 +624,8 @@
       "name": "Euro",
       "symbol": "EUR",
       "category": "Currency",
-      "rateVsUsd": 1.1595009507907796,
-      "changePercent": -0.03478502852371428,
+      "rateVsUsd": 1.1642934485207652,
+      "changePercent": 0.4133241742248763,
       "logoUrl": "https://flagcdn.com/w40/eu.png",
       "fallbackLogoUrls": [
         "https://flagcdn.com/w80/eu.png"
@@ -637,8 +637,8 @@
       "name": "Japanese Yen",
       "symbol": "JPY",
       "category": "Currency",
-      "rateVsUsd": 0.006283380458686773,
-      "changePercent": -0.006283380458699544,
+      "rateVsUsd": 0.006292078273453722,
+      "changePercent": 0.13842572201598652,
       "logoUrl": "https://flagcdn.com/w40/jp.png",
       "fallbackLogoUrls": [
         "https://flagcdn.com/w80/jp.png"
@@ -650,8 +650,8 @@
       "name": "British Pound",
       "symbol": "GBP",
       "category": "Currency",
-      "rateVsUsd": 1.341741580571582,
-      "changePercent": -0.016100898966865073,
+      "rateVsUsd": 1.3498373445999756,
+      "changePercent": 0.6033772930361769,
       "logoUrl": "https://flagcdn.com/w40/gb.png",
       "fallbackLogoUrls": [
         "https://flagcdn.com/w80/gb.png"
@@ -663,8 +663,8 @@
       "name": "Australian Dollar",
       "symbol": "AUD",
       "category": "Currency",
-      "rateVsUsd": 0.7120985544399344,
-      "changePercent": -0.09257281207720262,
+      "rateVsUsd": 0.7169486664754804,
+      "changePercent": 0.681101233151721,
       "logoUrl": "https://flagcdn.com/w40/au.png",
       "fallbackLogoUrls": [
         "https://flagcdn.com/w80/au.png"
@@ -676,8 +676,8 @@
       "name": "Canadian Dollar",
       "symbol": "CAD",
       "category": "Currency",
-      "rateVsUsd": 0.7245851749873197,
-      "changePercent": -0.22462140424607965,
+      "rateVsUsd": 0.7239556939115326,
+      "changePercent": -0.08687468326937577,
       "logoUrl": "https://flagcdn.com/w40/ca.png",
       "fallbackLogoUrls": [
         "https://flagcdn.com/w80/ca.png"
@@ -689,8 +689,8 @@
       "name": "Swiss Franc",
       "symbol": "CHF",
       "category": "Currency",
-      "rateVsUsd": 1.2715204841950003,
-      "changePercent": 0.25048953538639934,
+      "rateVsUsd": 1.2795905310300704,
+      "changePercent": 0.6346769033909205,
       "logoUrl": "https://flagcdn.com/w40/ch.png",
       "fallbackLogoUrls": [
         "https://flagcdn.com/w80/ch.png"
@@ -702,8 +702,8 @@
       "name": "Chinese Yuan",
       "symbol": "CNY",
       "category": "Currency",
-      "rateVsUsd": 0.1471605374302827,
-      "changePercent": 0.10154077082689655,
+      "rateVsUsd": 0.14739914213699276,
+      "changePercent": 0.16213905635068362,
       "logoUrl": "https://flagcdn.com/w40/cn.png",
       "fallbackLogoUrls": [
         "https://flagcdn.com/w80/cn.png"
@@ -715,8 +715,8 @@
       "name": "Hong Kong Dollar",
       "symbol": "HKD",
       "category": "Currency",
-      "rateVsUsd": 0.12760635990097746,
-      "changePercent": -0.025521271980188838,
+      "rateVsUsd": 0.1276454519925455,
+      "changePercent": 0.030634908478217492,
       "logoUrl": "https://flagcdn.com/w40/hk.png",
       "fallbackLogoUrls": [
         "https://flagcdn.com/w80/hk.png"
@@ -728,8 +728,8 @@
       "name": "New Zealand Dollar",
       "symbol": "NZD",
       "category": "Currency",
-      "rateVsUsd": 0.5851032707272833,
-      "changePercent": -0.11116962143818475,
+      "rateVsUsd": 0.5874405216471833,
+      "changePercent": 0.39945955472010947,
       "logoUrl": "https://flagcdn.com/w40/nz.png",
       "fallbackLogoUrls": [
         "https://flagcdn.com/w80/nz.png"
@@ -971,7 +971,7 @@
       "name": "Bitcoin",
       "symbol": "BTC",
       "category": "Crypto",
-      "marketCapUsd": 1551916936483,
+      "marketCapUsd": 1545509378732,
       "logoUrl": "https://static.coinpaprika.com/coin/btc-bitcoin/logo.png",
       "fallbackLogoUrls": [
         "https://cryptoicons.org/api/icon/btc/200",
@@ -1022,12 +1022,12 @@
       "https://cryptoicons.org/api/icon/night/200",
       "https://cryptoicon-api.pages.dev/api/icon/night"
     ],
-    "priceUsd": 0.032971066492394195,
-    "marketCapUsd": 547563669,
-    "volume24hUsd": 8087431.717048084,
+    "priceUsd": 0.03296376908206702,
+    "marketCapUsd": 547442478,
+    "volume24hUsd": 7855751.899447959,
     "athPriceUsd": 0.11939941535583412,
-    "change24h": -4.03000020980835,
-    "percentFromAth": -72.37
+    "change24h": 0,
+    "percentFromAth": -72.46
   },
   "valueSources": {
     "commodity-gold": {
@@ -1483,5 +1483,5 @@
       "notes": "AUM is treated as a sourced snapshot, not derived from ETF market price."
     }
   },
-  "requestId": "ee4526d7-9b01-4c47-9507-4c9d1c01c502"
+  "requestId": "8b44d612-c058-4392-9c4a-cd2403735842"
 }
