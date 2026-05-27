@@ -56,7 +56,7 @@ No paid API key is required for local development or deployment.
 | Frontend | React 19, TypeScript 5.9, Vite 7, TanStack React Query 5 |
 | Styling | Tailwind CSS 4, custom CSS theme tokens, clsx |
 | Animation | Framer Motion 12, CSS transitions with reduced-motion support |
-| Backend | Vercel Serverless Functions on Node 20 |
+| Backend | Vercel Serverless Functions on Node 24 |
 | Data Sources | Stooq, Yahoo Finance fallback quotes, Frankfurter / ECB, CoinPaprika, versioned curated source manifest |
 | Cache | In-memory TTL cache plus optional Upstash / Vercel KV durable cache |
 | Testing | Vitest 4, Testing Library, Playwright |
@@ -136,6 +136,7 @@ Recommended release validation:
 ```bash
 npm run check
 npm run test:e2e
+npm run test:static
 npm run verify:production
 npm audit --omit=dev
 ```

@@ -11,6 +11,8 @@ import {
 } from "../server/metrics.js";
 import type { DashboardPayload, DashboardSegmentKey } from "../server/types.js";
 
+const DASHBOARD_CACHE_CONTROL = "public, s-maxage=30, stale-while-revalidate=60";
+
 type ApiRequest = {
   method?: string;
   headers?: Record<string, string | string[] | undefined>;
@@ -113,7 +115,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     response.setHeader("X-Wap-Request-Id", requestId);
     response.setHeader("X-Wap-Stale", String(resolvedPayload.stale));
     response.setHeader("X-Wap-Fallback", String(resolvedPayload.source.fallbackUsed));
-    response.setHeader("Cache-Control", "no-store");
+    response.setHeader("Cache-Control", DASHBOARD_CACHE_CONTROL);
     response.status(200).json(responsePayload);
   } catch (error) {
     recordDashboardError();

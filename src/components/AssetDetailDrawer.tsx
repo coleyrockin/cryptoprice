@@ -41,6 +41,9 @@ function formatSourceType(value: string | undefined): string {
 }
 
 export function AssetDetailDrawer({ detail, isLoading, error, range, onRangeChange, onClose }: AssetDetailDrawerProps) {
+  const degradedReason =
+    detail?.degradedReason && detail.degradedReason !== detail.history.reason ? detail.degradedReason : null;
+
   return (
     <div className="detail-overlay" role="presentation" onMouseDown={onClose}>
       <aside
@@ -134,7 +137,7 @@ export function AssetDetailDrawer({ detail, isLoading, error, range, onRangeChan
               </div>
             ) : null}
             <p className="detail-limitation">{detail.provenance.limitation}</p>
-            {detail.degradedReason ? <p className="detail-degraded">{detail.degradedReason}</p> : null}
+            {degradedReason ? <p className="detail-degraded">{degradedReason}</p> : null}
           </>
         ) : null}
       </aside>

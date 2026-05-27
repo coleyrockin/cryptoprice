@@ -39,8 +39,8 @@ export function getClientKey(request: ClientKeyRequest): string {
   if (shouldTrustProxyHeaders()) {
     const forwarded =
       normalizeIp(getRequestHeader(request, "x-vercel-forwarded-for")) ??
-      normalizeIp(getRequestHeader(request, "x-forwarded-for")) ??
-      normalizeIp(getRequestHeader(request, "x-real-ip"));
+      normalizeIp(getRequestHeader(request, "x-real-ip")) ??
+      normalizeIp(getRequestHeader(request, "x-forwarded-for"));
 
     if (forwarded) {
       return forwarded;

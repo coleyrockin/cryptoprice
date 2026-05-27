@@ -137,6 +137,7 @@ describe("GET /api/dashboard", () => {
 
     expect(state.statusCode).toBe(200);
     expect(state.headers["x-wap-request-id"]).toBeTruthy();
+    expect(state.headers["cache-control"]).toBe("public, s-maxage=30, stale-while-revalidate=60");
 
     const body = state.jsonBody as DashboardPayload;
     expect(body.requestId).toBeTruthy();

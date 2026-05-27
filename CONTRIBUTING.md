@@ -2,7 +2,7 @@
 
 ## Setup
 
-1. Use Node.js `20.x` or newer.
+1. Use Node.js `24.x` to match production and CI.
 2. Install dependencies: `npm install`
 3. Start dev server: `npm run dev`
 4. Run validation checks before opening a PR: `npm run check`

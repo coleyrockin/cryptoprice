@@ -50,6 +50,6 @@ body:
     attributes:
       label: Environment
       description: OS, browser, Node version.
-      placeholder: macOS 15, Chrome 131, Node 20.20.0
+      placeholder: macOS 15, Chrome 131, Node 24.0.0
     validations:
       required: true

@@ -41,4 +41,20 @@ describe("getClientKey", () => {
       }),
     ).toBe("198.51.100.9");
   });
+
+  it("prefers trusted single-hop real IP over user-controlled forwarding chains", () => {
+    process.env = { ...originalEnv, TRUST_PROXY_HEADERS: "true" };
+
+    expect(
+      getClientKey({
+        headers: {
+          "x-real-ip": "198.51.100.10",
+          "x-forwarded-for": "203.0.113.1, 198.51.100.10",
+        },
+        socket: {
+          remoteAddress: "192.0.2.44",
+        },
+      }),
+    ).toBe("198.51.100.10");
+  });
 });
