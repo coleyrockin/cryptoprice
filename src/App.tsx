@@ -1,27 +1,29 @@
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { fetchAssetDetail, fetchDashboard } from "./api";
 import { AssetDetailDrawer } from "./components/AssetDetailDrawer";
-import { LogoMark } from "./components/LogoMark";
-import { MarketCard } from "./components/MarketCard";
+import { DashboardShell } from "./components/DashboardShell";
+import { MarketControls } from "./components/MarketControls";
+import { MarketSections } from "./components/MarketSections";
+import { NightTicker } from "./components/NightTicker";
 import { PortfolioLab } from "./components/PortfolioLab";
-import { SectionHeader } from "./components/SectionHeader";
+import { WatchlistSection } from "./components/WatchlistSection";
+import {
+  DEFAULT_REFRESH_SEC,
+  SECTION_IDS,
+  SECTION_LINKS,
+  filterAndSortEntries,
+} from "./lib/dashboard-filters";
 import {
   buildDashboardInsights,
-  dashboardEntryMatches,
-  getEntryChange,
   getWorstSegmentHealthSummaries,
-  type DashboardSegmentHealth,
   nightAsPinnedEntry,
-  sortDashboardEntries,
   type DashboardEntry,
-  type DashboardSortMode,
 } from "./lib/dashboard-insights";
-import { formatCompactCurrency, formatCurrency, formatExactCurrency, formatExactNumber, formatPercent, trendClass } from "./lib/formatters";
-import { isTradablePortfolioAsset, parseStoredHoldings, type PortfolioEntry } from "./lib/portfolio";
+import { isTradablePortfolioAsset, type PortfolioEntry } from "./lib/portfolio";
+import { useDashboardFilters } from "./hooks/useDashboardFilters";
 import { useTheme } from "./hooks/useTheme";
 import type {
   DashboardAsset,
@@ -31,168 +33,7 @@ import type {
   DashboardPrivateCompany,
   DashboardStock,
   HistoricalRange,
-  LocalHolding,
 } from "./types/dashboard";
-
-const SECTION_IDS = [
-  "section-watchlist",
-  "section-portfolio",
-  "section-assets",
-  "section-stocks",
-  "section-private-companies",
-  "section-etfs",
-  "section-currencies",
-  "section-cryptos",
-  "section-night",
-] as const;
-
-type SectionFilter = "all" | "assets" | "stocks" | "private" | "etfs" | "currencies" | "cryptos";
-type DensityMode = "comfortable" | "compact";
-
-const SECTION_FILTERS: { value: SectionFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "assets", label: "Assets" },
-  { value: "stocks", label: "Public" },
-  { value: "private", label: "Private" },
-  { value: "etfs", label: "ETFs" },
-  { value: "currencies", label: "FX" },
-  { value: "cryptos", label: "Crypto" },
-];
-
-const SORT_OPTIONS: { value: DashboardSortMode; label: string }[] = [
-  { value: "rank", label: "Rank" },
-  { value: "name", label: "Name" },
-  { value: "value", label: "Value" },
-  { value: "movement", label: "Move" },
-];
-
-const SECTION_LINKS: { id: (typeof SECTION_IDS)[number]; label: string; filter: SectionFilter | "watchlist" | "portfolio" }[] = [
-  { id: "section-watchlist", label: "Watchlist", filter: "watchlist" },
-  { id: "section-portfolio", label: "Portfolio", filter: "portfolio" },
-  { id: "section-assets", label: "Global Assets", filter: "assets" },
-  { id: "section-stocks", label: "Public Companies", filter: "stocks" },
-  { id: "section-private-companies", label: "Private Companies", filter: "private" },
-  { id: "section-etfs", label: "ETFs", filter: "etfs" },
-  { id: "section-currencies", label: "Currencies", filter: "currencies" },
-  { id: "section-cryptos", label: "Cryptos", filter: "cryptos" },
-  { id: "section-night", label: "NIGHT", filter: "all" },
-];
-
-const SOURCE_LABEL: Record<DashboardSegmentHealth["source"], string> = {
-  live: "Live",
-  "fresh-cache": "Live",
-  "stale-cache": "Stale cache",
-  "durable-cache": "Durable cache",
-  fallback: "Fallback",
-};
-
-function formatSegmentAge(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  if (seconds < 3_600) return `${Math.floor(seconds / 60)}m`;
-  return `${Math.floor(seconds / 3_600)}h`;
-}
-
-function sourceTone(source: DashboardSegmentHealth["source"]): "positive" | "warning" | "negative" {
-  if (source === "live" || source === "fresh-cache") return "positive";
-  if (source === "stale-cache" || source === "durable-cache") return "warning";
-  return "negative";
-}
-
-const SECTION_REVEAL = {
-  initial: { opacity: 1, y: 0 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, amount: 0.12 as const },
-  transition: { duration: 0.5, ease: "easeOut" as const },
-};
-
-const DEFAULT_REFRESH_SEC = 30;
-const PINNED_STORAGE_KEY = "wap.pinned-markets.v1";
-const PREFS_STORAGE_KEY = "wap.prefs.v1";
-const PORTFOLIO_STORAGE_KEY = "wap.portfolio.v1";
-
-const VALID_SECTION_FILTERS: SectionFilter[] = ["all", "assets", "stocks", "private", "etfs", "currencies", "cryptos"];
-const VALID_SORT_MODES: DashboardSortMode[] = ["rank", "name", "value", "movement"];
-const VALID_DENSITY: DensityMode[] = ["comfortable", "compact"];
-
-type StoredPrefs = {
-  sectionFilter: SectionFilter;
-  sortMode: DashboardSortMode;
-  density: DensityMode;
-};
-
-function buildPriceTitle(exact: string, generatedAt: string | undefined, prefix = "Exact"): string {
-  const stamp = generatedAt ? new Date(generatedAt).toLocaleString() : "live";
-  return `${prefix}: ${exact} · Updated ${stamp}`;
-}
-
-function readStoredPinnedIds(): string[] {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(PINNED_STORAGE_KEY) ?? "[]");
-    return Array.isArray(parsed) ? parsed.filter((value): value is string => typeof value === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeStoredPinnedIds(ids: readonly string[]) {
-  try {
-    localStorage.setItem(PINNED_STORAGE_KEY, JSON.stringify(ids));
-  } catch {
-    // Ignore private browsing / quota failures.
-  }
-}
-
-function readStoredPrefs(): Partial<StoredPrefs> {
-  try {
-    const raw = localStorage.getItem(PREFS_STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as Partial<StoredPrefs>;
-    const out: Partial<StoredPrefs> = {};
-    if (parsed.sectionFilter && VALID_SECTION_FILTERS.includes(parsed.sectionFilter)) out.sectionFilter = parsed.sectionFilter;
-    if (parsed.sortMode && VALID_SORT_MODES.includes(parsed.sortMode)) out.sortMode = parsed.sortMode;
-    if (parsed.density && VALID_DENSITY.includes(parsed.density)) out.density = parsed.density;
-    return out;
-  } catch {
-    return {};
-  }
-}
-
-function writeStoredPrefs(prefs: StoredPrefs) {
-  try {
-    localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(prefs));
-  } catch {
-    // Ignore private browsing / quota failures.
-  }
-}
-
-function readStoredHoldings(): LocalHolding[] {
-  try {
-    return parseStoredHoldings(localStorage.getItem(PORTFOLIO_STORAGE_KEY));
-  } catch {
-    return [];
-  }
-}
-
-function writeStoredHoldings(holdings: readonly LocalHolding[]) {
-  try {
-    localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(holdings));
-  } catch {
-    // Ignore private browsing / quota failures.
-  }
-}
-
-function formatRelativeTime(fromIso: string | undefined, now: number): string {
-  if (!fromIso) return "—";
-  const then = new Date(fromIso).getTime();
-  if (!Number.isFinite(then)) return "—";
-  const diffSec = Math.max(0, Math.round((now - then) / 1000));
-  if (diffSec < 5) return "just now";
-  if (diffSec < 60) return `${diffSec}s ago`;
-  const diffMin = Math.round(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHr = Math.round(diffMin / 60);
-  return `${diffHr}h ago`;
-}
 
 const EMPTY_CRYPTOS: DashboardCrypto[] = [];
 const EMPTY_STOCKS: DashboardStock[] = [];
@@ -201,32 +42,28 @@ const EMPTY_CURRENCIES: DashboardCurrency[] = [];
 const EMPTY_ASSETS: DashboardAsset[] = [];
 const EMPTY_PRIVATE_COMPANIES: DashboardPrivateCompany[] = [];
 
-function SkeletonGrid({ count = 10 }: { count?: number }) {
-  return (
-    <div className="coin-grid" aria-hidden="true">
-      {Array.from({ length: count }, (_, index) => (
-        <article key={`skeleton-${index}`} className="coin-card skeleton-card">
-          <span className="skeleton-line skeleton-line-sm" />
-          <span className="skeleton-line" />
-          <span className="skeleton-line skeleton-line-lg" />
-          <span className="skeleton-line skeleton-line-sm" />
-        </article>
-      ))}
-    </div>
-  );
-}
-
 function App() {
   const { theme, toggleTheme } = useTheme();
+  const {
+    searchTerm,
+    setSearchTerm,
+    normalizedSearchTerm,
+    sectionFilter,
+    setSectionFilter,
+    shouldShowSection,
+    sortMode,
+    setSortMode,
+    density,
+    toggleDensity,
+    pinnedIds,
+    pinnedIdSet,
+    togglePinned,
+    holdings,
+    setHoldings,
+  } = useDashboardFilters();
+
   const [activeCryptoId, setActiveCryptoId] = useState<string>("");
   const [activeSection, setActiveSection] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const initialPrefs = useMemo(() => readStoredPrefs(), []);
-  const [sectionFilter, setSectionFilter] = useState<SectionFilter>(initialPrefs.sectionFilter ?? "all");
-  const [sortMode, setSortMode] = useState<DashboardSortMode>(initialPrefs.sortMode ?? "rank");
-  const [density, setDensity] = useState<DensityMode>(initialPrefs.density ?? "comfortable");
-  const [pinnedIds, setPinnedIds] = useState<string[]>(readStoredPinnedIds);
-  const [holdings, setHoldings] = useState<LocalHolding[]>(readStoredHoldings);
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [detailRange, setDetailRange] = useState<HistoricalRange>("30D");
   const [now, setNow] = useState<number>(() => Date.now());
@@ -253,9 +90,7 @@ function App() {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    return setupSectionObserver();
-  }, [setupSectionObserver]);
+  useEffect(() => setupSectionObserver(), [setupSectionObserver]);
 
   const dashboardQuery = useQuery({
     queryKey: ["dashboard"],
@@ -266,12 +101,13 @@ function App() {
     },
   });
 
-  const dashboard = dashboardQuery.data;
   const assetDetailQuery = useQuery({
     queryKey: ["asset-detail", selectedAssetId, detailRange],
     queryFn: () => fetchAssetDetail(selectedAssetId ?? "", detailRange),
     enabled: Boolean(selectedAssetId),
   });
+
+  const dashboard = dashboardQuery.data;
   const topCryptos = dashboard?.topCryptos ?? EMPTY_CRYPTOS;
   const topStocks = dashboard?.topStocks ?? EMPTY_STOCKS;
   const topEtfs = dashboard?.topEtfs ?? EMPTY_ETFS;
@@ -282,8 +118,9 @@ function App() {
   const segmentMeta = dashboard?.segmentMeta;
   const generatedAt = dashboard?.generatedAt;
   const equityFundamentalsAsOf = dashboard?.source.equityFundamentalsAsOf;
-  const equityEstimateLabel = equityFundamentalsAsOf ? `Live prices; valuation baselines as of ${equityFundamentalsAsOf}` : "Live prices; valuation baselines";
-  const normalizedSearchTerm = searchTerm.trim();
+  const equityEstimateLabel = equityFundamentalsAsOf
+    ? `Live prices; valuation baselines as of ${equityFundamentalsAsOf}`
+    : "Live prices; valuation baselines";
   const isBooting = dashboardQuery.isPending && !dashboard;
 
   useEffect(() => {
@@ -291,23 +128,10 @@ function App() {
       if (activeCryptoId) setActiveCryptoId("");
       return;
     }
-
     if (!topCryptos.some((coin) => coin.id === activeCryptoId)) {
       setActiveCryptoId(topCryptos[0].id);
     }
   }, [activeCryptoId, topCryptos]);
-
-  useEffect(() => {
-    writeStoredPinnedIds(pinnedIds);
-  }, [pinnedIds]);
-
-  useEffect(() => {
-    writeStoredHoldings(holdings);
-  }, [holdings]);
-
-  useEffect(() => {
-    writeStoredPrefs({ sectionFilter, sortMode, density });
-  }, [sectionFilter, sortMode, density]);
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000);
@@ -343,51 +167,43 @@ function App() {
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [searchTerm, selectedAssetId]);
-
-  const pinnedIdSet = useMemo(() => new Set(pinnedIds), [pinnedIds]);
-
-  const togglePinned = useCallback((id: string) => {
-    setPinnedIds((current) => (current.includes(id) ? current.filter((pinnedId) => pinnedId !== id) : [id, ...current].slice(0, 12)));
-  }, []);
+  }, [searchTerm, selectedAssetId, setSearchTerm]);
 
   const openAssetDetail = useCallback((id: string) => {
     setSelectedAssetId(id);
   }, []);
-
   const closeAssetDetail = useCallback(() => {
     setSelectedAssetId(null);
   }, []);
 
   const dashboardInsights = useMemo(() => (dashboard ? buildDashboardInsights(dashboard) : []), [dashboard]);
-  const segmentHealthSummaries = useMemo(() => (dashboard ? getWorstSegmentHealthSummaries(dashboard) : []), [dashboard]);
+  const segmentHealthSummaries = useMemo(
+    () => (dashboard ? getWorstSegmentHealthSummaries(dashboard) : []),
+    [dashboard],
+  );
 
   const visibleTopAssets = useMemo(
-    () => sortDashboardEntries(topAssets.filter((entry) => dashboardEntryMatches(entry, normalizedSearchTerm)), sortMode),
+    () => filterAndSortEntries(topAssets, normalizedSearchTerm, sortMode),
     [normalizedSearchTerm, sortMode, topAssets],
   );
   const visibleTopStocks = useMemo(
-    () => sortDashboardEntries(topStocks.filter((entry) => dashboardEntryMatches(entry, normalizedSearchTerm)), sortMode),
+    () => filterAndSortEntries(topStocks, normalizedSearchTerm, sortMode),
     [normalizedSearchTerm, sortMode, topStocks],
   );
   const visibleTopEtfs = useMemo(
-    () => sortDashboardEntries(topEtfs.filter((entry) => dashboardEntryMatches(entry, normalizedSearchTerm)), sortMode),
+    () => filterAndSortEntries(topEtfs, normalizedSearchTerm, sortMode),
     [normalizedSearchTerm, sortMode, topEtfs],
   );
   const visibleTopCurrencies = useMemo(
-    () => sortDashboardEntries(topCurrencies.filter((entry) => dashboardEntryMatches(entry, normalizedSearchTerm)), sortMode),
+    () => filterAndSortEntries(topCurrencies, normalizedSearchTerm, sortMode),
     [normalizedSearchTerm, sortMode, topCurrencies],
   );
   const visibleTopCryptos = useMemo(
-    () => sortDashboardEntries(topCryptos.filter((entry) => dashboardEntryMatches(entry, normalizedSearchTerm)), sortMode),
+    () => filterAndSortEntries(topCryptos, normalizedSearchTerm, sortMode),
     [normalizedSearchTerm, sortMode, topCryptos],
   );
   const visibleTopPrivateCompanies = useMemo(
-    () =>
-      sortDashboardEntries(
-        topPrivateCompanies.filter((entry) => dashboardEntryMatches(entry, normalizedSearchTerm)),
-        sortMode,
-      ),
+    () => filterAndSortEntries(topPrivateCompanies, normalizedSearchTerm, sortMode),
     [normalizedSearchTerm, sortMode, topPrivateCompanies],
   );
 
@@ -401,13 +217,13 @@ function App() {
   }, [night, pinnedIds, topAssets, topCryptos, topCurrencies, topEtfs, topPrivateCompanies, topStocks]);
 
   const portfolioCandidates = useMemo(() => {
-    const entries: PortfolioEntry[] = [...topStocks.filter((stock) => typeof stock.priceUsd === "number"), ...topEtfs, ...topCryptos];
+    const entries: PortfolioEntry[] = [
+      ...topStocks.filter((stock) => typeof stock.priceUsd === "number"),
+      ...topEtfs,
+      ...topCryptos,
+    ];
     if (night) {
-      entries.push({
-        ...night,
-        category: "NIGHT",
-        rank: 1,
-      });
+      entries.push({ ...night, category: "NIGHT", rank: 1 });
     }
     return entries.filter(isTradablePortfolioAsset);
   }, [night, topCryptos, topEtfs, topStocks]);
@@ -423,445 +239,29 @@ function App() {
     [pinnedEntries.length, sectionFilter],
   );
 
-  const shouldShowSection = useCallback((filter: Exclude<SectionFilter, "all">) => sectionFilter === "all" || sectionFilter === filter, [sectionFilter]);
-
-  const renderEmptyState = (label: string, hasSourceData: boolean) => {
-    if (hasSourceData && normalizedSearchTerm) {
-      return <p className="filter-empty">No {label} match "{normalizedSearchTerm}".</p>;
-    }
-
-    return <p className="muted">No {label} data available.</p>;
-  };
-
-  const renderPinnedCard = (entry: DashboardEntry, index: number) => {
-    const change = getEntryChange(entry);
-    const changeText = formatPercent(change);
-    const hasChange = changeText !== "—";
-    const isCrypto = "sparkline7d" in entry;
-    const isCurrency = "rateVsUsd" in entry;
-    const isPrivateCompany = entry.category === "Private Company";
-    const isPricedAsset = "priceUsd" in entry;
-
-    const valueLabel = isCrypto
-      ? undefined
-      : isCurrency
-        ? "Rate vs USD"
-        : isPricedAsset
-          ? "Price"
-          : isPrivateCompany
-            ? "Est. Valuation"
-            : "Est. Market Cap";
-    const value = isCurrency
-      ? formatCurrency(entry.rateVsUsd)
-      : isPricedAsset
-        ? formatCurrency(entry.priceUsd)
-        : formatCompactCurrency(entry.marketCapUsd);
-    const exactValue =
-      isCurrency
-        ? formatExactCurrency(entry.rateVsUsd)
-        : isPrivateCompany
-          ? formatExactCurrency(entry.marketCapUsd)
-          : isPricedAsset
-            ? formatExactCurrency(entry.priceUsd)
-            : formatExactNumber(entry.marketCapUsd);
-
-    return (
-      <MarketCard
-        key={`pinned-${entry.id}`}
-        id={entry.id}
-        rank={entry.rank}
-        name={entry.name}
-        symbol={entry.symbol}
-        meta={entry.category}
-        valueLabel={valueLabel}
-        value={value}
-        priceTitle={buildPriceTitle(
-          exactValue,
-          generatedAt,
-          isCurrency ? "Exact rate" : isPricedAsset ? "Exact" : isPrivateCompany ? "Exact valuation (USD)" : "Exact market cap (USD)",
-        )}
-        secondary={
-          isCrypto
-            ? changeText
-            : hasChange
-              ? changeText
-              : isPricedAsset || isCurrency
-                ? "—"
-                : isPrivateCompany
-                  ? "Curated estimate"
-                  : "Estimated market cap"
-        }
-        secondaryClassName={isCrypto || hasChange ? clsx("coin-change", trendClass(change)) : "asset-note"}
-        secondaryTitle={isCrypto ? "24h change" : hasChange ? "Daily change" : undefined}
-        index={index}
-        logoUrl={entry.logoUrl}
-        fallbackLogoUrls={entry.fallbackLogoUrls}
-        pinned={pinnedIdSet.has(entry.id)}
-        onTogglePin={() => togglePinned(entry.id)}
-        sparkline={isCrypto ? entry.sparkline7d : undefined}
-        assetStyle={!isCrypto}
-        interactive
-        active={entry.id === selectedAssetId}
-        onClick={() => openAssetDetail(entry.id)}
-      />
-    );
-  };
-
-  const renderCryptoGrid = () => {
-    if (isBooting) return <SkeletonGrid />;
-    if (!topCryptos.length || !visibleTopCryptos.length) return renderEmptyState("cryptocurrencies", topCryptos.length > 0);
-
-    return (
-      <div className="coin-grid">
-        {visibleTopCryptos.map((coin, index) => (
-          <MarketCard
-            key={coin.id}
-            id={coin.id}
-            rank={coin.rank}
-            name={coin.name}
-            symbol={coin.symbol}
-            meta={coin.category}
-            value={formatCurrency(coin.priceUsd)}
-            priceTitle={buildPriceTitle(formatExactCurrency(coin.priceUsd), generatedAt)}
-            secondary={formatPercent(coin.change24h)}
-            secondaryClassName={clsx("coin-change", trendClass(coin.change24h))}
-            secondaryTitle="24h change"
-            index={index}
-            logoUrl={coin.logoUrl}
-            fallbackLogoUrls={coin.fallbackLogoUrls}
-            pinned={pinnedIdSet.has(coin.id)}
-            onTogglePin={() => togglePinned(coin.id)}
-            interactive
-            active={coin.id === activeCryptoId || coin.id === selectedAssetId}
-            onClick={() => {
-              setActiveCryptoId(coin.id);
-              openAssetDetail(coin.id);
-            }}
-            sparkline={coin.sparkline7d}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  const renderPrivateGrid = () => {
-    if (isBooting) return <SkeletonGrid />;
-    if (!topPrivateCompanies.length || !visibleTopPrivateCompanies.length) return renderEmptyState("private companies", topPrivateCompanies.length > 0);
-
-    return (
-      <div className="coin-grid">
-        {visibleTopPrivateCompanies.map((company, index) => (
-          <MarketCard
-            key={company.id}
-            id={company.id}
-            rank={company.rank}
-            name={company.name}
-            symbol={company.symbol}
-            meta={company.category}
-            valueLabel="Verified valuation"
-            value={formatCompactCurrency(company.marketCapUsd)}
-            priceTitle={buildPriceTitle(formatExactNumber(company.marketCapUsd), generatedAt, "Exact valuation (USD)")}
-            secondary="Curated estimate"
-            secondaryClassName="asset-note"
-            index={index}
-            logoUrl={company.logoUrl}
-            fallbackLogoUrls={company.fallbackLogoUrls}
-            pinned={pinnedIdSet.has(company.id)}
-            onTogglePin={() => togglePinned(company.id)}
-            assetStyle
-            interactive
-            active={company.id === selectedAssetId}
-            onClick={() => openAssetDetail(company.id)}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  const renderStockGrid = () => {
-    if (isBooting) return <SkeletonGrid />;
-    if (!topStocks.length || !visibleTopStocks.length) return renderEmptyState("public companies", topStocks.length > 0);
-
-    return (
-      <div className="coin-grid">
-        {visibleTopStocks.map((stock, index) => {
-          const changeText = formatPercent(stock.changePercent);
-          const hasChange = changeText !== "—";
-
-          return (
-            <MarketCard
-              key={stock.id}
-              id={stock.id}
-              rank={stock.rank}
-              name={stock.name}
-              symbol={stock.symbol}
-              meta={stock.category}
-              valueLabel="Market cap"
-              value={formatCompactCurrency(stock.marketCapUsd)}
-              priceTitle={buildPriceTitle(formatExactNumber(stock.marketCapUsd), generatedAt, "Exact market cap (USD)")}
-              secondary={stock.priceUsd === null ? "Curated market cap" : hasChange ? `${formatCurrency(stock.priceUsd)} · ${changeText}` : formatCurrency(stock.priceUsd)}
-              secondaryClassName={hasChange ? clsx("coin-change", trendClass(stock.changePercent)) : "asset-note"}
-              secondaryTitle={stock.priceUsd === null ? "Verified snapshot; no free live quote" : hasChange ? "Price and daily change" : "Unit price"}
-              index={index}
-              logoUrl={stock.logoUrl}
-              fallbackLogoUrls={stock.fallbackLogoUrls}
-              pinned={pinnedIdSet.has(stock.id)}
-              onTogglePin={() => togglePinned(stock.id)}
-              assetStyle
-              interactive
-              active={stock.id === selectedAssetId}
-              onClick={() => openAssetDetail(stock.id)}
-            />
-          );
-        })}
-      </div>
-    );
-  };
-
-  const renderEtfGrid = () => {
-    if (isBooting) return <SkeletonGrid />;
-    if (!topEtfs.length || !visibleTopEtfs.length) return renderEmptyState("ETFs", topEtfs.length > 0);
-
-    return (
-      <div className="coin-grid">
-        {visibleTopEtfs.map((etf, index) => {
-          const changeText = formatPercent(etf.changePercent);
-          const hasChange = changeText !== "—";
-
-          return (
-            <MarketCard
-              key={etf.id}
-              id={etf.id}
-              rank={etf.rank}
-              name={etf.name}
-              symbol={etf.symbol}
-              meta={etf.category}
-              valueLabel="Price"
-              value={formatCurrency(etf.priceUsd)}
-              priceTitle={buildPriceTitle(formatExactCurrency(etf.priceUsd), generatedAt)}
-              secondary={hasChange ? changeText : "—"}
-              secondaryClassName={hasChange ? clsx("coin-change", trendClass(etf.changePercent)) : "asset-note"}
-              secondaryTitle={hasChange ? "Daily change" : undefined}
-              index={index}
-              logoUrl={etf.logoUrl}
-              fallbackLogoUrls={etf.fallbackLogoUrls}
-              pinned={pinnedIdSet.has(etf.id)}
-              onTogglePin={() => togglePinned(etf.id)}
-              assetStyle
-              interactive
-              active={etf.id === selectedAssetId}
-              onClick={() => openAssetDetail(etf.id)}
-            />
-          );
-        })}
-      </div>
-    );
-  };
-
-  const renderCurrencyGrid = () => {
-    if (isBooting) return <SkeletonGrid />;
-    if (!topCurrencies.length || !visibleTopCurrencies.length) return renderEmptyState("currencies", topCurrencies.length > 0);
-
-    return (
-      <div className="coin-grid">
-        {visibleTopCurrencies.map((currency, index) => (
-          <MarketCard
-            key={currency.id}
-            id={currency.id}
-            rank={currency.rank}
-            name={currency.name}
-            symbol={currency.symbol}
-            meta={currency.category}
-            valueLabel="Rate vs USD"
-            value={formatCurrency(currency.rateVsUsd)}
-            priceTitle={buildPriceTitle(formatExactCurrency(currency.rateVsUsd), generatedAt, "Exact rate")}
-            secondary={formatPercent(currency.changePercent)}
-            secondaryClassName={clsx("coin-change", trendClass(currency.changePercent))}
-            secondaryTitle="Daily change"
-            index={index}
-            logoUrl={currency.logoUrl}
-            fallbackLogoUrls={currency.fallbackLogoUrls}
-            pinned={pinnedIdSet.has(currency.id)}
-            onTogglePin={() => togglePinned(currency.id)}
-            assetStyle
-            interactive
-            active={currency.id === selectedAssetId}
-            onClick={() => openAssetDetail(currency.id)}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  const renderAssetGrid = () => {
-    if (isBooting) return <SkeletonGrid />;
-    if (!topAssets.length || !visibleTopAssets.length) return renderEmptyState("global assets", topAssets.length > 0);
-
-    return (
-      <div className="coin-grid">
-        {visibleTopAssets.map((asset, index) => (
-          <MarketCard
-            key={asset.id}
-            id={asset.id}
-            rank={asset.rank}
-            name={asset.name}
-            symbol={asset.symbol}
-            meta={asset.category}
-            valueLabel="Est. Market Cap"
-            value={formatCompactCurrency(asset.marketCapUsd)}
-            priceTitle={buildPriceTitle(formatExactNumber(asset.marketCapUsd), generatedAt, "Exact market cap (USD)")}
-            secondary="Estimated market cap"
-            secondaryClassName="asset-note"
-            index={index}
-            logoUrl={asset.logoUrl}
-            fallbackLogoUrls={asset.fallbackLogoUrls}
-            pinned={pinnedIdSet.has(asset.id)}
-            onTogglePin={() => togglePinned(asset.id)}
-            assetStyle
-            interactive
-            active={asset.id === selectedAssetId}
-            onClick={() => openAssetDetail(asset.id)}
-          />
-        ))}
-      </div>
-    );
-  };
-
   return (
     <>
-      <div className="bg-orbs" aria-hidden="true">
-        <div className="bg-orb bg-orb-1" />
-        <div className="bg-orb bg-orb-2" />
-        <div className="bg-orb bg-orb-3" />
-      </div>
-      <main className={clsx("shell", density === "compact" && "shell-compact")}>
-        <header className="hero">
-          <div className="hero-top-row">
-            <p className="eyebrow">World Asset Prices</p>
-            <button
-              type="button"
-              className="theme-toggle"
-              onClick={toggleTheme}
-              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {theme === "dark" ? (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="4" />
-                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-                </svg>
-              ) : (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                </svg>
-              )}
-            </button>
-          </div>
-          <h1>
-            Global Assets <span>Dashboard</span>
-          </h1>
-          <p className="tagline">Top global assets, public companies, ETFs, currencies, cryptocurrencies, and NIGHT price with faster market discovery.</p>
-          {dashboardInsights.length ? (
-            <dl className="hero-insights" aria-label="Dashboard highlights">
-              {dashboardInsights.map((insight) => (
-                <div key={insight.label} className={clsx("hero-insight", `hero-insight--${insight.tone}`)}>
-                  <dt>{insight.label}</dt>
-                  <dd>{insight.value}</dd>
-                  <span>{insight.detail}</span>
-                </div>
-              ))}
-            </dl>
-          ) : null}
-          {segmentHealthSummaries.length ? (
-            <div className="hero-segment-health" aria-label="Degraded segments">
-              {segmentHealthSummaries.map((segment) => (
-                <span
-                  key={segment.segment}
-                  className={clsx("hero-segment-health-item", `hero-segment-health-item--${sourceTone(segment.source)}`)}
-                  title={`Source: ${SOURCE_LABEL[segment.source]} · ${formatSegmentAge(segment.ageSec)} ago`}
-                >
-                  <span className="hero-segment-health-label">{segment.label}</span>
-                  <span className="hero-segment-health-sep" aria-hidden="true">·</span>
-                  <span className="hero-segment-health-source">{SOURCE_LABEL[segment.source]}</span>
-                  <span aria-hidden="true"> · </span>
-                  <span>{formatSegmentAge(segment.ageSec)} ago</span>
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </header>
-
-        <section className="dashboard-toolbar" aria-label="Dashboard controls">
-          <label className="market-search">
-            <span>Search</span>
-            <input
-              ref={searchInputRef}
-              type="search"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              aria-label="Search markets"
-              placeholder="BTC, Apple, ETF, currency..."
-            />
-            {searchTerm ? (
-              <button
-                type="button"
-                className="search-clear"
-                aria-label="Clear search"
-                onClick={() => {
-                  setSearchTerm("");
-                  searchInputRef.current?.focus();
-                }}
-              >
-                ×
-              </button>
-            ) : (
-              <kbd className="search-kbd" aria-hidden="true" title="Press / to focus search">/</kbd>
-            )}
-          </label>
-
-          <div className="control-cluster" aria-label="Section filter">
-            {SECTION_FILTERS.map((filter) => (
-              <button
-                key={filter.value}
-                type="button"
-                className={clsx("segmented-button", sectionFilter === filter.value && "active")}
-                onClick={() => setSectionFilter(filter.value)}
-                aria-pressed={sectionFilter === filter.value}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-
-          <label className="market-select">
-            <span>Sort</span>
-            <select value={sortMode} onChange={(event) => setSortMode(event.target.value as DashboardSortMode)} aria-label="Sort markets">
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <button
-            type="button"
-            className={clsx("density-toggle", density === "compact" && "active")}
-            onClick={() => setDensity((current) => (current === "compact" ? "comfortable" : "compact"))}
-            aria-pressed={density === "compact"}
-          >
-            {density === "compact" ? "Comfort" : "Compact"}
-          </button>
-
-          <span
-            className={clsx("toolbar-updated", dashboardQuery.isFetching && "is-fetching")}
-            title={generatedAt ? `Last update: ${new Date(generatedAt).toLocaleString()}` : "Waiting for first update"}
-            aria-live="polite"
-          >
-            <span className="toolbar-updated-dot" aria-hidden="true" />
-            <span className="toolbar-updated-label">{dashboardQuery.isFetching ? "Refreshing" : "Updated"}</span>
-            <span className="toolbar-updated-value">{formatRelativeTime(generatedAt, now)}</span>
-          </span>
-        </section>
+      <DashboardShell
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        insights={dashboardInsights}
+        segmentHealthSummaries={segmentHealthSummaries}
+        density={density}
+      >
+        <MarketControls
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchInputRef={searchInputRef}
+          sectionFilter={sectionFilter}
+          onSectionFilterChange={setSectionFilter}
+          sortMode={sortMode}
+          onSortChange={setSortMode}
+          density={density}
+          onDensityToggle={toggleDensity}
+          isFetching={dashboardQuery.isFetching}
+          generatedAt={generatedAt}
+          now={now}
+        />
 
         <nav className="section-nav" aria-label="Dashboard sections">
           {navLinks.map((link) => (
@@ -871,148 +271,51 @@ function App() {
           ))}
         </nav>
 
-        {pinnedEntries.length ? (
-          <motion.section id="section-watchlist" className="surface watchlist-surface" aria-labelledby="watchlist-heading" {...SECTION_REVEAL}>
-            <div className="surface-head">
-              <div className="surface-title-row">
-                <h2 id="watchlist-heading">Pinned Watchlist</h2>
-              </div>
-              <div className="surface-head-meta">
-                <p>{pinnedEntries.length} pinned market{pinnedEntries.length === 1 ? "" : "s"}</p>
-              </div>
-            </div>
-            <div className="coin-grid watchlist-grid">
-              {pinnedEntries.map((entry, index) => renderPinnedCard(entry, index))}
-            </div>
-          </motion.section>
-        ) : null}
+        <WatchlistSection
+          entries={pinnedEntries}
+          pinnedIdSet={pinnedIdSet}
+          onTogglePin={togglePinned}
+          generatedAt={generatedAt}
+          selectedAssetId={selectedAssetId}
+          onOpenAssetDetail={openAssetDetail}
+        />
 
         {sectionFilter === "all" ? (
           <PortfolioLab candidates={portfolioCandidates} holdings={holdings} onChange={setHoldings} />
         ) : null}
 
-        {shouldShowSection("assets") ? (
-          <motion.section id="section-assets" className="surface global-assets-surface" {...SECTION_REVEAL}>
-            <SectionHeader
-              title="Global Asset Leaders"
-              subtitle={equityEstimateLabel}
-              meta={segmentMeta?.topStocks}
-              generatedAt={generatedAt}
-            />
-            {renderAssetGrid()}
-            <p className="disclaimer">* Approximate values. Network/API conditions may delay updates.</p>
-          </motion.section>
-        ) : null}
-
-        {shouldShowSection("stocks") ? (
-          <motion.section id="section-stocks" className="surface stocks-surface" {...SECTION_REVEAL}>
-            <SectionHeader
-              title="Top Public Companies"
-              subtitle={equityEstimateLabel}
-              meta={segmentMeta?.topStocks}
-              generatedAt={generatedAt}
-            />
-            {renderStockGrid()}
-          </motion.section>
-        ) : null}
-
-        {shouldShowSection("private") ? (
-          <motion.section id="section-private-companies" className="surface private-companies-surface" {...SECTION_REVEAL}>
-            <SectionHeader
-              title="Top Private Companies"
-              subtitle="Verified primary valuations; targets stay secondary"
-              meta={segmentMeta?.topPrivateCompanies}
-              generatedAt={generatedAt}
-            />
-            {renderPrivateGrid()}
-          </motion.section>
-        ) : null}
-
-        {shouldShowSection("etfs") ? (
-          <motion.section id="section-etfs" className="surface etfs-surface" {...SECTION_REVEAL}>
-            <SectionHeader
-              title="Top 10 ETFs"
-              subtitle={equityEstimateLabel}
-              meta={segmentMeta?.topEtfs}
-              generatedAt={generatedAt}
-            />
-            {renderEtfGrid()}
-          </motion.section>
-        ) : null}
-
-        {shouldShowSection("currencies") ? (
-          <motion.section id="section-currencies" className="surface currencies-surface" {...SECTION_REVEAL}>
-            <SectionHeader
-              title="Top 10 Currencies"
-              subtitle="Exchange rates vs USD"
-              meta={segmentMeta?.topCurrencies}
-              generatedAt={generatedAt}
-            />
-            {renderCurrencyGrid()}
-          </motion.section>
-        ) : null}
-
-        {shouldShowSection("cryptos") ? (
-          <motion.section id="section-cryptos" className="surface cryptos-surface" {...SECTION_REVEAL}>
-            <SectionHeader
-              title="Top 10 Cryptocurrencies"
-              subtitle="Live market feed"
-              meta={segmentMeta?.topCryptos}
-              generatedAt={generatedAt}
-            />
-            {renderCryptoGrid()}
-          </motion.section>
-        ) : null}
+        <MarketSections
+          shouldShowSection={shouldShowSection}
+          generatedAt={generatedAt}
+          isBooting={isBooting}
+          normalizedSearchTerm={normalizedSearchTerm}
+          pinnedIdSet={pinnedIdSet}
+          onTogglePin={togglePinned}
+          selectedAssetId={selectedAssetId}
+          onOpenAssetDetail={openAssetDetail}
+          segmentMeta={segmentMeta}
+          equityEstimateLabel={equityEstimateLabel}
+          topAssets={topAssets}
+          visibleTopAssets={visibleTopAssets}
+          topStocks={topStocks}
+          visibleTopStocks={visibleTopStocks}
+          topPrivateCompanies={topPrivateCompanies}
+          visibleTopPrivateCompanies={visibleTopPrivateCompanies}
+          topEtfs={topEtfs}
+          visibleTopEtfs={visibleTopEtfs}
+          topCurrencies={topCurrencies}
+          visibleTopCurrencies={visibleTopCurrencies}
+          topCryptos={topCryptos}
+          visibleTopCryptos={visibleTopCryptos}
+          activeCryptoId={activeCryptoId}
+          onCryptoActivate={setActiveCryptoId}
+        />
 
         {sectionFilter === "all" ? (
-          <motion.section id="section-night" className="surface midnight-surface night-ticker" {...SECTION_REVEAL}>
-            {night ? (
-              <div className="night-ticker-row">
-                <LogoMark name="NIGHT" symbol={night.symbol} logoUrl={night.logoUrl} fallbackLogoUrls={night.fallbackLogoUrls} />
-                <span className="night-ticker-name">NIGHT</span>
-                <span className="night-ticker-price" title={buildPriceTitle(formatExactCurrency(night.priceUsd), generatedAt)}>{formatCurrency(night.priceUsd)}</span>
-                <span className={clsx("night-ticker-change", trendClass(night.change24h))} title="24h change">{formatPercent(night.change24h)}</span>
-                <span className="night-ticker-divider" aria-hidden="true" />
-                <span className="night-ticker-stat" title={`Exact market cap: ${formatExactNumber(night.marketCapUsd)} USD`}><span>MCap</span> {formatCompactCurrency(night.marketCapUsd)}</span>
-                <span className="night-ticker-stat" title={`Exact 24h volume: ${formatExactNumber(night.volume24hUsd)} USD`}><span>Vol</span> {formatCompactCurrency(night.volume24hUsd)}</span>
-                <span className="night-ticker-stat" title={`Exact ATH: ${formatExactCurrency(night.athPriceUsd)}`}><span>ATH</span> {formatCurrency(night.athPriceUsd)}</span>
-                <span className={clsx("night-ticker-stat", trendClass(night.percentFromAth))} title="Percent from all-time high"><span>From ATH</span> {formatPercent(night.percentFromAth)}</span>
-                <button type="button" className="night-detail-button" onClick={() => openAssetDetail(night.id)}>Details</button>
-              </div>
-            ) : (
-              <p className="muted" style={{ margin: 0, fontSize: "0.72rem" }}>Waiting for NIGHT feed...</p>
-            )}
-          </motion.section>
+          <NightTicker night={night} generatedAt={generatedAt} onOpenDetail={openAssetDetail} />
         ) : null}
+      </DashboardShell>
 
-        <footer className="site-footer">
-          <div className="footer-glow" aria-hidden="true" />
-          <div className="footer-content">
-            <div className="footer-brand">
-              <span className="footer-logo">World Asset Prices</span>
-              <span className="footer-tagline">Real-time global market intelligence</span>
-            </div>
-            <div className="footer-links">
-              <div className="footer-col">
-                <span className="footer-col-title">Data</span>
-                <span>CoinPaprika</span>
-                <span>Stooq / Yahoo / Frankfurter</span>
-              </div>
-              <div className="footer-col">
-                <span className="footer-col-title">Built With</span>
-                <span>React + TypeScript</span>
-                <span>Vite + Tailwind</span>
-                <span>Vercel Functions</span>
-              </div>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <span>&copy; {new Date().getFullYear()} World Asset Prices</span>
-            <span className="footer-dot" aria-hidden="true" />
-            <span>Not financial advice</span>
-          </div>
-        </footer>
-      </main>
       {selectedAssetId ? (
         <AssetDetailDrawer
           detail={assetDetailQuery.data}

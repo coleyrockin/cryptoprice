@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 
-type Theme = "dark" | "light";
+export type ThemeMode = "dark" | "light";
+type Theme = ThemeMode;
 const STORAGE_KEY = "wap.theme.v1";
 
 function getInitialTheme(): Theme {
