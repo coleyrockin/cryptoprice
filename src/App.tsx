@@ -198,13 +198,20 @@ function App() {
     [normalizedSearchTerm, sortMode, topPrivateCompanies],
   );
 
-  const pinnedEntries = useMemo(() => {
+  const entriesById = useMemo(() => {
     const byId = new Map<string, DashboardEntry>();
     for (const entry of [...topStocks, ...topEtfs, ...topCurrencies, ...topCryptos, ...topPrivateCompanies, ...topAssets]) {
       byId.set(entry.id, entry);
     }
-    return pinnedIds.map((id) => byId.get(id)).filter((entry): entry is DashboardEntry => Boolean(entry));
-  }, [pinnedIds, topAssets, topCryptos, topCurrencies, topEtfs, topPrivateCompanies, topStocks]);
+    return byId;
+  }, [topAssets, topCryptos, topCurrencies, topEtfs, topPrivateCompanies, topStocks]);
+
+  const pinnedEntries = useMemo(
+    () => pinnedIds.map((id) => entriesById.get(id)).filter((entry): entry is DashboardEntry => Boolean(entry)),
+    [entriesById, pinnedIds],
+  );
+
+  const selectedEntry = selectedAssetId ? entriesById.get(selectedAssetId) : undefined;
 
   const portfolioCandidates = useMemo(() => {
     const entries: PortfolioEntry[] = [
@@ -310,6 +317,8 @@ function App() {
           range={detailRange}
           onRangeChange={setDetailRange}
           onClose={closeAssetDetail}
+          logoUrl={selectedEntry?.logoUrl ?? null}
+          fallbackLogoUrls={selectedEntry?.fallbackLogoUrls}
         />
       ) : null}
     </>

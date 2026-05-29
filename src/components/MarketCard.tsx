@@ -201,7 +201,7 @@ export const MarketCard = memo(function MarketCard({
       className={clsx("coin-card", "interactive-card", active && "active", assetStyle && "asset-card")}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03, duration: 0.22 }}
+      transition={{ delay: Math.min(index * 0.03, 0.18), duration: 0.22 }}
       style={{ ...cardStyle, ...tilt.style }}
       onClick={onSelect ? () => onSelect(id) : undefined}
       onMouseMove={tilt.onMouseMove}
