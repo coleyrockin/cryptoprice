@@ -1159,7 +1159,7 @@
       "name": "Gold",
       "symbol": "XAU",
       "category": "Commodity",
-      "marketCapUsd": 36210000000000,
+      "marketCapUsd": 31564000000000,
       "logoUrl": null,
       "fallbackLogoUrls": []
     },
@@ -1347,14 +1347,14 @@
     "commodity-gold": {
       "assetId": "commodity-gold",
       "category": "Commodity",
-      "valueUsd": 36210000000000,
-      "valueAsOf": "2026-05-14",
+      "valueUsd": 31564000000000,
+      "valueAsOf": "2026-05-28",
       "sourceUrl": "https://companiesmarketcap.com/gold/marketcap/",
       "sourceTitle": "CompaniesMarketCap gold market cap",
       "sourceType": "recognized-market-data",
       "confidence": "medium",
       "updateCadence": "monthly",
-      "notes": "Cross-asset context only; commodity market value methodology differs from equity market capitalization."
+      "notes": "Cross-asset context only; commodity market value methodology differs from equity market capitalization. Source figure ≈216,265 t above-ground gold × ~$4,540/oz."
     },
     "commodity-silver": {
       "assetId": "commodity-silver",
