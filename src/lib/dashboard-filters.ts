@@ -10,14 +10,13 @@ import type { LocalHolding } from "../types/dashboard";
 
 export const SECTION_IDS = [
   "section-watchlist",
-  "section-portfolio",
   "section-assets",
   "section-stocks",
-  "section-private-companies",
   "section-etfs",
+  "section-private-companies",
   "section-currencies",
   "section-cryptos",
-  "section-night",
+  "section-portfolio",
 ] as const;
 
 export type SectionId = (typeof SECTION_IDS)[number];
@@ -48,14 +47,13 @@ export const SECTION_LINKS: ReadonlyArray<{
   filter: SectionFilter | "watchlist" | "portfolio";
 }> = [
   { id: "section-watchlist", label: "Watchlist", filter: "watchlist" },
-  { id: "section-portfolio", label: "Portfolio", filter: "portfolio" },
   { id: "section-assets", label: "Global Assets", filter: "assets" },
   { id: "section-stocks", label: "Public Companies", filter: "stocks" },
-  { id: "section-private-companies", label: "Private Companies", filter: "private" },
   { id: "section-etfs", label: "ETFs", filter: "etfs" },
+  { id: "section-private-companies", label: "Private Companies", filter: "private" },
   { id: "section-currencies", label: "Currencies", filter: "currencies" },
   { id: "section-cryptos", label: "Cryptos", filter: "cryptos" },
-  { id: "section-night", label: "NIGHT", filter: "all" },
+  { id: "section-portfolio", label: "Portfolio", filter: "portfolio" },
 ];
 
 export const VALID_SECTION_FILTERS: SectionFilter[] = [

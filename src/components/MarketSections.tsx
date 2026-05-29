@@ -55,7 +55,7 @@ type MarketSectionsProps = {
 
 /**
  * Renders the six market sections (Global Assets, Public Companies,
- * Private Companies, ETFs, Currencies, Cryptos) in order, honoring the
+ * ETFs, Private Companies, Currencies, Cryptos) in order, honoring the
  * current section filter. Shared card-context props are forwarded once
  * to each SectionGrid.
  */
@@ -132,20 +132,6 @@ export function MarketSections(props: MarketSectionsProps) {
         />
       ) : null}
 
-      {shouldShowSection("private") ? (
-        <SectionGrid
-          {...common}
-          id="section-private-companies"
-          surfaceClass="private-companies-surface"
-          title="Top 15 Private Companies"
-          subtitle="Curated valuations from disclosed rounds — not a live market feed"
-          totalCount={props.topPrivateCompanies.length}
-          visibleEntries={props.visibleTopPrivateCompanies}
-          variant="private"
-          emptyLabel="private companies"
-        />
-      ) : null}
-
       {shouldShowSection("etfs") ? (
         <SectionGrid
           {...common}
@@ -158,6 +144,20 @@ export function MarketSections(props: MarketSectionsProps) {
           visibleEntries={props.visibleTopEtfs}
           variant="etfs"
           emptyLabel="ETFs"
+        />
+      ) : null}
+
+      {shouldShowSection("private") ? (
+        <SectionGrid
+          {...common}
+          id="section-private-companies"
+          surfaceClass="private-companies-surface"
+          title="Top 15 Private Companies"
+          subtitle="Curated valuations from disclosed rounds — not a live market feed"
+          totalCount={props.topPrivateCompanies.length}
+          visibleEntries={props.visibleTopPrivateCompanies}
+          variant="private"
+          emptyLabel="private companies"
         />
       ) : null}
 

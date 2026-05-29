@@ -7,7 +7,6 @@ import { AssetDetailDrawer } from "./components/AssetDetailDrawer";
 import { DashboardShell } from "./components/DashboardShell";
 import { MarketControls } from "./components/MarketControls";
 import { MarketSections } from "./components/MarketSections";
-import { NightTicker } from "./components/NightTicker";
 import { PortfolioLab } from "./components/PortfolioLab";
 import { WatchlistSection } from "./components/WatchlistSection";
 import {
@@ -19,7 +18,6 @@ import {
 import {
   buildDashboardInsights,
   getWorstSegmentHealthSummaries,
-  nightAsPinnedEntry,
   type DashboardEntry,
 } from "./lib/dashboard-insights";
 import { isTradablePortfolioAsset, type PortfolioEntry } from "./lib/portfolio";
@@ -113,7 +111,6 @@ function App() {
   const topCurrencies = dashboard?.topCurrencies ?? EMPTY_CURRENCIES;
   const topPrivateCompanies = dashboard?.topPrivateCompanies ?? EMPTY_PRIVATE_COMPANIES;
   const topAssets = dashboard?.topAssets ?? EMPTY_ASSETS;
-  const night = dashboard?.night ?? null;
   const segmentMeta = dashboard?.segmentMeta;
   const generatedAt = dashboard?.generatedAt;
   const equityFundamentalsAsOf = dashboard?.source.equityFundamentalsAsOf;
@@ -206,9 +203,8 @@ function App() {
     for (const entry of [...topStocks, ...topEtfs, ...topCurrencies, ...topCryptos, ...topPrivateCompanies, ...topAssets]) {
       byId.set(entry.id, entry);
     }
-    if (night) byId.set(night.id, nightAsPinnedEntry(night));
     return pinnedIds.map((id) => byId.get(id)).filter((entry): entry is DashboardEntry => Boolean(entry));
-  }, [night, pinnedIds, topAssets, topCryptos, topCurrencies, topEtfs, topPrivateCompanies, topStocks]);
+  }, [pinnedIds, topAssets, topCryptos, topCurrencies, topEtfs, topPrivateCompanies, topStocks]);
 
   const portfolioCandidates = useMemo(() => {
     const entries: PortfolioEntry[] = [
@@ -216,18 +212,14 @@ function App() {
       ...topEtfs,
       ...topCryptos,
     ];
-    if (night) {
-      entries.push({ ...night, category: "NIGHT", rank: 1 });
-    }
     return entries.filter(isTradablePortfolioAsset);
-  }, [night, topCryptos, topEtfs, topStocks]);
+  }, [topCryptos, topEtfs, topStocks]);
 
   const navLinks = useMemo(
     () =>
       SECTION_LINKS.filter((link) => {
         if (link.filter === "watchlist") return pinnedEntries.length > 0;
         if (link.filter === "portfolio") return sectionFilter === "all";
-        if (link.id === "section-night") return sectionFilter === "all";
         return sectionFilter === "all" || link.filter === sectionFilter;
       }),
     [pinnedEntries.length, sectionFilter],
@@ -278,10 +270,6 @@ function App() {
           onOpenAssetDetail={openAssetDetail}
         />
 
-        {sectionFilter === "all" ? (
-          <PortfolioLab candidates={portfolioCandidates} holdings={holdings} onChange={setHoldings} />
-        ) : null}
-
         <MarketSections
           shouldShowSection={shouldShowSection}
           generatedAt={generatedAt}
@@ -310,7 +298,7 @@ function App() {
         />
 
         {sectionFilter === "all" ? (
-          <NightTicker night={night} generatedAt={generatedAt} onOpenDetail={openAssetDetail} />
+          <PortfolioLab candidates={portfolioCandidates} holdings={holdings} onChange={setHoldings} />
         ) : null}
       </DashboardShell>
 

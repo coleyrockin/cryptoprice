@@ -2011,7 +2011,40 @@ html:not(.dark) .watchlist-surface {
 }
 
 .watchlist-grid {
-  margin-top: 0.75rem;
+  margin-top: 0.6rem;
+}
+
+/* Watchlist is a small quick-reference strip pinned to the top — keep it
+   visually subordinate to the main market sections. */
+.watchlist-surface {
+  padding: 0.6rem 0.8rem;
+}
+
+.watchlist-surface .surface-head h2 {
+  font-size: clamp(0.82rem, 1.4vw, 0.95rem);
+}
+
+.watchlist-grid {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.42rem;
+}
+
+.watchlist-grid .coin-card {
+  padding: 0.55rem;
+}
+
+.watchlist-grid .coin-card h3 {
+  font-size: 0.82rem;
+}
+
+.watchlist-grid .coin-price {
+  font-size: 0.98rem;
+  margin-top: 0.36rem;
+}
+
+.watchlist-grid .coin-foot {
+  margin-top: 0.34rem;
+  min-height: 26px;
 }
 
 /* Currencies: teal hover glow */

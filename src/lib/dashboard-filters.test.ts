@@ -81,14 +81,13 @@ describe("dashboard-filters", () => {
     expect(SORT_OPTIONS.map((o) => o.value)).toEqual(["rank", "name", "value", "movement"]);
     expect(SECTION_LINKS.map((l) => l.id)).toEqual([
       "section-watchlist",
-      "section-portfolio",
       "section-assets",
       "section-stocks",
-      "section-private-companies",
       "section-etfs",
+      "section-private-companies",
       "section-currencies",
       "section-cryptos",
-      "section-night",
+      "section-portfolio",
     ]);
   });
 
