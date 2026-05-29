@@ -59,7 +59,7 @@ describe("Stooq provider", () => {
     const calls = fetchMock.mock.calls.map((call) => String(call[0] as string | URL));
     expect(calls[0]).toContain("s=nvda.us+googl.us+aapl.us");
     expect(calls.some((url) => url.includes("query1.finance.yahoo.com/v7/finance/quote"))).toBe(true);
-    expect(stocks).toHaveLength(14);
+    expect(stocks).toHaveLength(15);
     expect(stocks[0]).toMatchObject({
       symbol: "GOOGL",
       priceUsd: 390,
@@ -193,7 +193,7 @@ describe("Stooq provider", () => {
     const calls = fetchMock.mock.calls.map((call) => String(call[0] as string | URL));
     expect(calls.some((url) => url.includes("stooq.com"))).toBe(true);
     expect(calls.some((url) => url.includes("query1.finance.yahoo.com/v7/finance/quote"))).toBe(true);
-    expect(stocks).toHaveLength(14);
+    expect(stocks).toHaveLength(15);
     expect(stocks[0]).toMatchObject({
       symbol: "NVDA",
       priceUsd: 225,
@@ -237,7 +237,7 @@ describe("Stooq provider", () => {
 
     const calls = fetchMock.mock.calls.map((call) => String(call[0] as string | URL));
     expect(calls.some((url) => url.includes("/v8/finance/chart/NVDA"))).toBe(true);
-    expect(stocks).toHaveLength(14);
+    expect(stocks).toHaveLength(15);
     expect(stocks.find((stock) => stock.symbol === "NVDA")).toMatchObject({
       priceUsd: 225,
       changePercent: 2.272727272727273,

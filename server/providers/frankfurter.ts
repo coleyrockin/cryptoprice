@@ -22,6 +22,11 @@ const CURRENCY_DEFINITIONS: CurrencyDef[] = [
   { symbol: "CNY", name: "Chinese Yuan",       countryCode: "cn" },
   { symbol: "HKD", name: "Hong Kong Dollar",   countryCode: "hk" },
   { symbol: "NZD", name: "New Zealand Dollar", countryCode: "nz" },
+  { symbol: "SGD", name: "Singapore Dollar",   countryCode: "sg" },
+  { symbol: "INR", name: "Indian Rupee",       countryCode: "in" },
+  { symbol: "KRW", name: "South Korean Won",   countryCode: "kr" },
+  { symbol: "SEK", name: "Swedish Krona",      countryCode: "se" },
+  { symbol: "MXN", name: "Mexican Peso",       countryCode: "mx" },
 ];
 
 const FOREIGN_SYMBOLS = CURRENCY_DEFINITIONS

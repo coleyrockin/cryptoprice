@@ -454,7 +454,7 @@ export async function buildDashboardPayload(options: DashboardBuildOptions = {})
       logger,
       fetcher: () =>
         fetchTopCryptosFromCoinpaprika({
-          limit: 10,
+          limit: 15,
           baseUrl: options.coinpaprikaBaseUrl,
           timeoutMs,
           retries,

@@ -106,7 +106,7 @@ export function MarketSections(props: MarketSectionsProps) {
           {...common}
           id="section-assets"
           surfaceClass="global-assets-surface"
-          title="Global Asset Leaders"
+          title="Top 15 Global Assets"
           subtitle={equityEstimateLabel}
           meta={segmentMeta?.topStocks}
           totalCount={props.topAssets.length}
@@ -122,7 +122,7 @@ export function MarketSections(props: MarketSectionsProps) {
           {...common}
           id="section-stocks"
           surfaceClass="stocks-surface"
-          title="Top Public Companies"
+          title="Top 15 Public Companies"
           subtitle={equityEstimateLabel}
           meta={segmentMeta?.topStocks}
           totalCount={props.topStocks.length}
@@ -137,7 +137,7 @@ export function MarketSections(props: MarketSectionsProps) {
           {...common}
           id="section-private-companies"
           surfaceClass="private-companies-surface"
-          title="Top Private Companies"
+          title="Top 15 Private Companies"
           subtitle="Curated valuations from disclosed rounds — not a live market feed"
           totalCount={props.topPrivateCompanies.length}
           visibleEntries={props.visibleTopPrivateCompanies}
@@ -151,7 +151,7 @@ export function MarketSections(props: MarketSectionsProps) {
           {...common}
           id="section-etfs"
           surfaceClass="etfs-surface"
-          title="Top 10 ETFs"
+          title="Top 15 ETFs"
           subtitle="Ranked by fund AUM; unit prices live when available"
           meta={segmentMeta?.topEtfs}
           totalCount={props.topEtfs.length}
@@ -166,7 +166,7 @@ export function MarketSections(props: MarketSectionsProps) {
           {...common}
           id="section-currencies"
           surfaceClass="currencies-surface"
-          title="Top 10 Currencies"
+          title="Top 15 Currencies"
           subtitle="Exchange rates vs USD"
           meta={segmentMeta?.topCurrencies}
           totalCount={props.topCurrencies.length}
@@ -181,7 +181,7 @@ export function MarketSections(props: MarketSectionsProps) {
           {...common}
           id="section-cryptos"
           surfaceClass="cryptos-surface"
-          title="Top 10 Cryptocurrencies"
+          title="Top 15 Cryptocurrencies"
           subtitle="Live market feed"
           meta={segmentMeta?.topCryptos}
           totalCount={props.topCryptos.length}

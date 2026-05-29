@@ -39,12 +39,13 @@ const PUBLIC_COMPANIES: PublicCompanyDefinition[] = [
   { id: "stock-wmt", symbol: "WMT", quoteSymbol: "WMT", name: "Walmart", shares: 7_985_000_000 },
   { id: "stock-brk-b", symbol: "BRK-B", quoteSymbol: "BRK-B", name: "Berkshire Hathaway", shares: 2_160_000_000 },
   { id: "stock-lly", symbol: "LLY", quoteSymbol: "LLY", name: "Eli Lilly", shares: 891_740_000 },
+  { id: "stock-jpm", symbol: "JPM", quoteSymbol: "JPM", name: "JPMorgan Chase", shares: 2_716_000_000 },
 ];
 
 const TOP_STOCK_SYMBOLS = PUBLIC_COMPANIES
   .map((company) => company.quoteSymbol)
   .filter((symbol): symbol is string => typeof symbol === "string");
-const TOP_ETF_SYMBOLS = ["VOO", "IVV", "SPY", "VTI", "QQQ", "VUG", "GLD", "BND", "VXUS", "AGG"];
+const TOP_ETF_SYMBOLS = ["VOO", "IVV", "SPY", "VTI", "QQQ", "VUG", "GLD", "BND", "VXUS", "AGG", "VTV", "VEA", "IEFA", "VWO", "IWF"];
 
 type FallbackStockRow = {
   symbol?: string;
@@ -119,6 +120,11 @@ const ETF_NAMES: Record<string, string> = {
   AGG: "iShares Core U.S. Aggregate Bond ETF",
   VXUS: "Vanguard Total International Stock ETF",
   GLD: "SPDR Gold Shares",
+  VTV: "Vanguard Value ETF",
+  VEA: "Vanguard FTSE Developed Markets ETF",
+  IEFA: "iShares Core MSCI EAFE ETF",
+  VWO: "Vanguard FTSE Emerging Markets ETF",
+  IWF: "iShares Russell 1000 Growth ETF",
 };
 
 export type FetchStooqOptions = {
