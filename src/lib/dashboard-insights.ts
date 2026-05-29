@@ -4,7 +4,6 @@ import type {
   DashboardCrypto,
   DashboardCurrency,
   DashboardEtf,
-  DashboardNight,
   DashboardPrivateCompany,
   DashboardPayload,
   DashboardStock,
@@ -256,20 +255,4 @@ export function buildDashboardInsights(dashboard: DashboardPayload): DashboardIn
     getLargestMover(dashboard),
     getGlobalLeader(dashboard.topAssets),
   ];
-}
-
-export function nightAsPinnedEntry(night: DashboardNight): DashboardCrypto {
-  return {
-    id: night.id,
-    rank: 1,
-    name: night.name,
-    symbol: night.symbol,
-    category: "Crypto",
-    priceUsd: night.priceUsd,
-    marketCapUsd: night.marketCapUsd,
-    change24h: night.change24h,
-    sparkline7d: [],
-    logoUrl: night.logoUrl,
-    fallbackLogoUrls: night.fallbackLogoUrls,
-  };
 }
