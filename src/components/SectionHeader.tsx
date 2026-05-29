@@ -12,6 +12,8 @@ type SectionHeaderProps = {
   accentFallbackLogoUrls?: string[];
   meta?: DashboardSegmentMeta;
   generatedAt?: string;
+  /** Shown in the header-right slot for non-live sections that have no freshness badge. */
+  staticBadge?: string;
 };
 
 export const SectionHeader = memo(function SectionHeader({
@@ -22,6 +24,7 @@ export const SectionHeader = memo(function SectionHeader({
   accentFallbackLogoUrls,
   meta,
   generatedAt,
+  staticBadge,
 }: SectionHeaderProps) {
   return (
     <div className="surface-head">
@@ -41,7 +44,14 @@ export const SectionHeader = memo(function SectionHeader({
       </div>
       <div className="surface-head-meta">
         <p>{subtitle}</p>
-        {meta && generatedAt ? <FreshnessBadge meta={meta} generatedAt={generatedAt} /> : null}
+        {meta && generatedAt ? (
+          <FreshnessBadge meta={meta} generatedAt={generatedAt} />
+        ) : staticBadge ? (
+          <span className="freshness-badge freshness-badge--static">
+            <span className="freshness-dot" aria-hidden="true" />
+            {staticBadge}
+          </span>
+        ) : null}
       </div>
     </div>
   );

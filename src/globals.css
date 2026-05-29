@@ -33,7 +33,7 @@
   --surface-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(100, 180, 255, 0.04), 0 8px 40px rgba(0, 0, 0, 0.35), 0 0 60px rgba(100, 180, 255, 0.03);
   --nav-bg: rgba(4, 4, 10, 0.75);
   --input-bg: rgba(8, 8, 12, 0.8);
-  --card-bg: linear-gradient(160deg, rgba(14, 14, 22, 0.92), rgba(8, 8, 14, 0.96)) padding-box, linear-gradient(160deg, rgba(255, 255, 255, 0.12), rgba(100, 180, 255, 0.08), rgba(184, 156, 255, 0.06)) border-box;
+  --card-bg: linear-gradient(160deg, rgba(14, 14, 22, 0.92), rgba(8, 8, 14, 0.96)) padding-box, linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(34, 192, 255, 0.22), rgba(168, 85, 247, 0.18)) border-box;
   --logo-fallback-bg: rgba(255, 255, 255, 0.1);
   --logo-fallback-color: #c8c8cf;
   --monogram-border: rgba(255, 255, 255, 0.18);
@@ -892,22 +892,25 @@ html:not(.dark) .status.stale {
 }
 
 .surface-head h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: clamp(1rem, 2vw, 1.32rem);
   font-weight: 700;
   letter-spacing: 0.03em;
-  background: linear-gradient(135deg, #fff 0%, #22c0ff 40%, #a855f7 80%, #ff28cc 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.3));
+  color: var(--text);
 }
 
-html:not(.dark) .surface-head h2 {
-  background: linear-gradient(135deg, #1e1b4b 0%, #4f46e5 40%, #7c3aed 75%, #db2777 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 12px rgba(124, 58, 237, 0.2));
+/* Section-coded accent bar — the animated rainbow gradient is reserved strictly for
+   the hero h1, so section h2s read as subordinate while still carrying identity. */
+.surface-head h2::before {
+  content: "";
+  width: 3px;
+  height: 1.05em;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: var(--section-accent, var(--brand-cyan));
+  box-shadow: 0 0 10px var(--section-accent, var(--brand-cyan));
 }
 
 .surface-head p {
@@ -977,6 +980,14 @@ html:not(.dark) .freshness-badge {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.08);
   border-color: rgba(239, 68, 68, 0.24);
+}
+
+/* Non-live sections (e.g. curated private valuations) get a static identity chip
+   instead of a freshness badge, so the header-right slot is never empty. */
+.freshness-badge--static {
+  color: var(--amber);
+  background: rgba(250, 204, 21, 0.08);
+  border-color: rgba(250, 204, 21, 0.22);
 }
 
 .freshness-age {
@@ -1111,7 +1122,7 @@ html:not(.dark) .coin-card::before {
 .asset-note, .coin-foot, .card-actions { position: relative; z-index: 1; }
 
 .coin-card:hover, .coin-card:focus-visible {
-  transform: translateY(-8px) scale(1.03);
+  transform: translateY(-4px) scale(1.01);
   background:
     linear-gradient(
       138deg,
@@ -1131,19 +1142,22 @@ html:not(.dark) .coin-card::before {
 
 .coin-card:focus-visible { outline: none; }
 
+/* Selected card: a steady solid-accent border + top marker bar + glow —
+   deliberately distinct from the rainbow shimmer/lift of :hover. */
 .coin-card.active {
   background:
     linear-gradient(
       145deg,
-      rgba(var(--hover-blue), 0.15),
+      rgba(var(--hover-blue), 0.16),
       rgba(var(--hover-green), 0.1) 50%,
       rgba(var(--hover-pink), 0.08)
     ) padding-box,
-    linear-gradient(135deg, rgba(100, 210, 255, 0.5), rgba(184, 156, 255, 0.4), rgba(255, 120, 220, 0.4)) border-box;
+    linear-gradient(135deg, var(--brand-cyan), var(--brand-violet)) border-box;
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 0 40px rgba(100, 180, 255, 0.12),
-    0 16px 32px rgba(0, 0, 0, 0.5);
+    inset 0 2px 0 0 var(--accent-cyan),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 36px rgba(34, 192, 255, 0.16),
+    0 14px 30px rgba(0, 0, 0, 0.5);
 }
 
 .asset-card {
@@ -1480,30 +1494,26 @@ html:not(.dark) .card-chip.active {
   height: 26px;
   flex-shrink: 0;
   display: block;
-  filter: drop-shadow(0 0 4px rgba(80, 215, 155, 0.3));
+  filter: drop-shadow(0 0 4px rgba(34, 192, 255, 0.28));
   transition: filter 280ms ease;
 }
 
 .coin-card:hover .card-sparkline,
 .coin-card:focus-visible .card-sparkline {
-  filter: drop-shadow(0 0 6px rgba(80, 215, 155, 0.55)) drop-shadow(0 0 12px rgba(100, 210, 255, 0.25));
+  filter: drop-shadow(0 0 7px rgba(34, 192, 255, 0.5)) drop-shadow(0 0 14px rgba(168, 85, 247, 0.2));
 }
 
 html:not(.dark) .card-sparkline {
   filter: drop-shadow(0 0 3px rgba(37, 99, 235, 0.18));
 }
 
+/* Stroke + fill are set inline per-card so the line reflects trend direction
+   (green up / red down). Keep only the non-color rendering hints here. */
 .card-sparkline polyline {
-  fill: none;
-  stroke: rgba(100, 210, 255, 0.9);
   stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
-}
-
-html:not(.dark) .card-sparkline polyline {
-  stroke: rgba(37, 99, 235, 0.8);
 }
 
 .sparkline-fill {
@@ -1854,16 +1864,16 @@ html:not(.dark) .skeleton-line {
 }
 
 /* ── Section-specific surface accents ── */
-.global-assets-surface { border-color: rgba(255, 122, 16, 0.35); }
-.stocks-surface { border-color: rgba(168, 85, 247, 0.32); }
-.private-companies-surface { border-color: rgba(250, 204, 21, 0.32); }
-.cryptos-surface { border-color: rgba(34, 192, 255, 0.32); }
-.etfs-surface { border-color: rgba(168, 85, 247, 0.32); }
-.currencies-surface { border-color: rgba(77, 240, 224, 0.32); }
+.global-assets-surface { border-color: rgba(255, 122, 16, 0.35); --section-accent: var(--brand-orange); }
+.stocks-surface { border-color: rgba(16, 185, 129, 0.32); --section-accent: #10b981; }
+.private-companies-surface { border-color: rgba(250, 204, 21, 0.32); --section-accent: #facc15; }
+.cryptos-surface { border-color: rgba(34, 192, 255, 0.32); --section-accent: var(--brand-cyan); }
+.etfs-surface { border-color: rgba(168, 85, 247, 0.32); --section-accent: var(--brand-violet); }
+.currencies-surface { border-color: rgba(77, 240, 224, 0.32); --section-accent: var(--accent-cyan); }
 .watchlist-surface { border-color: rgba(80, 255, 176, 0.34); }
 
 html:not(.dark) .global-assets-surface { border-color: rgba(234, 88, 12, 0.3); }
-html:not(.dark) .stocks-surface { border-color: rgba(124, 58, 237, 0.28); }
+html:not(.dark) .stocks-surface { border-color: rgba(5, 150, 105, 0.28); }
 html:not(.dark) .private-companies-surface { border-color: rgba(217, 119, 6, 0.28); }
 html:not(.dark) .cryptos-surface { border-color: rgba(99, 102, 241, 0.3); }
 html:not(.dark) .etfs-surface { border-color: rgba(109, 40, 217, 0.25); }

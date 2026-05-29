@@ -93,7 +93,13 @@ export const SectionGrid = memo(function SectionGrid(props: SectionGridProps) {
 
   return (
     <section id={id} className={clsx("surface", surfaceClass)}>
-      <SectionHeader title={title} subtitle={subtitle} meta={meta} generatedAt={generatedAt} />
+      <SectionHeader
+        title={title}
+        subtitle={subtitle}
+        meta={meta}
+        generatedAt={generatedAt}
+        staticBadge={props.variant === "private" ? "Curated" : undefined}
+      />
       {renderBody(props, isBooting, totalCount, normalizedSearchTerm, emptyLabel)}
       {footerNote ? <p className="disclaimer">{footerNote}</p> : null}
     </section>
@@ -155,8 +161,6 @@ function renderAssetCard(asset: DashboardAsset, index: number, common: CardCommo
       valueLabel="Est. Market Cap"
       value={formatCompactCurrency(asset.marketCapUsd)}
       priceTitle={buildPriceTitle(formatExactNumber(asset.marketCapUsd), common.generatedAt, "Exact market cap (USD)")}
-      secondary="Estimated market cap"
-      secondaryClassName="asset-note"
       index={index}
       logoUrl={asset.logoUrl}
       fallbackLogoUrls={asset.fallbackLogoUrls}
@@ -174,7 +178,7 @@ function renderStockCard(stock: DashboardStock, index: number, common: CardCommo
   const changeText = formatPercent(stock.changePercent);
   const hasChange = changeText !== "—";
   const priceText = stock.priceUsd === null
-    ? "Curated market cap"
+    ? "Curated"
     : hasChange
       ? `${formatCurrency(stock.priceUsd)} · ${changeText}`
       : formatCurrency(stock.priceUsd);
@@ -223,8 +227,6 @@ function renderPrivateCard(company: DashboardPrivateCompany, index: number, comm
       valueLabel="Valuation"
       value={formatCompactCurrency(company.marketCapUsd)}
       priceTitle={buildPriceTitle(formatExactNumber(company.marketCapUsd), common.generatedAt, "Exact valuation (USD)")}
-      secondary="Curated estimate"
-      secondaryClassName="asset-note"
       index={index}
       logoUrl={company.logoUrl}
       fallbackLogoUrls={company.fallbackLogoUrls}
