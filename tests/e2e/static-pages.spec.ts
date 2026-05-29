@@ -23,7 +23,7 @@ test("GitHub Pages static build serves dashboard and detail drawers without APIs
   await page.goto("/");
 
   await expect(page.getByRole("heading", { level: 1, name: /Global Assets Dashboard/i })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "Top Public Companies" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Top 15 Public Companies" })).toBeVisible();
   await expect(page.locator(".coin-card").first()).toBeVisible({ timeout: 15_000 });
 
   await page.getByRole("button", { name: /Show NVIDIA details/i }).first().click();

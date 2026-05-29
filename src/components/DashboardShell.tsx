@@ -65,7 +65,7 @@ export const DashboardShell = memo(function DashboardShell({
           <h1>
             Global Assets <span>Dashboard</span>
           </h1>
-          <p className="tagline">Top global assets, public companies, ETFs, currencies, cryptocurrencies, and NIGHT price with faster market discovery.</p>
+          <p className="tagline">Live crypto, daily equities, ETFs, FX, and curated private-company valuations — the top 15 of every market, ranked by market cap.</p>
           {insights.length ? (
             <dl className="hero-insights" aria-label="Dashboard highlights">
               {insights.map((insight) => (

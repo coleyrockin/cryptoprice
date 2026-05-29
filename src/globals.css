@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Sora:wght@500;700;800&display=swap");
 @import "tailwindcss";
 
 /* Class-based dark mode: add/remove .dark on <html> */
@@ -21,7 +20,8 @@
   --hover-blue: 100, 180, 255;
   --hover-green: 80, 255, 200;
   --hover-pink: 255, 120, 220;
-  --accent-blue: #60b8ffdd;
+  --accent-blue: #60b8ff;
+  --accent-blue-soft: rgba(96, 184, 255, 0.85);
   --accent-purple: #b89cff;
   --accent-cyan: #4df0e0;
   --amber: #ffc36e;
@@ -37,6 +37,27 @@
   --logo-fallback-bg: rgba(255, 255, 255, 0.1);
   --logo-fallback-color: #c8c8cf;
   --monogram-border: rgba(255, 255, 255, 0.18);
+
+  /* Brand gradient stops (shared across themes; matches favicon) */
+  --brand-cyan: #22c0ff;
+  --brand-violet: #a855f7;
+  --brand-magenta: #ff28cc;
+  --brand-orange: #ff7a10;
+
+  /* Radius scale */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
 }
 
 /* Light theme overrides */
@@ -56,6 +77,7 @@ html:not(.dark) {
   --hover-green: 5, 150, 105;
   --hover-pink: 219, 39, 119;
   --accent-blue: #2563eb;
+  --accent-blue-soft: rgba(37, 99, 235, 0.85);
   --accent-purple: #7c3aed;
   --accent-cyan: #0891b2;
   --amber: #b45309;

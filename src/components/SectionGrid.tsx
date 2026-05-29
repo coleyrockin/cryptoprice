@@ -27,7 +27,7 @@ export type SectionVariant = "assets" | "stocks" | "private" | "etfs" | "currenc
 
 type SkeletonGridProps = { count?: number };
 
-export function SkeletonGrid({ count = 10 }: SkeletonGridProps) {
+export function SkeletonGrid({ count = 15 }: SkeletonGridProps) {
   return (
     <div className="coin-grid" aria-hidden="true">
       {Array.from({ length: count }, (_, index) => (

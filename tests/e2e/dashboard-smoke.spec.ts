@@ -6,9 +6,9 @@ test("dashboard smoke renders cards, symbols, logos, and status", async ({ page 
   await expect(page.getByRole("heading", { level: 1, name: /Global Assets Dashboard/i })).toBeVisible();
   await expect(page.getByLabel("Search markets")).toBeVisible();
   await expect(page.getByLabel("Sort markets")).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "Global Asset Leaders" })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "Top 10 Cryptocurrencies" })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "Top Public Companies" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Top 15 Global Assets" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Top 15 Cryptocurrencies" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Top 15 Public Companies" })).toBeVisible();
 
   const cards = page.locator(".coin-card");
   await expect(cards.first()).toBeVisible({ timeout: 15_000 });
