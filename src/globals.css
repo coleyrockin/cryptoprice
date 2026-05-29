@@ -1290,12 +1290,11 @@ html:not(.dark) .coin-card:focus-visible .symbol-pill {
 /* ── Coin Price & Change ── */
 .coin-value-label {
   margin: 0.44rem 0 0;
-  font-size: 0.56rem;
+  font-size: 0.58rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-dim);
   font-weight: 600;
-  opacity: 0.75;
 }
 
 .coin-value-label + .coin-price {
@@ -1370,12 +1369,12 @@ html:not(.dark) .filter-empty {
 
 /* ── Card Footer ── */
 .coin-foot {
-  margin-top: 0.62rem;
+  margin-top: 0.46rem;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 0.5rem;
-  min-height: 36px;
+  min-height: 30px;
 }
 
 .card-actions {
