@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useEffect, useRef } from "react";
 
 import { LogoMark } from "./LogoMark";
-import { formatCompactCurrency, formatCurrency, formatExactCurrency, formatPercent, trendClass } from "../lib/formatters";
+import { formatCompactCurrency, formatCurrency, formatPercent, trendClass } from "../lib/formatters";
 import type { AssetDetailPayload, HistoricalRange } from "../types/dashboard";
 
 const FOCUSABLE_SELECTOR =
@@ -67,7 +67,7 @@ function HistoryMeta({ points }: { points: AssetDetailPayload["history"]["points
     <p className="detail-chart-meta">
       <span>{points.length} pts</span>
       <span>low {formatCompactCurrency(Math.min(...values))} · high {formatCompactCurrency(Math.max(...values))}</span>
-      <span>latest {formatExactCurrency(values[values.length - 1])}</span>
+      <span>latest {formatCurrency(values[values.length - 1])}</span>
     </p>
   );
 }
