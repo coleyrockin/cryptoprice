@@ -1,6 +1,7 @@
 import clsx from "clsx";
-import type { RefObject } from "react";
+import { memo, type RefObject } from "react";
 
+import { useNow } from "../hooks/useNow";
 import {
   SECTION_FILTERS,
   SORT_OPTIONS,
@@ -22,10 +23,35 @@ type MarketControlsProps = {
   onDensityToggle: () => void;
   isFetching: boolean;
   generatedAt: string | undefined;
-  now: number;
 };
 
-export function MarketControls({
+/**
+ * Isolated "Updated Xs ago" status. It is the ONLY thing that ticks with the
+ * shared clock, so the second-by-second relative time never re-renders the rest
+ * of the toolbar or the dashboard. No `aria-live` — a fresh announcement every
+ * second is screen-reader spam; the timestamp is in the tooltip for those who want it.
+ */
+const RefreshStatus = memo(function RefreshStatus({
+  generatedAt,
+  isFetching,
+}: {
+  generatedAt: string | undefined;
+  isFetching: boolean;
+}) {
+  const now = useNow();
+  return (
+    <span
+      className={clsx("toolbar-updated", isFetching && "is-fetching")}
+      title={generatedAt ? `Last update: ${new Date(generatedAt).toLocaleString()}` : "Waiting for first update"}
+    >
+      <span className="toolbar-updated-dot" aria-hidden="true" />
+      <span className="toolbar-updated-label">{isFetching ? "Refreshing" : "Updated"}</span>
+      <span className="toolbar-updated-value">{formatRelativeTime(generatedAt, now)}</span>
+    </span>
+  );
+});
+
+export const MarketControls = memo(function MarketControls({
   searchTerm,
   onSearchChange,
   searchInputRef,
@@ -37,7 +63,6 @@ export function MarketControls({
   onDensityToggle,
   isFetching,
   generatedAt,
-  now,
 }: MarketControlsProps) {
   return (
     <section className="dashboard-toolbar" aria-label="Dashboard controls">
@@ -106,15 +131,7 @@ export function MarketControls({
         {density === "compact" ? "Comfort" : "Compact"}
       </button>
 
-      <span
-        className={clsx("toolbar-updated", isFetching && "is-fetching")}
-        title={generatedAt ? `Last update: ${new Date(generatedAt).toLocaleString()}` : "Waiting for first update"}
-        aria-live="polite"
-      >
-        <span className="toolbar-updated-dot" aria-hidden="true" />
-        <span className="toolbar-updated-label">{isFetching ? "Refreshing" : "Updated"}</span>
-        <span className="toolbar-updated-value">{formatRelativeTime(generatedAt, now)}</span>
-      </span>
+      <RefreshStatus generatedAt={generatedAt} isFetching={isFetching} />
     </section>
   );
-}
+});

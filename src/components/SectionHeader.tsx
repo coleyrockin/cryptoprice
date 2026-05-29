@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 import { FreshnessBadge } from "./FreshnessBadge";
 import { LogoMark } from "./LogoMark";
 import type { DashboardSegmentMeta } from "../types/dashboard";
@@ -12,7 +14,7 @@ type SectionHeaderProps = {
   generatedAt?: string;
 };
 
-export function SectionHeader({
+export const SectionHeader = memo(function SectionHeader({
   title,
   subtitle,
   accentSymbol,
@@ -43,4 +45,4 @@ export function SectionHeader({
       </div>
     </div>
   );
-}
+});

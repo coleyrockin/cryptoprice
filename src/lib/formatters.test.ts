@@ -9,6 +9,11 @@ describe("formatters", () => {
     expect(formatCompactCurrency(Infinity)).toBe("—");
   });
 
+  it("formats exact zero as $0.00 rather than $0.00000000", () => {
+    expect(formatCurrency(0)).toBe("$0.00");
+    expect(formatCurrency(-0)).toBe("$0.00");
+  });
+
   it("formats percent with sign and precision", () => {
     expect(formatPercent(1.234)).toBe("+1.23%");
     expect(formatPercent(-0.556)).toBe("-0.56%");

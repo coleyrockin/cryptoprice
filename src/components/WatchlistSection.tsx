@@ -1,14 +1,7 @@
-import { motion } from "framer-motion";
+import { memo } from "react";
 
 import { PinnedCard } from "./SectionGrid";
 import type { DashboardEntry } from "../lib/dashboard-insights";
-
-const REVEAL = {
-  initial: { opacity: 1, y: 0 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, amount: 0.12 as const },
-  transition: { duration: 0.5, ease: "easeOut" as const },
-};
 
 type WatchlistSectionProps = {
   entries: DashboardEntry[];
@@ -19,7 +12,7 @@ type WatchlistSectionProps = {
   onOpenAssetDetail: (id: string) => void;
 };
 
-export function WatchlistSection({
+export const WatchlistSection = memo(function WatchlistSection({
   entries,
   pinnedIdSet,
   onTogglePin,
@@ -30,11 +23,10 @@ export function WatchlistSection({
   if (!entries.length) return null;
 
   return (
-    <motion.section
+    <section
       id="section-watchlist"
       className="surface watchlist-surface"
       aria-labelledby="watchlist-heading"
-      {...REVEAL}
     >
       <div className="surface-head">
         <div className="surface-title-row">
@@ -60,6 +52,6 @@ export function WatchlistSection({
           />
         ))}
       </div>
-    </motion.section>
+    </section>
   );
-}
+});

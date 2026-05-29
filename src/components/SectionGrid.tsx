@@ -1,6 +1,5 @@
 import clsx from "clsx";
-import { motion } from "framer-motion";
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 
 import { MarketCard } from "./MarketCard";
 import { SectionHeader } from "./SectionHeader";
@@ -23,13 +22,6 @@ import type {
   DashboardSegmentMeta,
   DashboardStock,
 } from "../types/dashboard";
-
-const SECTION_REVEAL = {
-  initial: { opacity: 1, y: 0 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, amount: 0.12 as const },
-  transition: { duration: 0.5, ease: "easeOut" as const },
-};
 
 export type SectionVariant = "assets" | "stocks" | "private" | "etfs" | "currencies" | "cryptos";
 
@@ -79,11 +71,12 @@ type SectionGridProps = CommonProps &
         variant: "cryptos";
         visibleEntries: readonly DashboardCrypto[];
         activeCryptoId: string;
-        onCryptoActivate: (id: string) => void;
+        /** Stable handler that both activates the crypto and opens its detail drawer. */
+        onCryptoSelect: (id: string) => void;
       }
   );
 
-export function SectionGrid(props: SectionGridProps) {
+export const SectionGrid = memo(function SectionGrid(props: SectionGridProps) {
   const {
     id,
     surfaceClass,
@@ -99,13 +92,13 @@ export function SectionGrid(props: SectionGridProps) {
   } = props;
 
   return (
-    <motion.section id={id} className={clsx("surface", surfaceClass)} {...SECTION_REVEAL}>
+    <section id={id} className={clsx("surface", surfaceClass)}>
       <SectionHeader title={title} subtitle={subtitle} meta={meta} generatedAt={generatedAt} />
       {renderBody(props, isBooting, totalCount, normalizedSearchTerm, emptyLabel)}
       {footerNote ? <p className="disclaimer">{footerNote}</p> : null}
-    </motion.section>
+    </section>
   );
-}
+});
 
 function renderBody(
   props: SectionGridProps,
@@ -168,11 +161,11 @@ function renderAssetCard(asset: DashboardAsset, index: number, common: CardCommo
       logoUrl={asset.logoUrl}
       fallbackLogoUrls={asset.fallbackLogoUrls}
       pinned={common.pinnedIdSet.has(asset.id)}
-      onTogglePin={() => common.onTogglePin(asset.id)}
+      onTogglePin={common.onTogglePin}
       assetStyle
       interactive
       active={asset.id === common.selectedAssetId}
-      onClick={() => common.onOpenAssetDetail(asset.id)}
+      onSelect={common.onOpenAssetDetail}
     />
   );
 }
@@ -209,11 +202,11 @@ function renderStockCard(stock: DashboardStock, index: number, common: CardCommo
       logoUrl={stock.logoUrl}
       fallbackLogoUrls={stock.fallbackLogoUrls}
       pinned={common.pinnedIdSet.has(stock.id)}
-      onTogglePin={() => common.onTogglePin(stock.id)}
+      onTogglePin={common.onTogglePin}
       assetStyle
       interactive
       active={stock.id === common.selectedAssetId}
-      onClick={() => common.onOpenAssetDetail(stock.id)}
+      onSelect={common.onOpenAssetDetail}
     />
   );
 }
@@ -227,7 +220,7 @@ function renderPrivateCard(company: DashboardPrivateCompany, index: number, comm
       name={company.name}
       symbol={company.symbol}
       meta={company.category}
-      valueLabel="Verified valuation"
+      valueLabel="Valuation"
       value={formatCompactCurrency(company.marketCapUsd)}
       priceTitle={buildPriceTitle(formatExactNumber(company.marketCapUsd), common.generatedAt, "Exact valuation (USD)")}
       secondary="Curated estimate"
@@ -236,11 +229,11 @@ function renderPrivateCard(company: DashboardPrivateCompany, index: number, comm
       logoUrl={company.logoUrl}
       fallbackLogoUrls={company.fallbackLogoUrls}
       pinned={common.pinnedIdSet.has(company.id)}
-      onTogglePin={() => common.onTogglePin(company.id)}
+      onTogglePin={common.onTogglePin}
       assetStyle
       interactive
       active={company.id === common.selectedAssetId}
-      onClick={() => common.onOpenAssetDetail(company.id)}
+      onSelect={common.onOpenAssetDetail}
     />
   );
 }
@@ -248,6 +241,18 @@ function renderPrivateCard(company: DashboardPrivateCompany, index: number, comm
 function renderEtfCard(etf: DashboardEtf, index: number, common: CardCommon): ReactNode {
   const changeText = formatPercent(etf.changePercent);
   const hasChange = changeText !== "—";
+  // ETFs are ranked by fund size (AUM), so AUM is the headline value — mirroring
+  // how stock cards lead with market cap — with unit price + daily change beneath.
+  const priceText = etf.priceUsd === null
+    ? (hasChange ? changeText : "—")
+    : hasChange
+      ? `${formatCurrency(etf.priceUsd)} · ${changeText}`
+      : formatCurrency(etf.priceUsd);
+  const priceTooltip = etf.priceUsd === null
+    ? (hasChange ? "Daily change" : undefined)
+    : hasChange
+      ? "Unit price and daily change"
+      : "Unit price";
 
   return (
     <MarketCard
@@ -257,21 +262,21 @@ function renderEtfCard(etf: DashboardEtf, index: number, common: CardCommon): Re
       name={etf.name}
       symbol={etf.symbol}
       meta={etf.category}
-      valueLabel="Price"
-      value={formatCurrency(etf.priceUsd)}
-      priceTitle={buildPriceTitle(formatExactCurrency(etf.priceUsd), common.generatedAt)}
-      secondary={hasChange ? changeText : "—"}
+      valueLabel="AUM"
+      value={formatCompactCurrency(etf.aumUsd)}
+      priceTitle={buildPriceTitle(formatExactNumber(etf.aumUsd), common.generatedAt, "Exact AUM (USD)")}
+      secondary={priceText}
       secondaryClassName={hasChange ? clsx("coin-change", trendClass(etf.changePercent)) : "asset-note"}
-      secondaryTitle={hasChange ? "Daily change" : undefined}
+      secondaryTitle={priceTooltip}
       index={index}
       logoUrl={etf.logoUrl}
       fallbackLogoUrls={etf.fallbackLogoUrls}
       pinned={common.pinnedIdSet.has(etf.id)}
-      onTogglePin={() => common.onTogglePin(etf.id)}
+      onTogglePin={common.onTogglePin}
       assetStyle
       interactive
       active={etf.id === common.selectedAssetId}
-      onClick={() => common.onOpenAssetDetail(etf.id)}
+      onSelect={common.onOpenAssetDetail}
     />
   );
 }
@@ -295,11 +300,11 @@ function renderCurrencyCard(currency: DashboardCurrency, index: number, common: 
       logoUrl={currency.logoUrl}
       fallbackLogoUrls={currency.fallbackLogoUrls}
       pinned={common.pinnedIdSet.has(currency.id)}
-      onTogglePin={() => common.onTogglePin(currency.id)}
+      onTogglePin={common.onTogglePin}
       assetStyle
       interactive
       active={currency.id === common.selectedAssetId}
-      onClick={() => common.onOpenAssetDetail(currency.id)}
+      onSelect={common.onOpenAssetDetail}
     />
   );
 }
@@ -326,13 +331,10 @@ function renderCryptoCard(
       logoUrl={coin.logoUrl}
       fallbackLogoUrls={coin.fallbackLogoUrls}
       pinned={props.pinnedIdSet.has(coin.id)}
-      onTogglePin={() => props.onTogglePin(coin.id)}
+      onTogglePin={props.onTogglePin}
       interactive
       active={coin.id === props.activeCryptoId || coin.id === props.selectedAssetId}
-      onClick={() => {
-        props.onCryptoActivate(coin.id);
-        props.onOpenAssetDetail(coin.id);
-      }}
+      onSelect={props.onCryptoSelect}
       sparkline={coin.sparkline7d}
     />
   );
@@ -352,7 +354,7 @@ type PinnedCardProps = {
  * Render a single pinned-watchlist card. Pinned cards are rendered outside
  * SectionGrid because their value/secondary varies per underlying entry kind.
  */
-export function PinnedCard({
+export const PinnedCard = memo(function PinnedCard({
   entry,
   index,
   pinnedIdSet,
@@ -422,12 +424,12 @@ export function PinnedCard({
       logoUrl={entry.logoUrl}
       fallbackLogoUrls={entry.fallbackLogoUrls}
       pinned={pinnedIdSet.has(entry.id)}
-      onTogglePin={() => onTogglePin(entry.id)}
+      onTogglePin={onTogglePin}
       sparkline={isCrypto ? entry.sparkline7d : undefined}
       assetStyle={!isCrypto}
       interactive
       active={entry.id === selectedAssetId}
-      onClick={() => onOpenAssetDetail(entry.id)}
+      onSelect={onOpenAssetDetail}
     />
   );
-}
+});

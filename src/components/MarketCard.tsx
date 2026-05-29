@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from "react";
+import { memo, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 
 import { useTilt } from "../hooks/useTilt";
 import { LogoMark } from "./LogoMark";
@@ -20,12 +20,15 @@ type MarketCardProps = {
   fallbackLogoUrls?: string[];
   interactive?: boolean;
   active?: boolean;
-  onClick?: () => void;
+  /** Called with the card's id when the card is activated (click / Enter / Space). */
+  onSelect?: (id: string) => void;
   assetStyle?: boolean;
   pinned?: boolean;
-  onTogglePin?: () => void;
+  /** Called with the card's id when the pin chip is toggled. */
+  onTogglePin?: (id: string) => void;
   compared?: boolean;
-  onToggleCompare?: () => void;
+  /** Called with the card's id when the compare chip is toggled. */
+  onToggleCompare?: (id: string) => void;
   sparkline?: number[];
   priceTitle?: string;
   secondaryTitle?: string;
@@ -72,7 +75,7 @@ function renderSparkline(points: number[], cardId: string): ReactNode {
   );
 }
 
-export function MarketCard({
+export const MarketCard = memo(function MarketCard({
   id,
   rank,
   name,
@@ -87,7 +90,7 @@ export function MarketCard({
   fallbackLogoUrls,
   interactive = false,
   active = false,
-  onClick,
+  onSelect,
   assetStyle = false,
   pinned = false,
   onTogglePin,
@@ -131,7 +134,7 @@ export function MarketCard({
           className={clsx("card-chip", pinned && "active")}
           onClick={(event) => {
             event.stopPropagation();
-            onTogglePin();
+            onTogglePin(id);
           }}
           aria-pressed={pinned}
           aria-label={pinned ? `Unpin ${name} from watchlist` : `Pin ${name} to watchlist`}
@@ -146,7 +149,7 @@ export function MarketCard({
           className={clsx("card-chip", compared && "active")}
           onClick={(event) => {
             event.stopPropagation();
-            onToggleCompare();
+            onToggleCompare(id);
           }}
           aria-pressed={compared}
           aria-label={compared ? `Remove ${name} from compare` : `Add ${name} to compare`}
@@ -200,7 +203,7 @@ export function MarketCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.22 }}
       style={{ ...cardStyle, ...tilt.style }}
-      onClick={onClick}
+      onClick={onSelect ? () => onSelect(id) : undefined}
       onMouseMove={tilt.onMouseMove}
       onMouseLeave={tilt.onMouseLeave}
       role="button"
@@ -208,7 +211,7 @@ export function MarketCard({
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onClick?.();
+          onSelect?.(id);
         }
       }}
       aria-pressed={active}
@@ -217,4 +220,4 @@ export function MarketCard({
       {content}
     </motion.article>
   );
-}
+});

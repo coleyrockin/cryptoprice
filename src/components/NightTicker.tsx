@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { motion } from "framer-motion";
+import { memo } from "react";
 
 import { LogoMark } from "./LogoMark";
 import { buildPriceTitle } from "../lib/dashboard-filters";
@@ -13,22 +13,15 @@ import {
 } from "../lib/formatters";
 import type { DashboardNight } from "../types/dashboard";
 
-const REVEAL = {
-  initial: { opacity: 1, y: 0 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, amount: 0.12 as const },
-  transition: { duration: 0.5, ease: "easeOut" as const },
-};
-
 type NightTickerProps = {
   night: DashboardNight | null;
   generatedAt: string | undefined;
   onOpenDetail: (id: string) => void;
 };
 
-export function NightTicker({ night, generatedAt, onOpenDetail }: NightTickerProps) {
+export const NightTicker = memo(function NightTicker({ night, generatedAt, onOpenDetail }: NightTickerProps) {
   return (
-    <motion.section id="section-night" className="surface midnight-surface night-ticker" {...REVEAL}>
+    <section id="section-night" className="surface midnight-surface night-ticker" aria-label="NIGHT token ticker">
       {night ? (
         <div className="night-ticker-row">
           <LogoMark name="NIGHT" symbol={night.symbol} logoUrl={night.logoUrl} fallbackLogoUrls={night.fallbackLogoUrls} />
@@ -57,6 +50,6 @@ export function NightTicker({ night, generatedAt, onOpenDetail }: NightTickerPro
       ) : (
         <p className="muted" style={{ margin: 0, fontSize: "0.72rem" }}>Waiting for NIGHT feed...</p>
       )}
-    </motion.section>
+    </section>
   );
-}
+});

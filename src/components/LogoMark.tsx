@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 
 import { normalizeMonogram } from "../lib/monogram";
 
@@ -36,7 +36,7 @@ function logoSourceUrl(source: string): string {
   return `/api/logo?url=${encodeURIComponent(source)}`;
 }
 
-export function LogoMark({ name, symbol, logoUrl, fallbackLogoUrls = [] }: LogoMarkProps) {
+export const LogoMark = memo(function LogoMark({ name, symbol, logoUrl, fallbackLogoUrls = [] }: LogoMarkProps) {
   const [logoIndex, setLogoIndex] = useState(0);
 
   const sources = useMemo(
@@ -78,4 +78,4 @@ export function LogoMark({ name, symbol, logoUrl, fallbackLogoUrls = [] }: LogoM
       }}
     />
   );
-}
+});

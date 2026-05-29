@@ -1,7 +1,11 @@
 import clsx from "clsx";
+import { useEffect, useRef } from "react";
 
 import { formatCompactCurrency, formatCurrency, formatExactCurrency, formatPercent, trendClass } from "../lib/formatters";
 import type { AssetDetailPayload, HistoricalRange } from "../types/dashboard";
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 const RANGES: HistoricalRange[] = ["7D", "30D", "1Y"];
 
@@ -44,9 +48,42 @@ export function AssetDetailDrawer({ detail, isLoading, error, range, onRangeChan
   const degradedReason =
     detail?.degradedReason && detail.degradedReason !== detail.history.reason ? detail.degradedReason : null;
 
+  const drawerRef = useRef<HTMLElement>(null);
+
+  // Focus management for the modal dialog: move focus in on open, trap Tab
+  // within it, and restore focus to the triggering element on close.
+  useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const drawer = drawerRef.current;
+    drawer?.querySelector<HTMLElement>(".detail-close")?.focus();
+
+    function handleTab(event: KeyboardEvent) {
+      if (event.key !== "Tab" || !drawer) return;
+      const focusables = Array.from(drawer.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !drawer.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleTab, true);
+    return () => {
+      document.removeEventListener("keydown", handleTab, true);
+      previouslyFocused?.focus?.();
+    };
+  }, []);
+
   return (
     <div className="detail-overlay" role="presentation" onMouseDown={onClose}>
       <aside
+        ref={drawerRef}
         className="asset-detail-drawer"
         role="dialog"
         aria-modal="true"

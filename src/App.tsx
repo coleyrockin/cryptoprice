@@ -66,7 +66,6 @@ function App() {
   const [activeSection, setActiveSection] = useState<string>("");
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [detailRange, setDetailRange] = useState<HistoricalRange>("30D");
-  const [now, setNow] = useState<number>(() => Date.now());
   const observerRef = useRef<IntersectionObserver | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -132,11 +131,6 @@ function App() {
       setActiveCryptoId(topCryptos[0].id);
     }
   }, [activeCryptoId, topCryptos]);
-
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
 
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
@@ -260,12 +254,16 @@ function App() {
           onDensityToggle={toggleDensity}
           isFetching={dashboardQuery.isFetching}
           generatedAt={generatedAt}
-          now={now}
         />
 
         <nav className="section-nav" aria-label="Dashboard sections">
           {navLinks.map((link) => (
-            <a key={link.id} href={`#${link.id}`} className={clsx(activeSection === link.id && "nav-active")}>
+            <a
+              key={link.id}
+              href={`#${link.id}`}
+              className={clsx(activeSection === link.id && "nav-active")}
+              aria-current={activeSection === link.id ? "true" : undefined}
+            >
               {link.label}
             </a>
           ))}

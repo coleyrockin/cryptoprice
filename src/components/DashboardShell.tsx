@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 
 import {
   type DensityMode,
@@ -25,7 +25,7 @@ type DashboardShellProps = {
  * plus the site footer. Renders everything else (controls + section
  * grids + drawer) as children.
  */
-export function DashboardShell({
+export const DashboardShell = memo(function DashboardShell({
   theme,
   onToggleTheme,
   insights,
@@ -103,7 +103,7 @@ export function DashboardShell({
           <div className="footer-content">
             <div className="footer-brand">
               <span className="footer-logo">World Asset Prices</span>
-              <span className="footer-tagline">Real-time global market intelligence</span>
+              <span className="footer-tagline">Live crypto · daily equities &amp; FX</span>
             </div>
             <div className="footer-links">
               <div className="footer-col">
@@ -128,4 +128,4 @@ export function DashboardShell({
       </main>
     </>
   );
-}
+});

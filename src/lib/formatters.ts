@@ -7,6 +7,10 @@ export function formatCurrency(value: unknown): string {
     return "—";
   }
 
+  if (value === 0) {
+    return "$0.00";
+  }
+
   const abs = Math.abs(value);
   let maxDigits = 2;
 

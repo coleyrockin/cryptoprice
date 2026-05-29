@@ -1,3 +1,5 @@
+import { useCallback, useMemo } from "react";
+
 import { SectionGrid } from "./SectionGrid";
 import type { SectionFilter } from "../lib/dashboard-filters";
 import type {
@@ -69,17 +71,33 @@ export function MarketSections(props: MarketSectionsProps) {
     onOpenAssetDetail,
     segmentMeta,
     equityEstimateLabel,
+    activeCryptoId,
+    onCryptoActivate,
   } = props;
 
-  const common = {
-    generatedAt,
-    isBooting,
-    normalizedSearchTerm,
-    pinnedIdSet,
-    onTogglePin,
-    selectedAssetId,
-    onOpenAssetDetail,
-  };
+  // Stable shared card-context so memoized SectionGrids don't re-render when an
+  // unrelated section's props change.
+  const common = useMemo(
+    () => ({
+      generatedAt,
+      isBooting,
+      normalizedSearchTerm,
+      pinnedIdSet,
+      onTogglePin,
+      selectedAssetId,
+      onOpenAssetDetail,
+    }),
+    [generatedAt, isBooting, normalizedSearchTerm, pinnedIdSet, onTogglePin, selectedAssetId, onOpenAssetDetail],
+  );
+
+  // Clicking a crypto card both marks it active and opens its detail drawer.
+  const handleCryptoSelect = useCallback(
+    (id: string) => {
+      onCryptoActivate(id);
+      onOpenAssetDetail(id);
+    },
+    [onCryptoActivate, onOpenAssetDetail],
+  );
 
   return (
     <>
@@ -120,8 +138,7 @@ export function MarketSections(props: MarketSectionsProps) {
           id="section-private-companies"
           surfaceClass="private-companies-surface"
           title="Top Private Companies"
-          subtitle="Verified primary valuations; targets stay secondary"
-          meta={segmentMeta?.topPrivateCompanies}
+          subtitle="Curated valuations from disclosed rounds — not a live market feed"
           totalCount={props.topPrivateCompanies.length}
           visibleEntries={props.visibleTopPrivateCompanies}
           variant="private"
@@ -135,7 +152,7 @@ export function MarketSections(props: MarketSectionsProps) {
           id="section-etfs"
           surfaceClass="etfs-surface"
           title="Top 10 ETFs"
-          subtitle={equityEstimateLabel}
+          subtitle="Ranked by fund AUM; unit prices live when available"
           meta={segmentMeta?.topEtfs}
           totalCount={props.topEtfs.length}
           visibleEntries={props.visibleTopEtfs}
@@ -171,8 +188,8 @@ export function MarketSections(props: MarketSectionsProps) {
           visibleEntries={props.visibleTopCryptos}
           variant="cryptos"
           emptyLabel="cryptocurrencies"
-          activeCryptoId={props.activeCryptoId}
-          onCryptoActivate={props.onCryptoActivate}
+          activeCryptoId={activeCryptoId}
+          onCryptoSelect={handleCryptoSelect}
         />
       ) : null}
     </>

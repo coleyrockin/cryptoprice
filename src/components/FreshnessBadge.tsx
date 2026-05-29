@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { memo } from "react";
 import clsx from "clsx";
 
+import { useNow } from "../hooks/useNow";
 import type { DashboardSegmentMeta } from "../types/dashboard";
 
 type FreshnessBadgeProps = {
@@ -37,16 +38,11 @@ function labelFor(source: DashboardSegmentMeta["source"]): string {
   }
 }
 
-export function FreshnessBadge({ meta, generatedAt }: FreshnessBadgeProps) {
+export const FreshnessBadge = memo(function FreshnessBadge({ meta, generatedAt }: FreshnessBadgeProps) {
   const baseMs = Date.parse(generatedAt);
   const baseAgeSec = meta.ageSec;
 
-  const [nowMs, setNowMs] = useState(() => Date.now());
-
-  useEffect(() => {
-    const id = window.setInterval(() => setNowMs(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
+  const nowMs = useNow();
 
   const tickSec = Number.isFinite(baseMs) ? Math.max(0, Math.floor((nowMs - baseMs) / 1000)) : 0;
   const ageSec = baseAgeSec + tickSec;
@@ -64,4 +60,4 @@ export function FreshnessBadge({ meta, generatedAt }: FreshnessBadgeProps) {
       <span className="freshness-age">· {formatAge(ageSec)}</span>
     </span>
   );
-}
+});
