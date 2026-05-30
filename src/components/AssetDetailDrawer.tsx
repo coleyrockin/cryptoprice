@@ -90,6 +90,11 @@ export function AssetDetailDrawer({ detail, isLoading, error, range, onRangeChan
     const drawer = drawerRef.current;
     drawer?.querySelector<HTMLElement>(".detail-close")?.focus();
 
+    // Lock background scroll while the modal is open so the page behind the
+    // mobile bottom-sheet can't scroll or rubber-band under it.
+    const previousBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     function handleTab(event: KeyboardEvent) {
       if (event.key !== "Tab" || !drawer) return;
       const focusables = Array.from(drawer.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
@@ -109,6 +114,7 @@ export function AssetDetailDrawer({ detail, isLoading, error, range, onRangeChan
     document.addEventListener("keydown", handleTab, true);
     return () => {
       document.removeEventListener("keydown", handleTab, true);
+      document.body.style.overflow = previousBodyOverflow;
       previouslyFocused?.focus?.();
     };
   }, []);
@@ -164,7 +170,7 @@ export function AssetDetailDrawer({ detail, isLoading, error, range, onRangeChan
               </div>
             </div>
 
-            <div className="detail-range-row" aria-label="History range">
+            <div className="detail-range-row" role="group" aria-label="History range">
               {RANGES.map((option) => (
                 <button
                   key={option}

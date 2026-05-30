@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import clsx from "clsx";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { fetchAssetDetail, fetchDashboard } from "./api";
-import { AssetDetailDrawer } from "./components/AssetDetailDrawer";
 import { DashboardShell } from "./components/DashboardShell";
 import { MarketControls } from "./components/MarketControls";
 import { MarketSections } from "./components/MarketSections";
@@ -32,6 +31,12 @@ import type {
   DashboardStock,
   HistoricalRange,
 } from "./types/dashboard";
+
+// Code-split the detail drawer: it only mounts after a card is clicked, so it
+// should not ship in the initial bundle chunk.
+const AssetDetailDrawer = lazy(() =>
+  import("./components/AssetDetailDrawer").then((module) => ({ default: module.AssetDetailDrawer })),
+);
 
 const EMPTY_CRYPTOS: DashboardCrypto[] = [];
 const EMPTY_STOCKS: DashboardStock[] = [];
@@ -310,16 +315,18 @@ function App() {
       </DashboardShell>
 
       {selectedAssetId ? (
-        <AssetDetailDrawer
-          detail={assetDetailQuery.data}
-          isLoading={assetDetailQuery.isLoading}
-          error={assetDetailQuery.error instanceof Error ? assetDetailQuery.error : null}
-          range={detailRange}
-          onRangeChange={setDetailRange}
-          onClose={closeAssetDetail}
-          logoUrl={selectedEntry?.logoUrl ?? null}
-          fallbackLogoUrls={selectedEntry?.fallbackLogoUrls}
-        />
+        <Suspense fallback={null}>
+          <AssetDetailDrawer
+            detail={assetDetailQuery.data}
+            isLoading={assetDetailQuery.isLoading}
+            error={assetDetailQuery.error instanceof Error ? assetDetailQuery.error : null}
+            range={detailRange}
+            onRangeChange={setDetailRange}
+            onClose={closeAssetDetail}
+            logoUrl={selectedEntry?.logoUrl ?? null}
+            fallbackLogoUrls={selectedEntry?.fallbackLogoUrls}
+          />
+        </Suspense>
       ) : null}
     </>
   );

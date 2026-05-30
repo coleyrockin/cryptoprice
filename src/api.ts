@@ -51,7 +51,9 @@ function deriveDegradedSegments(segmentMeta: DashboardPayload["segmentMeta"]): D
 
 async function getJson<T>(url: string): Promise<T> {
   const response = await fetch(url, {
-    cache: "no-store",
+    // Let the browser HTTP cache honor the server's Cache-Control
+    // (`s-maxage`/`stale-while-revalidate`) instead of forcing revalidation.
+    cache: "no-cache",
     headers: {
       Accept: "application/json",
     },

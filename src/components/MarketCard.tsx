@@ -214,7 +214,7 @@ export const MarketCard = memo(function MarketCard({
           onSelect?.(id);
         }
       }}
-      aria-pressed={active}
+      aria-haspopup="dialog"
       aria-label={`Show ${name} details`}
     >
       {content}

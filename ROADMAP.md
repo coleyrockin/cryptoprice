@@ -33,7 +33,7 @@ Track the world's most significant assets with transparent data confidence. Keep
 - 6 market segments (Public Companies, Private Companies, ETFs, Currencies, Cryptos, Global Assets) with 15 entries each
 - Resilient 3-tier equity fallback: Stooq CSV → Yahoo Finance v7 → Yahoo Finance v8 chart
 - Per-segment freshness labels: `live`, `fresh-cache`, `stale-cache`, `durable-cache`, `fallback`
-- Asset Detail Drawer with 30D/90D/1Y historical chart (Yahoo v8), code-split via `React.lazy`
+- Asset Detail Drawer with 30D/90D/1Y historical chart (Yahoo v8)
 - Portfolio Lab — local-only simulator with tradable-asset filtering, import/export JSON, unrealized P&L
 - GitHub Pages static mirror with fallback JSON for zero-backend deployments
 - Daily fallback snapshot refresh CI (`.github/workflows/refresh-fallback.yml`)

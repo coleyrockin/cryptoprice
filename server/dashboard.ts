@@ -81,11 +81,6 @@ function normalizeStocks(stocks: unknown): DashboardStock[] {
     return [];
   }
 
-  // Early return for empty arrays
-  if (stocks.length === 0) {
-    return stocks;
-  }
-
   return stocks.map((stock, index) => ({
     ...stock,
     rank: index + 1,
@@ -98,11 +93,6 @@ function normalizeStocks(stocks: unknown): DashboardStock[] {
 function normalizeCryptos(cryptos: unknown): DashboardCrypto[] {
   if (!Array.isArray(cryptos)) {
     return [];
-  }
-
-  // Early return for empty arrays
-  if (cryptos.length === 0) {
-    return cryptos;
   }
 
   return cryptos.map((crypto, index) => ({
@@ -153,10 +143,6 @@ function normalizeCurrencies(currencies: unknown): DashboardCurrency[] {
 function normalizeEtfs(etfs: unknown): DashboardEtf[] {
   if (!Array.isArray(etfs)) {
     return [];
-  }
-
-  if (etfs.length === 0) {
-    return etfs;
   }
 
   return etfs.map((etf, index) => ({
