@@ -2,7 +2,7 @@
   "name": "world-asset-prices",
   "private": true,
   "version": "1.0.0",
-  "description": "Live financial dashboard tracking global public companies, private companies, ETFs, fiat currencies, cryptocurrencies, and the Midnight Token side-by-side with no-key providers and audited source metadata.",
+  "description": "Live financial dashboard tracking global public companies, private companies, ETFs, fiat currencies, and cryptocurrencies side-by-side with no-key providers and audited source metadata.",
   "author": "Boyd Roberts",
   "license": "MIT",
   "keywords": [
@@ -18,8 +18,7 @@
     "typescript",
     "react",
     "vite",
-    "tailwindcss",
-    "midnight-token"
+    "tailwindcss"
   ],
   "repository": {
     "type": "git",

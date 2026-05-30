@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { fetchAssetDetail, fetchDashboard } from "./api";
 import type { AssetDetailPayload, DashboardPayload, DashboardSegmentKey } from "./types/dashboard";
 
-const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "topPrivateCompanies", "night"];
+const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "topPrivateCompanies"];
 
 function basePayload(): DashboardPayload {
   return {

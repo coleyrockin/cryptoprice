@@ -134,7 +134,7 @@ export function PortfolioLab({ candidates, holdings, onChange }: PortfolioLabPro
             </button>
           </article>
         )) : (
-          <p className="muted">Add a stock, ETF, crypto, or NIGHT holding to simulate allocation and unrealized gain/loss.</p>
+          <p className="muted">Add a stock, ETF, or crypto holding to simulate allocation and unrealized gain/loss.</p>
         )}
       </div>
 

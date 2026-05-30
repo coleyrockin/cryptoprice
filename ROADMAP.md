@@ -1,303 +1,271 @@
-# World Asset Prices Roadmap
+# World Asset Prices — Roadmap
 
-Last updated: 2026-05-27
+Last updated: 2026-05-29
 
-## 1) Project summary
-A no-key, full-stack market dashboard that serves ranked public assets, private-company valuations, ETFs, FX, crypto, and a local portfolio lab behind a resilient `/api/dashboard` + `/api/asset-detail` contract. The current implementation is production-stable for static and live hosts, but it depends on volatile free providers and curated snapshots for some assets. The roadmap below is execution-ready for the next agent, without changing production logic or UI foundations.
+---
 
-## 2) Current product vision
-Track globally relevant assets with clear freshness/provenance signals, keep local-only portfolio workflows fast and private, and keep the experience robust when providers fail.
+## 1. Project Summary
 
-## 3) Target users
-- Students/project recruiters evaluating engineering quality and architecture.
-- Early market-ops / finance learners wanting a live multi-asset snapshot.
-- Frontend users who value fast local state and transparent data confidence.
-- Contributors extending public-data pipelines and observability.
+A no-key, full-stack market dashboard tracking **90 assets across 6 categories** — public companies, private companies, ETFs, fiat currencies, cryptocurrencies, and global asset composites — with a resilient 3-tier fallback API, per-segment freshness metadata, and a local-only portfolio simulator. Production-stable on Vercel; static mirror available on GitHub Pages.
 
-## 4) What is already finished
+---
 
-### Phase 1 (shipped)
-- Public/live segments with resilient cache + durable fallback behavior.
-- Per-segment stale/degraded labels (`live`, `fresh-cache`, `stale-cache`, `durable-cache`, `fallback`).
-- Asset detail provenance for all card types, including source type, confidence, method, and limitation context.
-- Portfolio Lab with tradable asset filtering and local persistence.
-- GitHub Pages static mirror path for dashboard and detail JSON when backend is unavailable.
-- Data quality audit script, production verification script, static smoke coverage, and release gates in CI.
+## 2. Product Vision
 
-### Phase 2 (shipped 2026-05)
-- Asset Detail Drawer (`AssetDetailDrawer.tsx`) with 30D/90D/1Y Yahoo v8 chart history, code-split via `React.lazy`.
-- `api/asset-detail.ts` endpoint returning historical price points.
-- Portfolio Lab (`PortfolioLab.tsx`) with tradable-asset filtering.
+Track the world's most significant assets with transparent data confidence. Keep local portfolio workflows fast and private. Stay robust through provider failures without the user ever needing an API key.
 
-### Provider resilience (shipped 2026-05-26)
-- **3-tier equity quote fallback**: Stooq CSV → Yahoo Finance v7 quote → Yahoo Finance v8 chart. The v8 chart tier was added after Stooq and Yahoo v7 both failed from Vercel egress IPs, causing a 5.5-day equity outage.
-- **Daily fallback snapshot refresh** (`.github/workflows/refresh-fallback.yml`): Cron at 06:30 UTC runs `scripts/refresh-fallback.mjs`, which fetches the live `/api/dashboard`, validates it is clean (no degraded segments, not on fallback itself), and commits the updated snapshot. Prevents stale bundled fallback during future provider outages.
+---
 
-## 5) Operational gaps — P0 (must fix before next outage)
+## 3. Target Users
 
-### [P0] Provision Upstash Redis durable cache
-- **What**: `server/durable-cache.ts` already reads `KV_REST_API_URL` / `KV_REST_API_TOKEN` but neither is set in Vercel production. `isDurableCacheConfigured()` returns false on every cold start.
-- **Why**: Without it, each Vercel function cold start re-fetches all providers simultaneously. High-traffic spikes or multiple cold starts simultaneously hammer Stooq/Yahoo in parallel, increasing the probability of rate-limiting.
-- **How**: `vercel integration add upstash/upstash-kv --environment production` (requires interactive auth — must be done manually in Vercel dashboard). Env vars inject automatically.
-- **Impact**: Cached segment data survives across Vercel instances; partial provider failure affects only one refresh cycle instead of every user.
-- **Difficulty**: Low (infrastructure only, no code changes).
-- **Risk**: Low.
-- **Acceptance criteria**: `isDurableCacheConfigured()` returns true in production; `segmentMeta` shows `durable-cache` source for at least one warm segment.
+| Audience | What they care about |
+|---|---|
+| Students & recruiters | Engineering quality, architecture, and code clarity |
+| Finance learners | Live multi-asset snapshot with provenance transparency |
+| Frontend users | Fast local state and honest data-confidence signals |
+| Contributors | Extensible public-data pipelines and observability hooks |
 
-### [P0] Add external alerting for provider failures
-- **What**: A 5.5-day equity outage (2026-05-20 → 2026-05-26) was caught only by manual audit — no automated alert fired. `server/metrics.ts` and `server/health.ts` exist but have no external alert sink.
-- **Why**: `degradedSegments` array being non-empty in production is an on-call event. No human will notice without an alert.
-- **Options**: GitHub Actions scheduled job hitting `/api/dashboard` and failing if `degradedSegments.length > 0`; or Vercel cron + email/Discord webhook; or Upstash QStash.
-- **Acceptance criteria**: An alert fires within 30 minutes of `degradedSegments` becoming non-empty in production.
-- **Difficulty**: Low–Medium.
-- **Risk**: Low.
+---
 
-## 6) Infrastructure gaps — P1
+## 4. What Is Already Shipped
 
-### [P1] CDN cache headers on `/api/dashboard` — shipped 2026-05-27
-- **What**: `/api/dashboard` now returns `Cache-Control: public, s-maxage=30, stale-while-revalidate=60`.
-- **Why**: With ~51 tracked assets refreshed server-side on a 30-second client polling loop, Vercel Function invocations are 2× per minute per concurrent user. CDN caching at even 15–30s would dramatically reduce function invocations.
-- **Tradeoff**: Dashboard freshness would lag by up to `s-maxage` seconds; the `generatedAt` timestamp already communicates data age.
-- **Acceptance criteria**: `curl -sD - -o /dev/null https://world-asset-prices.vercel.app/api/dashboard` shows `Cache-Control: public, s-maxage=30, stale-while-revalidate=60` after deployment.
-- **Difficulty**: Low.
-- **Risk**: Low.
+### Phase 1 — Foundation
+- 6 market segments (Public Companies, Private Companies, ETFs, Currencies, Cryptos, Global Assets) with 15 entries each
+- Resilient 3-tier equity fallback: Stooq CSV → Yahoo Finance v7 → Yahoo Finance v8 chart
+- Per-segment freshness labels: `live`, `fresh-cache`, `stale-cache`, `durable-cache`, `fallback`
+- Asset Detail Drawer with 30D/90D/1Y historical chart (Yahoo v8), code-split via `React.lazy`
+- Portfolio Lab — local-only simulator with tradable-asset filtering, import/export JSON, unrealized P&L
+- GitHub Pages static mirror with fallback JSON for zero-backend deployments
+- Daily fallback snapshot refresh CI (`.github/workflows/refresh-fallback.yml`)
 
-### [P1] Pause client polling for background tabs
-- **What**: 30-second polling runs unconditionally even when the browser tab is hidden.
-- **Why**: Wastes Vercel Function invocations and battery on mobile for tabs the user isn't looking at.
-- **How**: Add a `document.addEventListener("visibilitychange", ...)` listener; pause the polling interval when `document.hidden === true`, resume on visibility restore.
-- **Files**: `src/hooks/useDashboardData.ts` (or wherever polling lives).
-- **Acceptance criteria**: Network tab shows no `/api/dashboard` calls while tab is backgrounded.
-- **Difficulty**: Low.
-- **Risk**: Low.
+### Phase 2 — Reliability (2026-05)
+- Asset Detail provenance: source type, confidence method, limitation context, `equityFundamentalsAsOf`
+- Live market cap / AUM auto-recomputed from current price × share baseline (not hardcoded snapshots)
+- Equity quote pipeline batches Stooq with Yahoo v7 fallback for missing symbols
+- CDN cache headers on `/api/dashboard` — `s-maxage=30, stale-while-revalidate=60`
+- CI: lint, typecheck, unit tests, route tests, build, bundle budget, E2E smoke, Node 24 parity
+- Data quality audit script, production verification script, static smoke coverage
 
-### [P1] Node version parity between CI and production — shipped 2026-05-27
-- **What**: `.github/workflows/*`, `.nvmrc`, `package.json`, and contributor docs now target Node 24.
-- **Why**: Fetch API behavior, URL parsing, and stream handling can change between Node majors. Running CI on the production major reduces production-only failure risk.
-- **How**: Keep workflow `node-version` values at `"24"`.
-- **Difficulty**: Low.
-- **Risk**: Low.
+### Phase 3 — Polish (2026-05-29)
+- Expanded to **15 assets per category** (up from 10)
+- NIGHT token removed from UI — server API contract preserved for backward compatibility
+- Bundle: main chunk 227 KB / 70.6 KB gzip; motion-vendor 39.64 KB gzip (within budget)
+- All checks green: lint, typecheck, 78 unit tests + 33 route tests, build, bundle
 
-### [P1] Stale equity fundamentals require manual code commits
-- **What**: `EQUITY_FUNDAMENTALS_AS_OF = "2026-05-14"` and share counts (e.g., NVDA: 24.3B shares, AAPL: 14.7B shares) in `server/providers/stooq.ts` are hardcoded strings. Share dilution, buybacks, and stock splits make these stale over months.
-- **Why**: Market cap = price × shares. A 5% share count drift produces a 5% market cap error in rankings.
-- **Options**: A quarterly GitHub Actions job that fetches shares outstanding from a keyless source (macrotrends, simplywall, or a curated manual review) and auto-commits; or at minimum, a contributor checklist in docs.
-- **Acceptance criteria**: Either automated refresh exists or a documented quarterly review cadence exists with an owner.
-- **Difficulty**: Medium.
-- **Risk**: Low.
+---
 
-### [P1] Private company valuations require code commits to update
-- **What**: Private company valuations (SpaceX, OpenAI, Stripe, etc.) and the NIGHT token special case are hardcoded in server-side JSON/TS files.
-- **Why**: These valuations are from news/funding rounds that happen irregularly. Currently, updating one requires a code change, PR, and deploy.
-- **Options**: Extract to a separate JSON config file that can be updated without touching application logic; optionally, allow a CI cron to pull from Crunchbase/PitchBook public endpoints if available.
-- **Difficulty**: Medium.
-- **Risk**: Low.
+## 5. P0 — Must Fix Before Next Outage
 
-### [P1] Saudi Aramco and Samsung have permanent null prices
-- **What**: `2222.SR` (Saudi Aramco) and `005930.KS` (Samsung) have `priceUsd: null` because no keyless provider covers Saudi or Korean exchanges. Market cap is hardcoded and will drift.
-- **Why**: These are two of the world's top-15 companies by market cap and are shown in the "Global Assets" ranking with no live price.
-- **Options**: Use Stooq's Korean/Saudi symbols if available; fall back to a keyless scraper with strict error handling; or mark them explicitly as "estimate only" in the UI with a tooltip.
-- **Difficulty**: Medium–High.
-- **Risk**: Medium (scraping is fragile).
+### Provision Upstash Redis durable cache
+`server/durable-cache.ts` reads `KV_REST_API_URL` / `KV_REST_API_TOKEN` but neither env var is set in Vercel production. Every cold start re-fetches all providers simultaneously.
 
-## 7) Code quality gaps — P2
+**How:** Vercel Dashboard → Integrations → Upstash KV → bind to `world-asset-prices` production. Env vars inject automatically.
 
-### [P2] Framer Motion is the largest vendor chunk (39.64 KB gzip)
-- **What**: `motion-vendor` accounts for 39.64 KB of the 70.6 KB gzipped bundle.
-- **Why**: If most animations are entry/exit transitions achievable with CSS, Framer Motion may be oversized for the use case.
-- **Options**: Audit which Framer features are actually used; replace simple fade/slide animations with CSS `@keyframes`; or import only `motion/react` subpath instead of full Framer.
-- **Acceptance criteria**: `npm run check:bundle` reports motion-vendor ≤ 20 KB gzip without removing any visible animations.
-- **Difficulty**: Medium.
-- **Risk**: Medium (visual regression risk).
+**Impact:** Cached segment data survives across Vercel instances; partial provider failure no longer affects every concurrent user on the same cold-start window.
 
-### [P2] `PortfolioLab.tsx` test coverage unknown
-- **What**: The Portfolio Lab feature shipped in Phase 2 but test coverage depth is unclear.
-- **Why**: Local storage keys (`wap.portfolio.v1`) and portfolio value calculation logic are high-risk if broken silently.
-- **Acceptance criteria**: At least one route test for portfolio calculation; at least one E2E smoke test for the Portfolio Lab panel.
-- **Difficulty**: Low–Medium.
-- **Risk**: Low.
+**Acceptance:** `isDurableCacheConfigured()` returns `true`; at least one `segmentMeta` segment shows `durable-cache` source.
 
-### [P2] No E2E test for degraded/fallback UI state
-- **What**: The data health banner shows "Degraded" when `degradedSegments` is non-empty, but there is no automated test that verifies the degraded UI path.
-- **Why**: The degraded state is the most important correctness guarantee — if it silently regresses, users see stale data with no warning.
-- **Acceptance criteria**: E2E test that mocks a degraded API response and confirms the health banner shows "Degraded" with the correct segment list.
-- **Difficulty**: Medium.
-- **Risk**: Low.
+**Difficulty:** Low (infrastructure only, no code changes). **Risk:** Low.
 
-### [P2] Search does not match by category
-- **What**: The search input matches symbol and name only. Searching "ETF", "crypto", or "private" returns no results.
-- **Why**: Users discovering the dashboard for the first time may try category search before they know specific symbols.
-- **Acceptance criteria**: Searching "ETF" returns all ETF cards; searching "crypto" returns crypto cards.
-- **Difficulty**: Low.
-- **Risk**: Low.
+---
 
-### [P2] Sort by "Move" does not distinguish positive vs negative
-- **What**: Sorting by largest % move ranks +10% and −10% moves equivalently by absolute value. The sort order presents them identically.
-- **Why**: A user looking for "what moved the most today" usually cares about direction.
-- **Options**: Split into "Top Gainers" and "Top Losers" sort modes; or use signed sort by default.
-- **Difficulty**: Low.
-- **Risk**: Low.
+### Add external alerting for provider failures
+A 5.5-day equity outage (2026-05-20 → 2026-05-26) was caught by manual audit only. `degradedSegments` being non-empty in production is an on-call event — no alert fires.
 
-## 8) UX improvements — P3
+**Options:**
+- GitHub Actions scheduled job hitting `/api/dashboard` → fail if `degradedSegments.length > 0`
+- Vercel cron + Discord/email webhook
+- Upstash QStash trigger
 
-### [P3] Pause-on-hidden tab polling
-Listed under P1 (Infrastructure) because it has direct cost impact.
+**Acceptance:** Alert fires within 30 minutes of `degradedSegments` becoming non-empty.
 
-### [P3] In-card sparklines on main dashboard
-- **What**: Historical sparklines (7D or 30D) are only visible in the Asset Detail Drawer. The main dashboard cards show no trend data.
-- **Why**: A user scanning the dashboard for "what's trending" currently has no visual trend signal without opening each drawer.
-- **Difficulty**: Medium.
-- **Risk**: Low. (v8 chart history per-symbol already works via `api/asset-detail`.)
+**Difficulty:** Low–Medium. **Risk:** Low.
 
-### [P3] NIGHT token contextual labeling
-- **What**: The NIGHT (Midnight Network) token appears alongside NVIDIA, gold, and SPY with no context about what it is or why it's tracked.
-- **Why**: Casual users are likely to misread its presence as an editorial endorsement or mainstream comparison.
-- **Options**: Add a tooltip or label ("Experimental — not investment advice"); move to a separate "Watch" or "Emerging" category.
-- **Difficulty**: Low.
-- **Risk**: Low.
+---
 
-### [P3] Pinned markets are device-local only
-- **What**: Pins are stored in `wap.pinned-markets.v1` in `localStorage` — no cross-device sync.
-- **Why**: Users returning on a different device or browser lose all pins.
-- **Options**: Optional account-free sync via a shareable URL hash; or Vercel KV (once provisioned for durable cache) with an anonymous session ID.
-- **Difficulty**: Medium.
-- **Risk**: Low.
+## 6. P1 — Next Sprint
 
-### [P3] Stooq CSV becoming sole equity path risk
-- **What**: If Stooq begins requiring an API key for the quote CSV endpoint (as it has been signaling with the history endpoint since mid-2026), Yahoo v8 chart becomes the sole real-time equity source.
-- **Why**: Yahoo v8 chart returns only the last closing price — no volume, open/high/low. Market cap calculations depend on price accuracy but the changePercent computation from open vs. close is an approximation.
-- **Mitigation**: Monitor Stooq HTTP response behavior in the daily fallback refresh workflow; add a CI assertion that at least one of the 3 tiers returns a non-null price for NVDA.
-- **Difficulty**: Low (monitoring) / High (finding a Stooq replacement).
+### Pause polling on background tabs
+30-second polling runs even when `document.hidden === true`. Wastes Vercel Function invocations and battery on mobile.
 
-### [P3] PWA manifest and offline support missing
-- **What**: No `manifest.json` or service worker. The app cannot be installed as a PWA.
-- **Why**: On mobile, "Add to Home Screen" works but shows generic browser chrome. Offline behavior is blank page.
-- **Difficulty**: Medium.
-- **Risk**: Low.
+**How:** `visibilitychange` listener in `src/hooks/useDashboardData.ts` — pause when hidden, resume on visible.
 
-## 9) What should be protected and not broken
-- Public API contracts for `/api/dashboard` and `/api/asset-detail`.
-- Segment-level source states and fallback semantics.
-- Local storage keys: `wap.portfolio.v1`, `wap.pinned-markets.v1`, `wap.prefs.v1`.
-- No-key and static deployment assumptions (GitHub Pages behavior).
-- Security guardrails (`server/client-key.ts`, `server/security.ts`, `api/*` request validation).
+**Acceptance:** No `/api/dashboard` calls in Network tab while tab is backgrounded.
 
-## 10) Current verification status (2026-05-26)
-- `npm run lint`: passed.
-- `npm run test`: passed (20 files, 78 tests + new v8 chart fallback test).
-- `npm run test:routes`: passed (6 files, 33 tests).
-- `npm run build`: passed.
-- `npm run audit:data`: passed.
-- `npm run check:bundle`: passed (main chunk 227 KB / 70.6 KB gzip; budget 420 KB).
-- `npm audit --omit=dev`: 0 vulnerabilities.
-- Provider status post-deploy: 3-tier equity fallback active; v8 chart tier resolving NVDA live.
-- Fallback snapshot age: still 2026-05-16; `refresh-fallback.yml` scheduled cron will update at 06:30 UTC; manual `workflow_dispatch` available.
+**Difficulty:** Low. **Risk:** Low.
 
-## 11) Architecture recommendations
-- Enforce a single source-of-truth table for data provenance and snapshot assumptions.
-- Add explicit section-level dependency map: which providers feed each segment and what fallback applies.
-- Keep provider contracts additive and avoid hidden behavior changes in API consumers.
-- Preserve current `api` and `src` split to avoid cross-layer coupling.
-- Once Upstash Redis is provisioned, verify `durable-cache.ts` hit rate via Upstash console before assuming it's working.
+---
 
-## 12) Refactor recommendations
-- Move share counts and `EQUITY_FUNDAMENTALS_AS_OF` to a versioned config file outside the main provider module.
-- Move private company valuations to a standalone JSON/TS config with a clear "last reviewed" date field.
-- Consider consolidating `server/cache.ts` (in-memory) and `server/durable-cache.ts` (Redis) behind a single `CacheAdapter` interface to simplify `server/dashboard.ts` logic.
+### Stale equity fundamentals require manual code commits
+`EQUITY_FUNDAMENTALS_AS_OF` and per-company share counts are hardcoded in `server/providers/stooq.ts`. Share dilution, buybacks, and splits make these stale over months. A 5% share-count drift = 5% market-cap ranking error.
 
-## 13) Performance recommendations
-- Add `Cache-Control: public, s-maxage=30, stale-while-revalidate=60` to `/api/dashboard` responses.
-- Pause polling on hidden tabs (`visibilitychange`).
-- Audit Framer Motion usage — if only CSS transitions are needed, `motion-vendor` gzip can halve.
-- Keep current chunking strategy and bundle budget.
+**Options:**
+- Quarterly GitHub Actions job fetching shares outstanding from a keyless source
+- Documented contributor checklist with a clear owner
 
-## 14) Security recommendations
-- Keep current header policies and no-change to `/api/client-error` logging model unless new requirements appear.
-- Add operational guidance for token/secret handling and rotate env var conventions in `SECURITY.md`.
-- Include an explicit checklist for `TRUST_PROXY_HEADERS` and Vercel-only assumptions.
+**Acceptance:** Either automated refresh exists, or a documented quarterly review cadence with an owner exists.
 
-## 15) Testing strategy
-- Unit + route: unchanged commands.
-- E2E: add degraded-state smoke test (mock `degradedSegments: ["equities"]` and assert health banner).
-- E2E: add Portfolio Lab panel open/calculation smoke test.
-- Contract: confirm dashboard payload shape and detail payload shape remain additive.
-- Data governance: continue `npm run audit:data` with manifest drift checks.
-- Production checks: continue scheduled verifier plus manual review on each milestone completion.
+**Difficulty:** Medium. **Risk:** Low.
 
-## 16) CI/CD recommendations
-- Keep all CI `node-version` values pinned to `"24"` for parity with Vercel production.
-- Add a scheduled CI job (or extend `refresh-fallback.yml`) to fail if `degradedSegments` is non-empty in production.
-- Keep GitHub Pages build command pinned to static-only mode and static smoke after deploy.
-- Keep dependency-review job; surface output in release notes.
+---
 
-## 17) Documentation improvements
-- Add a short "Current limitations" block in `README.md` with severity labels.
-- Link `ROADMAP.md`, `CHANGELOG.md`, `security_best_practices_report.md` directly from README.
-- Add release status section with last verification command run and timestamp.
-- Document the 3-tier equity provider chain and which tier is active in production.
-- Add a "Data Maintenance Cadence" section: who reviews share counts, when private valuations are refreshed, how to trigger a manual fallback refresh.
+### Private company valuations require code commits to update
+SpaceX, OpenAI, Stripe valuations are hardcoded in server-side TS files. Every valuation update requires a PR and deploy.
 
-## 18) Recommended milestone order
-1. **P0 now**: Provision Upstash Redis durable cache (manual Vercel dashboard step).
-2. **P0 now**: Add external alerting for `degradedSegments`.
-3. **P1 next sprint**: tab visibility polling pause; data maintenance cadence; external alerting follow-through.
-4. **P1 next sprint**: Document share count and private valuation review cadence.
-5. **P2**: E2E tests for degraded state and Portfolio Lab; search category matching; sort direction fix.
-6. **P3**: In-card sparklines; NIGHT labeling; bundle slim (Framer audit).
-7. **Future**: Cross-device pin sync; PWA manifest; Stooq replacement monitoring.
+**Option:** Extract to a versioned JSON config file outside application logic with a `lastReviewedAt` field.
 
-## 19) Production readiness checklist
-- [x] No unresolved verification failures in `npm run lint`, `npm run test`, `npm run test:routes`, `npm run build`, `npm run check:bundle`, `npm run audit:data`.
-- [x] 3-tier equity provider fallback in place (Stooq → Yahoo v7 → Yahoo v8 chart).
-- [x] Daily fallback snapshot refresh CI deployed.
-- [x] `/api/dashboard` cache-control header implemented for CDN revalidation.
-- [x] CI, local Node hints, package engine, and docs aligned on Node 24.
-- [ ] Upstash Redis env vars provisioned in Vercel production.
-- [ ] External alert configured for `degradedSegments`.
-- [ ] Fallback snapshot refreshed to today's date (run workflow manually once prod is confirmed clean).
-- [x] Static deployment smoke covers no `/api/*` calls and can open stock/private detail.
-- [x] Data manifest and fallback files include source URLs + date fields.
-- [x] Top-segment ordering remains correct when stale/fallback path is active.
-- [x] README + ROADMAP in sync with current behavior.
+**Difficulty:** Medium. **Risk:** Low.
 
-## 20) Next Agent Instructions
+---
 
-### Immediate manual actions (cannot be automated)
-1. In Vercel dashboard → Integrations → add Upstash KV → bind to `world-asset-prices` production.
-2. Once env vars appear, verify with `vercel env ls --environment=production | grep KV`.
-3. Trigger `.github/workflows/refresh-fallback.yml` via `workflow_dispatch` once `degradedSegments` is confirmed empty in production.
+### Saudi Aramco and Samsung have permanent null prices
+`2222.SR` and `005930.KS` show `priceUsd: null` — no keyless provider covers Saudi or Korean exchanges. Market cap is hardcoded and drifts.
 
-### First 5 code tasks
-1. Add `visibilitychange` polling pause to the data-fetch hook if React Query behavior is not sufficient in browser network traces.
-2. Add E2E test for degraded banner state.
-3. Add Portfolio Lab E2E calculation coverage.
-4. Add external alerting for production `degradedSegments`.
-5. Add documented quarterly review cadence for share counts and private valuations.
+**Options:**
+- Stooq Korean/Saudi symbol coverage check
+- Mark explicitly as "estimate only" with tooltip in the UI
 
-### Commands before making logic changes
+**Difficulty:** Medium–High. **Risk:** Medium.
+
+---
+
+## 7. P2 — Code Quality
+
+| Item | Description | Difficulty |
+|---|---|---|
+| **E2E degraded-state test** | Mock `degradedSegments: ["topStocks"]`, assert health banner shows correct segment | Medium |
+| **Portfolio Lab E2E coverage** | Smoke test add/remove holding + P&L calculation via localStorage | Low–Medium |
+| **Category search** | Search "ETF", "crypto" should return matching cards — currently only name/symbol match | Low |
+| **Sort by move: signed direction** | `+10%` and `−10%` currently tie; offer "Top Gainers" / "Top Losers" split | Low |
+| **Framer Motion audit** | `motion-vendor` is 39.64 KB gzip; audit if CSS `@keyframes` can replace simple fade/slide | Medium |
+
+---
+
+## 8. P3 — UX Improvements
+
+### In-card sparklines on the main dashboard
+7D or 30D sparklines inline on each card so users can scan trends without opening the detail drawer. Yahoo v8 chart history is already fetched per-symbol — this is a rendering concern only.
+
+**Difficulty:** Medium. **Risk:** Low.
+
+### Pinned markets: cross-device sync
+Pins are stored in `wap.pinned-markets.v1` (localStorage). A user on a different device loses all pins.
+
+**Options:** Shareable URL hash; or Vercel KV anonymous session (once Upstash is provisioned).
+
+**Difficulty:** Medium. **Risk:** Low.
+
+### PWA manifest and offline support
+No `manifest.json` or service worker. Mobile "Add to Home Screen" shows generic browser chrome. Offline = blank page.
+
+**Difficulty:** Medium. **Risk:** Low.
+
+### Stooq CSV provider risk monitoring
+If Stooq requires an API key (signaling since mid-2026), Yahoo v8 chart becomes the sole equity source. Yahoo v8 returns only last close — no volume, open/high/low; `changePercent` becomes an approximation.
+
+**Mitigation:** CI assertion that at least one of the 3 tiers returns a non-null price for NVDA; monitor Stooq HTTP response codes in the daily fallback refresh workflow.
+
+**Difficulty:** Low (monitoring) / High (finding replacement). **Risk:** Medium.
+
+---
+
+## 9. Inviolable Constraints
+
+These must never be broken regardless of what changes:
+
+| Contract | Details |
+|---|---|
+| **API payload shape** | `/api/dashboard` and `/api/asset-detail` fields are additive only |
+| **Segment source semantics** | `live`, `fresh-cache`, `stale-cache`, `durable-cache`, `fallback` labels must remain accurate |
+| **localStorage keys** | `wap.portfolio.v1`, `wap.pinned-markets.v1`, `wap.prefs.v1` — changing breaks existing user data |
+| **Static deployment** | `GITHUB_PAGES` path and fallback JSON must work without any `/api/*` calls |
+| **3-tier equity order** | Stooq CSV → Yahoo v7 → Yahoo v8 chart — do not reorder |
+| **Security guardrails** | `server/client-key.ts`, `server/security.ts`, rate limiting on all endpoints |
+
+---
+
+## 10. Architecture Principles
+
+- **Single source of truth for provenance** — every segment reports source type, age, and confidence; no silent fallbacks.
+- **Additive contracts** — new payload fields are never breaking; removals require a version bump.
+- **Provider-layer isolation** — `src` never imports from `server`; API is the only bridge.
+- **Zero required keys** — the dashboard must work, with degraded labels, even if all providers fail.
+- **Cache at the right layer** — in-memory (request-level), Upstash (cross-instance), CDN (`s-maxage`).
+
+---
+
+## 11. Recommended Milestone Order
+
 ```
+Now (P0)
+├── Provision Upstash Redis in Vercel dashboard
+└── Wire external degradedSegments alert
+
+Next sprint (P1)
+├── Tab-visibility polling pause
+├── Documented share-count review cadence
+└── Private valuation config extraction
+
+Q3 (P2)
+├── E2E degraded-state + Portfolio Lab tests
+├── Category search
+├── Sort direction fix
+└── Framer Motion audit
+
+Q4 (P3)
+├── In-card sparklines
+├── Cross-device pin sync
+└── PWA manifest
+```
+
+---
+
+## 12. Current Verification Status (2026-05-29)
+
+| Check | Status |
+|---|---|
+| `npm run lint` | ✅ Passed |
+| `npm run typecheck` | ✅ Passed |
+| `npm run test` | ✅ Passed (78 tests) |
+| `npm run test:routes` | ✅ Passed (33 tests) |
+| `npm run build` | ✅ Passed |
+| `npm run audit:data` | ✅ Passed |
+| `npm run check:bundle` | ✅ Passed (70.6 KB gzip / 420 KB budget) |
+| `npm audit --omit=dev` | ✅ 0 vulnerabilities |
+| Upstash Redis (production) | ❌ Not provisioned |
+| External degraded alert | ❌ Not configured |
+| Fallback snapshot current | ❌ Run `workflow_dispatch` once prod confirmed clean |
+
+---
+
+## 13. Next Agent: Immediate Actions
+
+### Manual (cannot be automated)
+1. Vercel Dashboard → Integrations → Upstash KV → bind to `world-asset-prices` production
+2. Verify: `vercel env ls --environment=production | grep KV`
+3. Trigger `refresh-fallback.yml` via `workflow_dispatch` once `degradedSegments` is empty in production
+
+### Code tasks (in order)
+1. Add `visibilitychange` polling pause to `src/hooks/useDashboardData.ts`
+2. Add E2E test for degraded-segment banner
+3. Add Portfolio Lab E2E smoke coverage
+4. Wire external alert for production `degradedSegments`
+5. Document quarterly share-count and private-valuation review cadence
+
+### Commands before any logic change
+```sh
 git status --short
-npm run lint
-npm run test
-npm run test:routes
-npm run audit:data
+npm run lint && npm run test && npm run test:routes && npm run audit:data
 ```
 
 ### Commands after any code edit
-```
-npm run check:bundle
-npm run build
+```sh
+npm run typecheck && npm run build && npm run check:bundle
 npm audit --omit=dev
 ```
 
-### What not to break
-- `/api/dashboard` and `/api/asset-detail` payload fields.
-- Static deployment behavior (`GITHUB_PAGES` paths and fallback JSON generation).
-- Segment source labels and health state semantics.
-- Local storage keys used by preferences, watchlist, and portfolio.
-- The 3-tier equity provider order: Stooq → Yahoo v7 → Yahoo v8 chart.
-
-### When to stop and ask for human review
-- Any change that touches `/api/dashboard`, `/api/asset-detail`, or provider endpoints.
-- Any change that modifies `segmentMeta`, `degradedSegments`, or fallback selection logic.
-- Any security headers, rate-limiting, or proxy validation changes.
+### Stop and ask for human review when touching
+- `/api/dashboard` or `/api/asset-detail` payload fields
+- `segmentMeta`, `degradedSegments`, or fallback selection logic
+- Security headers, rate limiting, or proxy validation
+- Provider order or fallback chain structure

@@ -109,8 +109,7 @@ function countTrackedMarkets(dashboard: DashboardPayload): number {
     dashboard.topEtfs.length +
     dashboard.topCurrencies.length +
     dashboard.topPrivateCompanies.length +
-    dashboard.topCryptos.length +
-    (dashboard.night ? 1 : 0)
+    dashboard.topCryptos.length
   );
 }
 
@@ -182,17 +181,8 @@ function getLargestMover(dashboard: DashboardPayload): DashboardInsight {
     ...dashboard.topCurrencies,
   ];
 
-  const nightMover = dashboard.night && isFiniteNumber(dashboard.night.change24h)
-    ? {
-        name: dashboard.night.name,
-        symbol: dashboard.night.symbol,
-        change: dashboard.night.change24h,
-      }
-    : null;
-
   const largest = entries
     .map((entry) => ({ name: entry.name, symbol: entry.symbol, change: getEntryChange(entry) }))
-    .concat(nightMover ? [nightMover] : [])
     .filter((entry): entry is { name: string; symbol: string; change: number } => isFiniteNumber(entry.change))
     .sort((a, b) => Math.abs(b.change) - Math.abs(a.change))[0];
 

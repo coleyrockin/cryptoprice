@@ -11,7 +11,10 @@ const DASHBOARD_ENDPOINT = import.meta.env.DEV
 
 const CLIENT_ERROR_ENDPOINT = import.meta.env.DEV ? "/__local_api/client-error" : "/api/client-error";
 const ASSET_DETAIL_ENDPOINT = import.meta.env.DEV ? "/__local_api/asset-detail" : "/api/asset-detail";
-const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "topPrivateCompanies", "night"];
+// `night` remains in the API payload/types (server contract) but is intentionally
+// not surfaced in the UI, so it is excluded from the segments we normalize and
+// report health for.
+const SEGMENT_KEYS: DashboardSegmentKey[] = ["topCryptos", "topStocks", "topEtfs", "topCurrencies", "topPrivateCompanies"];
 const SEGMENT_SOURCES = new Set<DashboardSegmentSource>(["live", "fresh-cache", "stale-cache", "fallback", "durable-cache"]);
 
 function isSegmentSource(value: unknown): value is DashboardSegmentSource {

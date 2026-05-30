@@ -1,6 +1,6 @@
-import type { DashboardCrypto, DashboardEtf, DashboardNight, DashboardStock, LocalHolding } from "../types/dashboard";
+import type { DashboardCrypto, DashboardEtf, DashboardStock, LocalHolding } from "../types/dashboard";
 
-export type PortfolioEntry = DashboardCrypto | DashboardEtf | DashboardStock | (DashboardNight & { category: "NIGHT"; rank: number });
+export type PortfolioEntry = DashboardCrypto | DashboardEtf | DashboardStock;
 
 export type PortfolioPosition = {
   holding: LocalHolding;
@@ -23,7 +23,7 @@ export type PortfolioSummary = {
 export function isTradablePortfolioAsset(value: unknown): value is PortfolioEntry {
   if (!value || typeof value !== "object") return false;
   const entry = value as Partial<PortfolioEntry>;
-  return entry.category === "Stock" || entry.category === "ETF" || entry.category === "Crypto" || entry.category === "NIGHT";
+  return entry.category === "Stock" || entry.category === "ETF" || entry.category === "Crypto";
 }
 
 export function parsePositiveDecimal(value: string): number | null {
