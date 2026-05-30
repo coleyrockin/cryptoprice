@@ -1877,12 +1877,35 @@ html:not(.dark) .skeleton-line {
 
 .detail-degraded { color: var(--amber); }
 
-/* ── Visible focus rings for controls that previously had none ── */
+/* ── Visible focus rings for controls that previously had none ──
+   Consolidated keyboard focus ring. Declared after the per-control rules so it
+   wins the cascade over their `outline: none`; only fires for keyboard focus. */
 .card-chip:focus-visible,
 .detail-range:focus-visible,
-.detail-close:focus-visible {
+.detail-close:focus-visible,
+.section-nav a:focus-visible,
+.segmented-button:focus-visible,
+.density-toggle:focus-visible,
+.search-clear:focus-visible,
+.coin-card:focus-visible,
+.detail-source-link:focus-visible {
   outline: 2px solid var(--accent-blue);
   outline-offset: 2px;
+}
+
+/* The search field and sort select strip their native outline; restore a
+   visible keyboard focus indicator on their wrappers. */
+.market-search:focus-within,
+.market-select:focus-within {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+/* Tabular figures so stacked prices align and don't jitter on value pulses. */
+.coin-price,
+.coin-change,
+.detail-metrics strong {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Honor prefers-reduced-motion for the remaining decorative animations ── */
